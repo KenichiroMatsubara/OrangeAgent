@@ -47,7 +47,7 @@ const DriveFolders = ({ drive }: { drive: DriveFolders }) => {
     await api.removeDriveFolder(account.accountId, folderId);
     await revalidator.revalidate();
   });
-  return <Section title="AI が触れる Drive" lead="AI に聞く画面でも自動化でも、AI はここに挙げたフォルダとその下にあるものだけを探し、読み、整理します。消すように頼まれたものは「FlareChat のゴミ箱」フォルダに移すだけで、削除はしません。">
+  return <Section title="AI が触れる Drive" lead="AI に聞く画面でも自動化でも、AI はここに挙げたフォルダとその下にあるものだけを探し、読み、整理します。消すように頼まれたものは「OrangeAgent のゴミ箱」フォルダに移すだけで、削除はしません。">
     <Note>メールの添付ファイルを予定に付けるときも、置き場所はこの中から AI が選びます。決まった場所に置かせたいときは、<Link to="../skills">スキル</Link>に「添付は〇〇フォルダに、メールごとにまとめて置く」のように書きます。</Note>
     {operations.error && <Banner tone="danger" icon={<CircleAlert size={18} aria-hidden="true" />}>{operations.error}</Banner>}
     {drive.folders.length

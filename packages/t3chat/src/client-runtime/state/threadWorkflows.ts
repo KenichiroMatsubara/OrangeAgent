@@ -185,7 +185,7 @@ export function deriveThreadQueueWorkflowState(
       projection.thread.archivedAt == null &&
       projection.thread.deletedAt == null,
     canPromoteToSteer:
-      // FlareChat: its answers run in its own engine, which no provider session describes, and
+      // OrangeAgent: its answers run in its own engine, which no provider session describes, and
       // read a message handed to them at their next step whenever they run.
       (session === null && activeRun?.status === "running") ||
       promoteSkipsCompaction ||

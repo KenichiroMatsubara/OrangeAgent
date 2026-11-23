@@ -271,7 +271,7 @@ export function turnItemHasDetail(item: OrchestrationV2TurnItem): boolean {
     case "web_search":
       return (item.results?.length ?? 0) > 0 || (item.patterns?.length ?? 0) > 0;
     case "dynamic_tool":
-      // FlareChat: every call opens, to its tool's own name and, when it failed, why.
+      // OrangeAgent: every call opens, to its tool's own name and, when it failed, why.
       return true;
     case "approval_request":
       return Boolean(item.prompt?.trim());

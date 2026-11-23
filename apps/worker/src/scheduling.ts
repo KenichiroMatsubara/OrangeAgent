@@ -324,7 +324,7 @@ const composedDescription = async (database: D1Database, eventId: string, summar
  * same for every attempt of the write, in the lowercase hexadecimal Google
  * accepts for an id a client chooses.
  */
-const plannedEventId = (plannedWriteId: string): Promise<string> => repeatDigest(`flarechat:planned-write:${plannedWriteId}:event`);
+const plannedEventId = (plannedWriteId: string): Promise<string> => repeatDigest(`orangeagent:planned-write:${plannedWriteId}:event`);
 
 /**
  * Creates the Google Calendar event, under the id a Planned Write chose when it
@@ -529,7 +529,7 @@ export const applyScheduledEventCall = async (input: {
   return { ...created, attendees: invitees.map(({ email }) => email) };
 };
 
-/** A Scheduled Event as FlareChat recorded it, read by its id before any change. */
+/** A Scheduled Event as OrangeAgent recorded it, read by its id before any change. */
 const recordedEvent = async (database: D1Database, eventId: string) => {
   const row = await accountDatabase(database).select({
     id: events.id, googleEventId: events.googleEventId, status: events.status, sourceMessageId: events.sourceMessageId,
@@ -540,7 +540,7 @@ const recordedEvent = async (database: D1Database, eventId: string) => {
   return row;
 };
 
-/** An event as FlareChat recorded it, for showing a change or cancellation before it is made; null when the Account has none by that id. */
+/** An event as OrangeAgent recorded it, for showing a change or cancellation before it is made; null when the Account has none by that id. */
 export const eventFacts = async (database: D1Database, eventId: string): Promise<{ title: string; startsAt: string; endsAt: string; location: string } | null> => {
   const row = await accountDatabase(database).select({ title: events.title, startsAt: events.startsAt, endsAt: events.endsAt, location: events.location })
     .from(events).where(eq(events.id, eventId)).get();
@@ -621,7 +621,7 @@ const attributionFor = (gmailMessageId: string | null, currentDescription: strin
 
 /**
  * Changes one Scheduled Event field by field. A field a person changed in
- * Google Calendar since FlareChat last wrote it is a Manual Override and keeps
+ * Google Calendar since OrangeAgent last wrote it is a Manual Override and keeps
  * its value while the other fields still change; the write names the revision
  * it read, so it never overwrites a newer one.
  */
@@ -685,7 +685,7 @@ export const scheduledEventCancellation = (input: Record<string, unknown>): { ev
 
 /**
  * Cancels one Scheduled Event: Google Calendar removes it from every
- * attendee's calendar without mailing them, and FlareChat keeps it as
+ * attendee's calendar without mailing them, and OrangeAgent keeps it as
  * cancelled, so its attendance and history stay readable and no reminder
  * speaks of it again.
  */
@@ -708,7 +708,7 @@ export const cancelScheduledEvent = async (input: {
 
 /**
  * Rewrites a Scheduled Event's description, and the file chips beside it,
- * from what FlareChat holds about it. Neither moves the meeting, so this never
+ * from what OrangeAgent holds about it. Neither moves the meeting, so this never
  * changes a time; a description a person rewrote by hand keeps their words.
  */
 const rewriteEventRecords = async (input: { google: GoogleProvider; database: D1Database; accessToken: string; eventId: string }): Promise<{ deleted: boolean; descriptionKept: boolean }> => {

@@ -18,7 +18,7 @@ describe('Connections screen', () => {
     vi.mocked(api.contactLists).mockResolvedValue([contactList()]);
     vi.mocked(api.accessTokens).mockResolvedValue([]);
     vi.mocked(api.operatorTokens).mockResolvedValue([]);
-    vi.mocked(api.mcpEndpoint).mockResolvedValue({ url: 'https://flarechat.example/api/public/organizations/org-1/mcp' });
+    vi.mocked(api.mcpEndpoint).mockResolvedValue({ url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' });
     vi.mocked(api.mcpServers).mockResolvedValue([{ id: 'server-1', name: 'notion', url: 'https://example.com/mcp', revision: null, authentication: 'token', signInError: null, updatedAt: '2026-08-18T09:00:00.000Z' }]);
   });
 
@@ -162,7 +162,7 @@ describe('Connections screen', () => {
     expect(within(sheet).getByText(/Anthropic のサンドボックス/u)).toBeTruthy();
     expect(within(sheet).getByRole('button', { name: 'Claude Sonnet 5.5 を追加' })).toBeTruthy();
     await user.click(within(sheet).getByRole('radio', { name: 'OpenRouter' }));
-    expect(within(sheet).getByText(/FlareChat が用意する実行環境/u)).toBeTruthy();
+    expect(within(sheet).getByText(/OrangeAgent が用意する実行環境/u)).toBeTruthy();
     expect(within(sheet).queryByRole('button', { name: 'Claude Sonnet 5.5 を追加' })).toBeNull();
   });
 
@@ -249,7 +249,7 @@ describe('Connections screen', () => {
   });
 
   it('issues a key for an outside agent bounded to one Contact List, and shows it once', async () => {
-    vi.mocked(api.issueAccessToken).mockResolvedValue({ id: 'token-1', name: 'cowork', tools: ['query_contacts'], token: 'secret-token', url: 'https://flarechat.example/api/public/organizations/org-1/mcp' });
+    vi.mocked(api.issueAccessToken).mockResolvedValue({ id: 'token-1', name: 'cowork', tools: ['query_contacts'], token: 'secret-token', url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' });
     const user = userEvent.setup();
     renderScreen('connections', connections);
 
@@ -268,8 +268,8 @@ describe('Connections screen', () => {
     vi.mocked(api.operatorTokens).mockResolvedValue([{ id: 'operator-1', email: 'owner@example.com', client: null, createdAt: '2026-08-18T09:00:00.000Z', expiresAt: '2026-11-16T09:00:00.000Z', lastUsedAt: null }]);
     vi.mocked(api.issueLoginCode).mockResolvedValue({
       code: 'K7QF-2M9X', expiresAt: '2026-08-18T09:10:00.000Z',
-      exchangeUrl: 'https://flarechat.example/api/public/organizations/org-1/operator-tokens',
-      serverUrl: 'https://flarechat.example/api/public/organizations/org-1/mcp',
+      exchangeUrl: 'https://orangeagent.example/api/public/organizations/org-1/operator-tokens',
+      serverUrl: 'https://orangeagent.example/api/public/organizations/org-1/mcp',
     });
     const user = userEvent.setup();
     renderScreen('connections', connections);
@@ -291,7 +291,7 @@ describe('Connections screen', () => {
     renderScreen('connections', connections);
 
     const section = await screen.findByRole('region', { name: 'CLI とアプリからのログイン' });
-    expect(within(section).getByDisplayValue('https://flarechat.example/api/public/organizations/org-1/mcp')).toBeTruthy();
+    expect(within(section).getByDisplayValue('https://orangeagent.example/api/public/organizations/org-1/mcp')).toBeTruthy();
     expect(within(section).getByText('Claude ・ owner@example.com')).toBeTruthy();
     expect(within(section).getByRole('button', { name: 'owner@example.com のClaudeログインを取り消す' })).toBeTruthy();
   });

@@ -77,8 +77,8 @@ export const automationAlertMessage = (input: {
   appUrl: string;
 }): { subject: string; body: string } => ({
   subject: input.kind === 'credential'
-    ? `[FlareChat] 自動処理が停止しました (${input.inboxAddress})`
-    : `[FlareChat] 自動処理が継続して失敗しています (${input.inboxAddress})`,
+    ? `[OrangeAgent] 自動処理が停止しました (${input.inboxAddress})`
+    : `[OrangeAgent] 自動処理が継続して失敗しています (${input.inboxAddress})`,
   body: [
     `Automation Inbox: ${input.inboxAddress}`,
     `最初の失敗: ${input.failingSince}`,

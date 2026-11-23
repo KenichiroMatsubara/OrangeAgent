@@ -361,7 +361,7 @@ export const api = {
     const blob = await response.blob();
     return new File([blob], named ? decodeURIComponent(named) : 'Drive のファイル', { type: response.headers.get('Content-Type') ?? blob.type });
   },
-  /** Whether this FlareChat can notify, with the key a browser subscribes with. */
+  /** Whether this OrangeAgent can notify, with the key a browser subscribes with. */
   pushSettings: (accountId: string): Promise<PushSettings> => request(account(accountId, '/push')),
   /** Notifies the signed-in member on this browser from now on. */
   savePushDevice: (accountId: string, input: PushDevice): Promise<PushDeviceState> => post(account(accountId, '/push/devices'), input),

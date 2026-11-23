@@ -1,5 +1,5 @@
 /**
- * FlareChat's Service Worker, served as `/sw.js` (precache.ts builds it):
+ * OrangeAgent's Service Worker, served as `/sw.js` (precache.ts builds it):
  * it keeps each release's app shell and chat chunks so the installed app
  * opens at once and downloads the chat once per release (cache.ts), and it
  * shows Operator Chat's notifications and opens their conversations
@@ -16,12 +16,12 @@ import { ACTIVATE, noticeOf, openingOf, shownOptions, type OpenMessage } from '.
 
 declare const self: ServiceWorkerGlobalScope;
 /** The release, written in by the build (precache.ts). */
-declare const __FLARECHAT_RELEASE__: Release;
+declare const __ORANGEAGENT_RELEASE__: Release;
 
-const RELEASE: Release = __FLARECHAT_RELEASE__;
+const RELEASE: Release = __ORANGEAGENT_RELEASE__;
 const CACHE = cacheName(RELEASE.version);
 /** Where each release cache notes when it was filled, so the next release knows which it replaced. */
-const FILLED = '/__flarechat-filled';
+const FILLED = '/__orangeagent-filled';
 const SHELL = '/';
 
 self.addEventListener('install', (event) => {

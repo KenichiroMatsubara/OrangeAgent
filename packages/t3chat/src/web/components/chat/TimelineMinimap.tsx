@@ -190,7 +190,7 @@ export function TimelineMinimap({
             onMouseDown={(event) => event.preventDefault()}
             type="button"
           >
-            {/* FlareChat: a faint rail the marks sit on, so a column of short strokes never reads as 二 or 三. */}
+            {/* OrangeAgent: a faint rail the marks sit on, so a column of short strokes never reads as 二 or 三. */}
             <span
               aria-hidden="true"
               data-minimap-rail
@@ -205,7 +205,7 @@ export function TimelineMinimap({
                 // fisheye animate constantly (every scroll tick and streaming
                 // update flips a band of strips), so the strip animates only
                 // transform and opacity.
-                // FlareChat: each message is a dot on the rail rather than a short stroke.
+                // OrangeAgent: each message is a dot on the rail rather than a short stroke.
                 <span
                   aria-hidden="true"
                   className={cn(

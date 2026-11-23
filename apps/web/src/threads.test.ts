@@ -239,7 +239,7 @@ describe('the Operator Chat transport', () => {
     expect(createThreadTransport({ accountId: 'org-1', threadId: 'thread-2', surroundings: surroundings().value }).chosenEffort?.()).toBe('max');
     expect(createThreadTransport({ accountId: 'org-2', threadId: 'thread-3', surroundings: surroundings().value }).chosenEffort?.()).toBeNull();
     // A value this browser kept that names no level is remembered as none.
-    window.localStorage.setItem('flarechat:chat-effort:org-1', 'ultra');
+    window.localStorage.setItem('orangeagent:chat-effort:org-1', 'ultra');
     expect(transport.chosenEffort?.()).toBeNull();
     expect(api.sendChatThreadMessage).toHaveBeenCalledWith('org-1', 'thread-1', { text: 'よく考えて', effort: 'max' }, []);
     expect(api.rewindChatThread).toHaveBeenCalledWith('org-1', 'thread-1', { messageId: 'message-1', text: '直した', effort: 'low' }, []);

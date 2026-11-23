@@ -116,7 +116,7 @@ const Logins = ({ browser }: { browser: BrowserSettings }) => {
     await revalidator.revalidate();
   });
   const beginning = operations.pending(pendingKey.browserSignIn);
-  return <Section title="ログインしておくサイト" lead="ここでログインしたサイトは、どの実行のブラウザでもログインした状態で開きます。パスワードは AI にも FlareChat にも渡りません。保存するのはログイン後にブラウザに残る Cookie などだけで、暗号化して保管します。">
+  return <Section title="ログインしておくサイト" lead="ここでログインしたサイトは、どの実行のブラウザでもログインした状態で開きます。パスワードは AI にも OrangeAgent にも渡りません。保存するのはログイン後にブラウザに残る Cookie などだけで、暗号化して保管します。">
     {operations.error && <Banner tone="danger" icon={<CircleAlert size={18} aria-hidden="true" />}>{operations.error}</Banner>}
     {signIn && <Card>
       <Note>{signIn.login.site} のログイン用の画面を用意しました。下のボタンで開き、ふだんどおりにログインしてください（二段階認証もそのまま通せます）。終わったらこの画面に戻り、「ログインを保存」を押します。{dateTimeLabel(signIn.expiresAt)}までに保存しないと、ブラウザは閉じます。</Note>

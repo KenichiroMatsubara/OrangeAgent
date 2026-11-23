@@ -1,6 +1,6 @@
 # Let Claude connect by OAuth, granting an Operator Token
 
-Claude on the web, desktop, and mobile reaches a remote MCP Server only by OAuth unless its organization has the request-header beta, so FlareChat's Worker now includes an OAuth authorization server in front of the MCP Server. An approval grants the same Operator Token a Login Code yields (ADR 0193), bound to the approving member's Identity and checked against their membership on every call. Google sign-in stays the only way a person is identified; the authorization server only records what a signed-in member approved on the authorization screen.
+Claude on the web, desktop, and mobile reaches a remote MCP Server only by OAuth unless its organization has the request-header beta, so OrangeAgent's Worker now includes an OAuth authorization server in front of the MCP Server. An approval grants the same Operator Token a Login Code yields (ADR 0193), bound to the approving member's Identity and checked against their membership on every call. Google sign-in stays the only way a person is identified; the authorization server only records what a signed-in member approved on the authorization screen.
 
 The grant ends ninety days after the approval, as every Operator Token does, so an app a member stopped using stops working on a date someone can see. Within them the app holds an access token for an hour and a refresh token that is replaced on every use, as OAuth 2.1 asks of a public client.
 

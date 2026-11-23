@@ -73,7 +73,7 @@ const HTML_RENDER_SHORTCUT_COMMANDS: ReadonlySet<KeybindingCommand> = new Set([
 export const isPdfPreviewFile = (path: string): boolean =>
   /\.pdf$/i.test(path.split(/[?#]/, 1)[0] ?? "");
 
-// FlareChat: the PDF.js viewer is cut. A PDF is shown by the browser's own viewer; where the
+// OrangeAgent: the PDF.js viewer is cut. A PDF is shown by the browser's own viewer; where the
 // browser has none (iOS shows one page), the person saves the file instead.
 function PdfDocument(props: { src: string; title: string; documentKey: string; actions?: ReactNode }) {
   const [src] = useState(props.src);

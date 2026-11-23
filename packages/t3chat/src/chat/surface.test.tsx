@@ -19,10 +19,10 @@ const AT = Date.parse('2026-11-21T01:00:00.000Z');
 const emptyConversation = (): Projection => ({
   thread: {
     id: ids.thread(THREAD_ID),
-    projectId: ids.project('flarechat'),
+    projectId: ids.project('orangeagent'),
     title: '新しい会話',
-    providerInstanceId: ids.provider('flarechat'),
-    modelSelection: { instanceId: ids.provider('flarechat'), model: 'flarechat' },
+    providerInstanceId: ids.provider('orangeagent'),
+    modelSelection: { instanceId: ids.provider('orangeagent'), model: 'orangeagent' },
     runtimeMode: 'full-access',
     interactionMode: 'default',
     branch: null,
@@ -50,8 +50,8 @@ const event = (type: 'run.created' | 'run.updated' | 'turn-item.updated' | 'runt
 
 const item = { threadId: ids.thread(THREAD_ID), runId: ids.run('run-1'), nodeId: null, providerThreadId: null, providerTurnId: null, nativeItemRef: null, parentItemId: null, title: null, startedAt: utc(AT), completedAt: utc(AT + 2_000), updatedAt: utc(AT + 2_000) };
 const run = (status: 'running' | 'interrupted' | 'waiting' | 'completed'): Run => ({
-  id: ids.run('run-1'), threadId: ids.thread(THREAD_ID), ordinal: 1, providerInstanceId: ids.provider('flarechat'),
-  modelSelection: { instanceId: ids.provider('flarechat'), model: 'flarechat' }, providerThreadId: null, userMessageId: ids.message('message-1'),
+  id: ids.run('run-1'), threadId: ids.thread(THREAD_ID), ordinal: 1, providerInstanceId: ids.provider('orangeagent'),
+  modelSelection: { instanceId: ids.provider('orangeagent'), model: 'orangeagent' }, providerThreadId: null, userMessageId: ids.message('message-1'),
   rootNodeId: null, activeAttemptId: null, status, requestedAt: utc(AT), startedAt: utc(AT), completedAt: status === 'interrupted' || status === 'completed' ? utc(AT + 2_000) : null,
   checkpointId: null, contextHandoffId: null,
 });
@@ -87,7 +87,7 @@ const waitingAnswer = (): DomainEvent[] => [
   } as TurnItem),
   event('runtime-request.updated', {
     id: ids.request('request-1'), nodeId: ids.node('run-1'), providerTurnId: null, nativeRequestRef: null, kind: 'permission', status: 'pending',
-    responseCapability: { type: 'live', providerSessionId: ids.session('flarechat'), supportsFeedback: true }, createdAt: utc(AT), resolvedAt: null,
+    responseCapability: { type: 'live', providerSessionId: ids.session('orangeagent'), supportsFeedback: true }, createdAt: utc(AT), resolvedAt: null,
   }),
   event('run.updated', run('waiting')),
 ];
@@ -118,7 +118,7 @@ const transportOf = (events: readonly DomainEvent[] = [], modes: ReadonlyArray<C
   changeQueue: vi.fn(async () => undefined),
   rewind: vi.fn(async () => undefined),
   fork: vi.fn(async () => 'thread-forked'),
-  attachmentUrls: new Map([['photo-1', 'data:image/png;base64,iVBORw0KGgo='], ['chart-1', 'https://flarechat.test/files/chart-1'], ['pdf-1', 'https://flarechat.test/files/pdf-1'], ['csv-1', 'https://flarechat.test/files/csv-1']]),
+  attachmentUrls: new Map([['photo-1', 'data:image/png;base64,iVBORw0KGgo='], ['chart-1', 'https://orangeagent.test/files/chart-1'], ['pdf-1', 'https://orangeagent.test/files/pdf-1'], ['csv-1', 'https://orangeagent.test/files/csv-1']]),
 });
 
 // jsdom has no media queries, font loading, or layout; the chat and its editor read them as a desktop browser answers.
@@ -229,7 +229,7 @@ describe('the chat surface', () => {
     expect(transport.send).not.toHaveBeenCalled();
   }, 30_000);
 
-  it('offers FlareChat\'s composer: its own placeholder, a way to attach files, and none of t3code\'s menus, microphone, or model picker', async () => {
+  it('offers OrangeAgent\'s composer: its own placeholder, a way to attach files, and none of t3code\'s menus, microphone, or model picker', async () => {
     const transport = transportOf();
     const user = userEvent.setup();
     render(<ChatSurface threadId={THREAD_ID} transport={transport} />);
@@ -238,7 +238,7 @@ describe('the chat surface', () => {
     expect(document.body.textContent).toContain('AI に頼みたいことを書いてください');
     expect(document.body.textContent).not.toMatch(/@ で|\$ で|\/ で|フルアクセス|ブランチ|ワークツリー/u);
     expect(screen.queryByRole('button', { name: /音声入力/u })).toBeNull();
-    expect(screen.queryByRole('button', { name: /FlareChat/u })).toBeNull();
+    expect(screen.queryByRole('button', { name: /OrangeAgent/u })).toBeNull();
     expect(screen.getAllByRole('button', { name: 'ファイルを添付' }).length).toBeGreaterThan(0);
     // The permission control stays: the approval modes are chosen here.
     expect(screen.getAllByRole('button', { name: /権限/u }).length).toBeGreaterThan(0);
@@ -610,9 +610,9 @@ describe('what the chat shows', () => {
 
     await screen.findByText('まとめました。', {}, { timeout: 10_000 });
     const files = container.querySelector('[data-answer-files="true"]') as HTMLElement;
-    expect(files.querySelector('img')?.getAttribute('src')).toBe('https://flarechat.test/files/chart-1');
+    expect(files.querySelector('img')?.getAttribute('src')).toBe('https://orangeagent.test/files/chart-1');
     const pdf = screen.getByRole('link', { name: /請求一覧\.pdf/u });
-    expect(pdf.getAttribute('href')).toBe('https://flarechat.test/files/pdf-1');
+    expect(pdf.getAttribute('href')).toBe('https://orangeagent.test/files/pdf-1');
     expect(pdf.getAttribute('target')).toBe('_blank');
     expect(pdf.textContent).toContain('PDF · 60.4 KB');
     const csv = screen.getByRole('link', { name: /請求\.csv/u });
@@ -623,7 +623,7 @@ describe('what the chat shows', () => {
       await user.click(screen.getByRole('button', { name: '内訳.png を大きく表示' }));
     });
     const dialog = await screen.findByRole('dialog');
-    expect(dialog.querySelector('img')?.getAttribute('src')).toBe('https://flarechat.test/files/chart-1');
+    expect(dialog.querySelector('img')?.getAttribute('src')).toBe('https://orangeagent.test/files/chart-1');
   }, 30_000);
 
   it('names each call in words and opens it to its arguments, its own name, and, when it failed, why, as an error', async () => {
@@ -675,7 +675,7 @@ describe('what the chat shows', () => {
       event('turn-item.updated', userItem('先月の請求をまとめて')),
       event('turn-item.updated', {
         ...item, id: ids.item('subagent-1'), ordinal: 1, status: 'completed', title: '先月の請求を調べる', type: 'subagent', subagentId: ids.node('node-1'),
-        origin: 'provider_native', driver: 'flarechat', providerInstanceId: ids.provider('flarechat'), childThreadId: ids.thread('thread-child'),
+        origin: 'provider_native', driver: 'orangeagent', providerInstanceId: ids.provider('orangeagent'), childThreadId: ids.thread('thread-child'),
         prompt: '先月の請求を調べて', result: '請求は3件です。',
       } as TurnItem),
     ];

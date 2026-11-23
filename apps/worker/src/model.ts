@@ -2,9 +2,9 @@
  * The model every run thinks through, called with Pi's pi-ai (ADR 0203):
  * Claude on Anthropic's Messages API, GPT on OpenAI's Responses API, Gemini on
  * its own generateContent, and any other Base URL, OpenRouter's among them, on
- * Chat Completions. FlareChat keeps no adapter of its own for any provider.
+ * Chat Completions. OrangeAgent keeps no adapter of its own for any provider.
  *
- * A run's messages are FlareChat's own (`TurnMessage`), so a conversation
+ * A run's messages are OrangeAgent's own (`TurnMessage`), so a conversation
  * kept before Pi still reads; they become Pi's messages here, for one request,
  * and the answer comes back as one again, carrying Pi's own record of it as
  * its replay so the next request sends it exactly as the provider wrote it.
@@ -78,7 +78,7 @@ const protocolOf = (baseUrl: string): Protocol => {
     case 'gemini':
       // The legacy OpenAI-compatible URL is read as Gemini's own API, as it was before Pi.
       return { api: 'google-generative-ai', provider: 'google', baseUrl: `${origin}/v1beta`, stream: (model, context, options) => googleGenerativeAIApi().streamSimple(model, context, options), catalog: GOOGLE_MODELS };
-    case 'flarechat': {
+    case 'orangeagent': {
       const openRouter = aiProviderOf(baseUrl) === 'openrouter';
       return {
         api: 'openai-completions',
@@ -188,7 +188,7 @@ export const piMessages = (messages: readonly TurnMessage[], wire: (name: string
         role: 'assistant',
         content: [...(message.content ? [{ type: 'text' as const, text: message.content }] : []), ...calls],
         // Another provider's turn: Pi sends its words and calls, never its signatures.
-        api: 'flarechat', provider: 'flarechat', model: 'flarechat',
+        api: 'orangeagent', provider: 'orangeagent', model: 'orangeagent',
         usage: ZERO_USAGE, stopReason: calls.length ? 'toolUse' : 'stop', timestamp,
       });
       continue;
@@ -251,7 +251,7 @@ export const completeTurn = async (request: ModelRequest, onEvent?: (event: Turn
   const converted = piMessages(request.messages, names.wire, code);
   const tools: Tool[] = request.tools.map((tool) => ({ name: names.wire(tool.function.name), description: tool.function.description, parameters: tool.function.parameters }));
   const reasoning = await thinkingFor(request);
-  // A model Pi's catalog does not know is still sent the level FlareChat found it takes, as an OpenRouter model's list says.
+  // A model Pi's catalog does not know is still sent the level OrangeAgent found it takes, as an OpenRouter model's list says.
   const thinking = reasoning && !model.reasoning ? { ...model, reasoning: true } : model;
   const events = stream(thinking, normalizeContext({ systemPrompt: converted.systemPrompt, messages: converted.messages, tools }), {
     apiKey: request.apiKey,

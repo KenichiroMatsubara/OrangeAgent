@@ -188,7 +188,7 @@ export interface ComposerPromptEditorProps {
   /** Rendered after the placeholder text, such as a key hint. */
   placeholderSuffix?: ReactNode;
   ariaLabel?: string | undefined;
-  /** FlareChat: what a touch keyboard labels its Enter key, `enter` where Enter starts a new line. */
+  /** OrangeAgent: what a touch keyboard labels its Enter key, `enter` where Enter starts a new line. */
   enterKeyHint?: "enter" | "send" | undefined;
   suggestionListId?: string | undefined;
   activeSuggestionId?: string | undefined;

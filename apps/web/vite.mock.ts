@@ -34,7 +34,7 @@ const readBody = (request: NodeJS.ReadableStream & { headers?: Record<string, st
 
 /** Answers `/api/*` from `src/mock.ts` instead of the Worker. */
 const mockApi = (): Plugin => ({
-  name: 'flarechat-mock-api',
+  name: 'orangeagent-mock-api',
   configureServer: (server) => {
     server.middlewares.use('/api', (request, response) => {
       void (async () => {

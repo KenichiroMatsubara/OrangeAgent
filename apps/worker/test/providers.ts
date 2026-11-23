@@ -399,6 +399,12 @@ export const memoryGoogle = (): MemoryGoogle => {
         google.tasks.lists.push(list);
         return list;
       },
+      renameList: async (_token, listId, title) => {
+        const list = google.tasks.lists.find((each) => each.id === listId);
+        if (!list) throw new GoogleApiError('Task list not found.', 404, `/users/@me/lists/${listId}`);
+        list.title = title;
+        return list;
+      },
       listTasks: async (_token, input) => {
         if (!google.tasks.lists.some((list) => list.id === input.listId)) throw new GoogleApiError('Task list not found.', 404, `/lists/${input.listId}/tasks`);
         return google.tasks.held.filter((task) => task.listId === input.listId && !task.deleted

@@ -49,7 +49,7 @@ describe('tool resolution', () => {
 
     expect(resolved.tools.filter((tool) => tool.name === 'memory.search').map((tool) => tool.origin.kind)).toEqual(['internal']);
     expect(resolved.tools.map((tool) => tool.name)).toContain('memory.graph');
-    expect(resolved.failures).toEqual([{ server: 'memory', error: expect.stringContaining('memory.search is the name of one of FlareChat') }]);
+    expect(resolved.failures).toEqual([{ server: 'memory', error: expect.stringContaining('memory.search is the name of one of OrangeAgent') }]);
   });
 
   it('binds no external tool at all in read-only mode', async () => {
@@ -138,7 +138,7 @@ describe('Operator Chat turn', () => {
     expect(result.toolCallCount).toBe(0);
   });
 
-  it('writes what FlareChat says after the member\'s words into their message, leaving the instructions as they are', async () => {
+  it('writes what OrangeAgent says after the member\'s words into their message, leaving the instructions as they are', async () => {
     const asked: TurnMessage[][] = [];
     const recording: ModelPort = { complete: async (request) => {
       asked.push(request.messages);
@@ -146,7 +146,7 @@ describe('Operator Chat turn', () => {
     } };
 
     await runChatTurn({
-      model: recording, connection, instructions: '案内', postscript: '[FlareChat: it is now 正午 in Asia/Tokyo.]',
+      model: recording, connection, instructions: '案内', postscript: '[OrangeAgent: it is now 正午 in Asia/Tokyo.]',
       request: '予定は？', history: [{ role: 'user', content: '前の質問' }, { role: 'assistant', content: '前の答え' }], tools: [], fetch: listing([]), handlers: {},
     });
 
@@ -154,7 +154,7 @@ describe('Operator Chat turn', () => {
       { role: 'system', content: '案内' },
       { role: 'user', content: '前の質問' },
       { role: 'assistant', content: '前の答え' },
-      { role: 'user', content: '予定は？\n\n[FlareChat: it is now 正午 in Asia/Tokyo.]' },
+      { role: 'user', content: '予定は？\n\n[OrangeAgent: it is now 正午 in Asia/Tokyo.]' },
     ]);
   });
 

@@ -1,5 +1,5 @@
 /**
- * Binds FlareChat's MCP Server to one Account's database: which Token called,
+ * Binds OrangeAgent's MCP Server to one Account's database: which Token called,
  * what it was granted, whom it may reach, and how its writes actually happen.
  */
 

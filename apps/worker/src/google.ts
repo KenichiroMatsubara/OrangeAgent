@@ -2,20 +2,20 @@ import { randomToken, sha256, toBase64Url, encodeText, toArrayBuffer } from './e
 import { called, temporaryAnswer } from './temporary';
 
 /**
- * The scope that lets FlareChat save a Gmail draft, which `gmail.send` alone
+ * The scope that lets OrangeAgent save a Gmail draft, which `gmail.send` alone
  * does not: the whole mailbox, which the OAuth consent screen already declares.
  */
 export const GMAIL_DRAFT_SCOPE = 'https://mail.google.com/';
 
 /**
- * The scope that lets FlareChat read, move, and rename every file of the
+ * The scope that lets OrangeAgent read, move, and rename every file of the
  * Drive, which `drive.file` alone does not. Google has no narrower scope that
- * moves a file FlareChat did not create.
+ * moves a file OrangeAgent did not create.
  */
 export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 
 /**
- * The scopes that let FlareChat read the meetings the Account held or joined
+ * The scopes that let OrangeAgent read the meetings the Account held or joined
  * with their transcripts, and turn on a meeting's automatic transcription.
  * Meet reads a transcript through its own API, so no Drive scope is needed.
  */
@@ -25,7 +25,7 @@ export const MEET_SCOPES = [
 ] as const;
 
 /**
- * The scope that lets FlareChat keep the Account's Tasks in Google Tasks:
+ * The scope that lets OrangeAgent keep the Account's Tasks in Google Tasks:
  * every task list of the Google account and every task in them. Google has
  * no scope for one list alone.
  */
@@ -80,19 +80,19 @@ export const hasCompleteGoogleGrant = (scopes: Iterable<string>): boolean => {
   return GOOGLE_SCOPES.every((scope) => granted.has(scope));
 };
 
-/** Whether a grant lets FlareChat save Gmail drafts; one given before drafts existed lacks it until the Inbox is reconnected. */
+/** Whether a grant lets OrangeAgent save Gmail drafts; one given before drafts existed lacks it until the Inbox is reconnected. */
 export const grantsDrafts = (scopes: Iterable<string>): boolean => normalizedGoogleScopes(scopes).has(GMAIL_DRAFT_SCOPE);
 
-/** Whether a grant lets FlareChat reach the whole Drive; one given before it did lacks it until the Inbox is reconnected. */
+/** Whether a grant lets OrangeAgent reach the whole Drive; one given before it did lacks it until the Inbox is reconnected. */
 export const grantsDrive = (scopes: Iterable<string>): boolean => normalizedGoogleScopes(scopes).has(DRIVE_SCOPE);
 
-/** Whether a grant lets FlareChat read Meet transcripts and transcribe meetings; one given before it did lacks it until the Inbox is reconnected. */
+/** Whether a grant lets OrangeAgent read Meet transcripts and transcribe meetings; one given before it did lacks it until the Inbox is reconnected. */
 export const grantsMeet = (scopes: Iterable<string>): boolean => {
   const granted = normalizedGoogleScopes(scopes);
   return MEET_SCOPES.every((scope) => granted.has(scope));
 };
 
-/** Whether a grant lets FlareChat keep Tasks in Google Tasks; one given before it did lacks it until the Inbox is reconnected. */
+/** Whether a grant lets OrangeAgent keep Tasks in Google Tasks; one given before it did lacks it until the Inbox is reconnected. */
 export const grantsTasks = (scopes: Iterable<string>): boolean => normalizedGoogleScopes(scopes).has(TASKS_SCOPE);
 
 export const missingGoogleScopes = (scopes: Iterable<string>): string[] => {

@@ -58,7 +58,7 @@ function blobKey(blob: Blob) {
   return key;
 }
 
-// FlareChat: the syntax-highlighted source viewer (@pierre/diffs) is cut; source is plain text.
+// OrangeAgent: the syntax-highlighted source viewer (@pierre/diffs) is cut; source is plain text.
 export function ReadOnlySourcePreview(props: { name: string; text: string; wordWrap?: boolean }) {
   return (
     <ScrollArea className="min-h-0 flex-1">
@@ -187,7 +187,7 @@ export function AttachmentFilePreview(props: {
     // oxlint-disable-next-line react/exhaustive-effect-dependencies -- Retry must reauthorize the remote file.
   }, [props.file, refresh, revision]);
   const url = props.file ? localUrl : remoteUrl;
-  // FlareChat: the streaming large-text viewer is cut; text previews read the first 1 MB.
+  // OrangeAgent: the streaming large-text viewer is cut; text previews read the first 1 MB.
   const streamsText = false;
   const needsText =
     kind === "text" || kind === "markdown" || kind === "mermaid" || (kind === "html" && !rendered);

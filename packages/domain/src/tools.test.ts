@@ -65,7 +65,7 @@ describe('the one list of tools', () => {
     expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).not.toContain('activate_skill');
   });
 
-  it('lets every run that thinks in FlareChat issue a Run Token whatever its grant, and neither an outside agent nor a member’s CLI', () => {
+  it('lets every run that thinks in OrangeAgent issue a Run Token whatever its grant, and neither an outside agent nor a member’s CLI', () => {
     for (const run of [chat, timed, automationRun('read_only'), automationRun('approval')]) expect(names(run)).toContain('run.token');
     expect(names({ ...timed, grant: [] })).toContain('run.token');
     expect(AUTOMATION_TOOLS.map((tool) => tool.name)).not.toContain('run.token');
@@ -118,7 +118,7 @@ describe('the one list of tools', () => {
     expect(browserIn(withoutBrowser(chat))).toEqual([]);
     expect(browserIn(withoutBrowser(timed))).toEqual([]);
     expect(browserIn({ ...timed, grant: ['browser.open', 'browser.read'] })).toEqual(['browser.open', 'browser.read']);
-    // Neither an outside agent nor a member's own CLI is a run FlareChat keeps a browser open for.
+    // Neither an outside agent nor a member's own CLI is a run OrangeAgent keeps a browser open for.
     expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name).filter((name) => name.startsWith('browser.'))).toEqual([]);
     expect(browserIn(OPERATOR_TOKEN_RUN)).toEqual([]);
     expect(TOOLS.filter((tool) => tool.acts).every((tool) => !tool.writes)).toBe(true);
@@ -157,7 +157,7 @@ describe('the one list of tools', () => {
   });
 });
 
-describe('the environment FlareChat lends every model', () => {
+describe('the environment OrangeAgent lends every model', () => {
   it('offers code.run to every run whose Worker lends one, whatever its grant, since it reaches only what the run reaches', () => {
     const lent = withCode(automationRun('read_only'));
     expect(names(lent)).toContain('code.run');

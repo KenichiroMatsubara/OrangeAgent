@@ -1,4 +1,4 @@
-// FlareChat: from the main entry; the subpaths exist only in t3code's patched @pierre/diffs.
+// OrangeAgent: from the main entry; the subpaths exist only in t3code's patched @pierre/diffs.
 import { parseDiffFromFile, parsePatchFiles, type FileDiffMetadata } from "@pierre/diffs";
 import { msg } from "gt-react";
 

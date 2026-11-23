@@ -39,9 +39,9 @@ const objects = (app_: TestApp, answer: (path: string) => Response = () => Respo
       fetch: async (url: string, init: RequestInit = {}) => {
         const headers = new Headers(init.headers);
         const path = new URL(url).pathname + new URL(url).search;
-        const member = headers.get('X-FlareChat-Member');
+        const member = headers.get('X-OrangeAgent-Member');
         reached.push({
-          name: id.name, path, account: headers.get('X-FlareChat-Account'), thread: headers.get('X-FlareChat-Thread'),
+          name: id.name, path, account: headers.get('X-OrangeAgent-Account'), thread: headers.get('X-OrangeAgent-Thread'),
           body: typeof init.body === 'string' ? JSON.parse(init.body) as unknown : null,
           ...(member ? { member } : {}),
         });

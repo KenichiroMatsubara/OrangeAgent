@@ -23,7 +23,7 @@ export const exchangeCommand = (issued: IssuedLoginCode): string =>
  * code prints nothing, so nothing is registered.
  */
 export const claudeCodeCommand = (issued: IssuedLoginCode): string =>
-  `TOKEN=$(${exchangeCommand(issued)} | sed -nE 's/.*"token":"([^"]+)".*/\\1/p') && [ -n "$TOKEN" ] && claude mcp add --transport http flarechat ${issued.serverUrl} --header "Authorization: Bearer $TOKEN"`;
+  `TOKEN=$(${exchangeCommand(issued)} | sed -nE 's/.*"token":"([^"]+)".*/\\1/p') && [ -n "$TOKEN" ] && claude mcp add --transport http orangeagent ${issued.serverUrl} --header "Authorization: Bearer $TOKEN"`;
 
 const Command = ({ label, command, rows = 4 }: { label: string; command: string; rows?: number }) => {
   const { copied, copy } = useCopied();
@@ -103,7 +103,7 @@ export const OperatorTokens = ({ accountId, tokens, endpoint, reload }: {
   };
   return <Section title="CLI とアプリからのログイン" lead="Claude Code などの CLI や、メンバーが接続を許可した Claude などのアプリが、そのメンバーとして90日間このアカウントを操作できます。">
     <Command label="MCP Server の URL" command={endpoint} rows={1} />
-    <Note>Claude（claude.ai・デスクトップ・モバイル）では、カスタムコネクタにこの URL を入れて接続し、開いた画面で許可します。Claude Code では claude mcp add --transport http flarechat にこの URL を続けて登録すると、初めて使うときに同じ画面が開きます。</Note>
+    <Note>Claude（claude.ai・デスクトップ・モバイル）では、カスタムコネクタにこの URL を入れて接続し、開いた画面で許可します。Claude Code では claude mcp add --transport http orangeagent にこの URL を続けて登録すると、初めて使うときに同じ画面が開きます。</Note>
     {error && <Banner tone="danger" icon={<CircleAlert size={18} aria-hidden="true" />}>{error}</Banner>}
     {tokens.length === 0
       ? <Empty title="ログインしている CLI やアプリはありません" />

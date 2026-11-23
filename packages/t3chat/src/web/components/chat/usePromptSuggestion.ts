@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 
 import type { Thread } from "../../types";
 import { announcedRun } from "@t3tools/client-runtime/state/threadActivityAnnouncement.ts";
-// FlareChat: the suggestion comes from FlareChat's own server through the chat's transport (chat/suggestion.ts).
+// OrangeAgent: the suggestion comes from OrangeAgent's own server through the chat's transport (chat/suggestion.ts).
 import { readSuggestions, subscribeSuggestions } from "../../../chat/suggestion.ts";
 
 // Dismissed suggestions, keyed by environment and run, shared by every mounted composer and kept
@@ -56,7 +56,7 @@ export function promptSuggestionToAccept(suggestion: string | null, draft: strin
 
 /**
  * The predicted next prompt, while the run that produced it is the thread's latest completed run
- * and Escape has not dismissed it. FlareChat: read from the suggestions the chat's transport
+ * and Escape has not dismissed it. OrangeAgent: read from the suggestions the chat's transport
  * fetched, and offered on touch screens too, where tapping the hint accepts it.
  */
 export function usePromptSuggestion(

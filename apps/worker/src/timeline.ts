@@ -26,7 +26,7 @@ type UserItem = Item<'user_message'>;
 type MessageRecord = Projection['messages'][number];
 type EventOf<T extends DomainEvent['type']> = Extract<DomainEvent, { readonly type: T }>;
 
-/** The provider every record names: FlareChat's own engine, whichever model it thinks with. */
+/** The provider every record names: OrangeAgent's own engine, whichever model it thinks with. */
 const PROVIDER = 'flarechat';
 /** The option of a Run's model selection that keeps the level of effort the member named for it. */
 const EFFORT_OPTION = 'effort';
@@ -644,7 +644,7 @@ const APPROVAL_OPTIONS: Item<'approval_request'>['options'] = [
 /** The id of the item that asks the member about a held call. */
 const approvalItemId = (runId: string, requestId: string): string => `${runId}:approval:${requestId}`;
 
-/** The one session a runtime request names: FlareChat answers every request itself, whichever object holds it. */
+/** The one session a runtime request names: OrangeAgent answers every request itself, whichever object holds it. */
 const SESSION = 'flarechat';
 
 const requestOf = (turn: Pick<Turn, 'runId'>, requestId: string, createdAt: number, answer: { at: number; decision: 'accept' | 'acceptAlways' | 'decline'; feedback?: string } | null): RuntimeRequest => ({

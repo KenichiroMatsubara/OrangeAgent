@@ -25,7 +25,7 @@ export const SignedOutEntry = ({
   onSignIn: () => void;
 }) => <main className="setup-shell"><section className="setup-card login-card">
   <SetupBrand caption="SCHEDULES AND CONTACTS" />
-  <p className="eyebrow">GOOGLE</p><h1>FlareChatを開く</h1>
+  <p className="eyebrow">GOOGLE</p><h1>OrangeAgentを開く</h1>
   <p className="setup-copy">Google アカウントでログインします。求めるのは名前とメールアドレスだけです。初めてのときは、このあとすぐに使い始められます。</p>
   {error && <p className="setup-error">{error}</p>}
   <button className="primary google-login entry-login" onClick={onSignIn} disabled={busy}><ShieldCheck size={18} />{busy ? 'Googleへ接続中…' : 'Google でログイン'}</button>

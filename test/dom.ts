@@ -12,7 +12,7 @@ import { populateGlobal, type Environment } from 'vitest/runtime';
  * spares building a window per file. Between tests, `test/reset.ts` empties
  * what a test leaves in it.
  */
-const KEPT = Symbol.for('flarechat.dom');
+const KEPT = Symbol.for('orangeagent.dom');
 
 interface Kept {
   dom: JSDOM;

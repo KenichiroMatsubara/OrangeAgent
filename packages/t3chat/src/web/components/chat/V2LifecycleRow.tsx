@@ -463,7 +463,7 @@ function SubagentTimelineLink(props: {
     (thread) => thread?.projection.subagents.find((agent) => agent.id === props.subagentId) ?? null,
   );
   const remote = props.remote ?? agent?.remoteChild;
-  // FlareChat: the card counts the calls its own conversation made, once that conversation is read.
+  // OrangeAgent: the card counts the calls its own conversation made, once that conversation is read.
   const childTools = useAtomValue(
     environmentThreadDetails.threadAtom(
       props.threadId === null ? props.parentRef : scopeThreadRef(props.parentRef.environmentId, props.threadId),

@@ -7,12 +7,12 @@ const job = (language: CodeJob['language'], bytes = 0): CodeJob => ({ language, 
 const done = (overrides: Partial<CodeResult> = {}): CodeResult => ({ exitCode: 0, stdout: '', stderr: '', files: [], outOfMemory: false, ...overrides });
 
 describe('execution environments', () => {
-  it('lends an API that runs code its own environment and every other API FlareChat’s', () => {
+  it('lends an API that runs code its own environment and every other API OrangeAgent’s', () => {
     expect(environmentOf('https://api.anthropic.com')).toBe('anthropic');
     expect(environmentOf('https://api.openai.com/v1')).toBe('openai');
     expect(environmentOf('https://generativelanguage.googleapis.com/v1beta/openai')).toBe('gemini');
-    expect(environmentOf('https://openrouter.ai/api/v1')).toBe('flarechat');
-    expect(environmentOf('not a url')).toBe('flarechat');
+    expect(environmentOf('https://openrouter.ai/api/v1')).toBe('orangeagent');
+    expect(environmentOf('not a url')).toBe('orangeagent');
   });
 
   it('runs small JavaScript in a Dynamic Worker and everything else in the smallest container its estimate fits', () => {

@@ -154,7 +154,7 @@ export const draftMail = async (context: SendContext, call: MailSendCall, files:
     if (!(error instanceof GoogleApiError) || error.status !== 403 || !/scope/iu.test(error.message)) throw error;
     return {
       isError: true,
-      message: 'Google has not granted FlareChat permission to save drafts in this mailbox. The administrator reconnects the mail inbox on the 接続 (Connections) screen to grant it; nothing was saved or sent.',
+      message: 'Google has not granted OrangeAgent permission to save drafts in this mailbox. The administrator reconnects the mail inbox on the 接続 (Connections) screen to grant it; nothing was saved or sent.',
     };
   }
 };

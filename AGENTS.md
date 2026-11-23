@@ -15,6 +15,7 @@
 - `apps/web`：管理画面（React + Vite）
 - `packages/domain`：Worker と管理画面の取り決め。route が返す形はここで一度だけ宣言し、両方から読み込みます
 - `packages/t3chat`：チャット画面。t3code（MIT）から一度だけ取り込んだもので、上流には合わせません。上の書き方のルールは当てはめず、Tailwind、Base UI、Effect atoms、複数単語のファイル名をそのまま使います。LICENSE と NOTICE は消しません
+- `redirect`：旧 URL（`flarechat.<subdomain>.workers.dev`）に置く転送用の Worker。`npx wrangler deploy -c redirect/wrangler.jsonc` で出します
 - `docs/adr`：元に戻しにくい少数の決定
 - `CONTEXT.md`：いまの仕様
 
@@ -50,7 +51,7 @@ Skill に入れるスクリプトは JavaScript の ES モジュール（`.mjs`�
 
 ## URL の確かめ方
 
-スマートフォンのアドレスバーは、URL の一部を省いて表示することがあります。スクリーンショットに `chat.<subdomain>.workers.dev` と見えても、`flarechat.<subdomain>.workers.dev`（Worker 名は `flarechat`）の後ろだけかもしれません。
+スマートフォンのアドレスバーは、URL の一部を省いて表示することがあります。スクリーンショットに `chat.<subdomain>.workers.dev` と見えても、`orangeagent.<subdomain>.workers.dev`（Worker 名は `orangeagent`）の後ろだけかもしれません。
 
 - 本番の URL は、本番の Workers Builds の `APP_URL` 変数です。`npm run deploy:config` がそれを `apps/worker/wrangler.deploy.json` に書きます。リポジトリには入っていません。
 - ユーザーが URL をそのまま書いたら、それを正とします。

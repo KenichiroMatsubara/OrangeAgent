@@ -1,10 +1,10 @@
 /**
- * The files an answer wrote or handed on, shown under its words (FlareChat's own file). t3code
+ * The files an answer wrote or handed on, shown under its words (OrangeAgent's own file). t3code
  * shows files only on a person's message; an answer's files are kept on its message item
  * (`attachments`, apps/worker/src/timeline.ts), each read where the transport says. A picture
  * shows inline and opens full size; any other file is a link by its name, which opens a PDF in the
  * browser and downloads anything else, as the Worker serves it. Each can be saved to Drive, in
- * FlareChat's AI に聞く folder or, where Google Picker is configured, a folder the member chooses.
+ * OrangeAgent's AI に聞く folder or, where Google Picker is configured, a folder the member chooses.
  */
 import { CloudUploadIcon, DownloadIcon, ExternalLinkIcon, FileTextIcon, FolderOpenIcon } from 'lucide-react';
 import { createContext, type ReactElement, use, useState } from 'react';

@@ -2,9 +2,9 @@
  * Where an AI Connection's model runs code (ADR 0202), read from its Base
  * URL's host as its protocol is, so the Worker and the Connections screen
  * agree without storing it: Anthropic's sandbox, OpenAI's code interpreter,
- * Gemini's code execution, or, for every other API, one FlareChat lends.
+ * Gemini's code execution, or, for every other API, one OrangeAgent lends.
  */
-export type AiEnvironment = 'anthropic' | 'openai' | 'gemini' | 'flarechat';
+export type AiEnvironment = 'anthropic' | 'openai' | 'gemini' | 'orangeagent';
 
 export const ANTHROPIC_HOST = 'api.anthropic.com';
 export const OPENAI_HOST = 'api.openai.com';
@@ -15,18 +15,18 @@ export const aiEnvironment = (baseUrl: string): AiEnvironment => {
   try {
     host = new URL(baseUrl.trim()).hostname.toLowerCase();
   } catch {
-    return 'flarechat';
+    return 'orangeagent';
   }
   if (host === ANTHROPIC_HOST) return 'anthropic';
   if (host === OPENAI_HOST) return 'openai';
   if (host === GEMINI_HOST) return 'gemini';
-  return 'flarechat';
+  return 'orangeagent';
 };
 
 /**
  * The APIs an AI Connection may be made on: Claude, OpenAI, and Gemini, whose
  * models run code in their own environments, and OpenRouter, whose models run
- * it in the one FlareChat lends. The administrator chooses one and saves its
+ * it in the one OrangeAgent lends. The administrator chooses one and saves its
  * key; the Base URL is the provider's own, never typed.
  */
 export type AiProvider = 'anthropic' | 'openai' | 'gemini' | 'openrouter';

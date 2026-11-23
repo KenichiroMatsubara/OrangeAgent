@@ -3,7 +3,7 @@
 ステータス: 提案（ADR 0197）／作成: 2026-11-05
 元資料: 「cf-memory（仮称）設計書」2026-11-05 ドラフト
 
-この文書は、cf-memory 設計書を FlareChat の Memory に適用するための設計である。cf-memory は単独の MCP サーバーとして書かれているが、FlareChat にはすでに Account ごとの Memory（ADR 0195、mcp-memory 互換）、Account ごとの D1、記憶画面、Operator Chat、Operator Token による CLI 接続、OAuth（ADR 0196）がある。ここでは cf-memory の原則と品質ゲートをそのまま採り、保存先・非同期処理・保守・ツールの形を FlareChat の既存の仕組みに合わせて置き換える。
+この文書は、cf-memory 設計書を OrangeAgent の Memory に適用するための設計である。cf-memory は単独の MCP サーバーとして書かれているが、OrangeAgent にはすでに Account ごとの Memory（ADR 0195、mcp-memory 互換）、Account ごとの D1、記憶画面、Operator Chat、Operator Token による CLI 接続、OAuth（ADR 0196）がある。ここでは cf-memory の原則と品質ゲートをそのまま採り、保存先・非同期処理・保守・ツールの形を OrangeAgent の既存の仕組みに合わせて置き換える。
 
 現在の動作は `CONTEXT.md` が正であり、この文書は実装予定を示す。各段階を実装するプルリクエストが `CONTEXT.md` の Memory の記述を同時に書き換える。
 
@@ -33,7 +33,7 @@
 
 ## 2. 原則（cf-memory から採用）
 
-| # | 原則 | FlareChat での具体化 |
+| # | 原則 | OrangeAgent での具体化 |
 |---|---|---|
 | P1 | 正本は1つ、索引は派生物 | Account D1 が正本。Vectorize は `indexed_at IS NULL` を走査して再投入でき、全量再構築も D1 から行える |
 | P2 | 生データから抽出し、記憶から再抽出しない | Operator Chat のやり取り・CLI が渡した会話・会員の入力をエピソードとして不変保存し、抽出は常にエピソードから |
@@ -48,9 +48,9 @@
 
 ## 3. cf-memory からの置き換え
 
-cf-memory 設計書の構成要素を、FlareChat では次のように置き換える。理由は各行の右端。
+cf-memory 設計書の構成要素を、OrangeAgent では次のように置き換える。理由は各行の右端。
 
-| cf-memory | FlareChat | 理由 |
+| cf-memory | OrangeAgent | 理由 |
 |---|---|---|
 | ユーザー別 Durable Object の SQLite が正本 | **Account D1 が正本** | Account ごとに D1 が1つあり、物理分離はすでに成り立つ。D1 Time Travel が PITR を、`batch()` がトランザクションを与える。記憶はチャット（`chat_turns`）と外部キーで結ばれ、記憶画面も D1 を読む。DO に置くと、移行リハーサル（ADR 0174）と本番エクスポートの外に第二の正本ができる |
 | FTS5 仮想テーブル（バイグラム） | **通常テーブル `memory_terms` によるバイグラム転置索引** | 移行リハーサルは本番 D1 を `wrangler d1 export` で書き出して再生する。D1 は仮想テーブル（FTS5 を含む）を持つ DB のエクスポートに対応しておらず（公式ドキュメントの Import and export data に明記。`--table` で絞っても回避できないという報告もある）、1つの Account に入れただけで全 PR がマージ不能になる。通常テーブルなら制約がない |
@@ -455,7 +455,7 @@ Clairic はプレビューなので、抽出 LLM の JSON にも時間情報の�
 
 ## 12. 評価
 
-cf-memory 設計書 §13 をそのまま採る。FlareChat 固有に加えるのは次の点。
+cf-memory 設計書 §13 をそのまま採る。OrangeAgent 固有に加えるのは次の点。
 
 - テストセットは日本語の Operator Chat 形式（会員・AI の発話者ラベル付き）で作り、`test/memory-eval/` に置く。実行は Workers AI を呼ぶので CI には入れず、`npm run eval:memory` で手動実行する
 - 「複数会員」のシナリオ: 会員 A と B の好みが混ざらないか

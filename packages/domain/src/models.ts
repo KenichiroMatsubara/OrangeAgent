@@ -37,7 +37,7 @@ export const shortModelLabel = (model: string): string => {
  * How hard a model thinks before it answers, the lightest first: every level
  * any provider names. A model takes some of them, or none: Claude's from
  * low to max, OpenAI's and OpenRouter's from none to xhigh, Gemini's from
- * minimal to high; which, its API or FlareChat's table says (the Worker's
+ * minimal to high; which, its API or OrangeAgent's table says (the Worker's
  * effort.ts).
  */
 export const MODEL_EFFORTS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;

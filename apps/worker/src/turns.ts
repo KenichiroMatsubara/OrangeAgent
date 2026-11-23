@@ -277,7 +277,7 @@ export const resolveTools = async (input: {
         if (!permitted(name)) continue;
         // A server registered before its name was reserved keeps it, but the product's own tool keeps its name.
         if (tools.some((kept) => kept.name === name)) {
-          failures.push({ server: server.name, error: `${name} is the name of one of FlareChat's own tools, so the server's tool is not offered. Rename the server.` });
+          failures.push({ server: server.name, error: `${name} is the name of one of OrangeAgent's own tools, so the server's tool is not offered. Rename the server.` });
           continue;
         }
         tools.push({
@@ -345,7 +345,7 @@ const wireTool = (tool: RunTool): ModelRequest['tools'][number] => ({
   function: { name: tool.name, description: tool.description, parameters: tool.parameters },
 });
 
-/** Pi's record of an answer FlareChat's model port gave, as the loop reads it. */
+/** Pi's record of an answer OrangeAgent's model port gave, as the loop reads it. */
 const assistantOf = (completion: ModelCompletion, api: Api, provider: string): AssistantMessage => {
   const calls: ToolCall[] = completion.toolCalls.map((call) => {
     try {
@@ -378,7 +378,7 @@ const resultText = (result: AgentToolResult<unknown>): string =>
  * against it: neither its tool calls, nor its turns, nor its tokens; the
  * provider's own context window is the only limit on one request.
  *
- * The loop is Pi's. FlareChat keeps the run's messages as its own
+ * The loop is Pi's. OrangeAgent keeps the run's messages as its own
  * (`TurnMessage`), so a tool's files stay its bytes and a conversation keeps
  * what it always kept, and hands Pi each answer and each tool's result as
  * they happen: Pi decides when to ask the model again, validates each call's
@@ -542,7 +542,7 @@ export const think = async (input: {
 
   // The model as Pi names it; the port behind it knows its connection.
   const environment: Model<Api> = {
-    id: input.connection.model, name: input.connection.model, api: 'flarechat', provider: 'flarechat', baseUrl: input.connection.baseUrl,
+    id: input.connection.model, name: input.connection.model, api: 'orangeagent', provider: 'orangeagent', baseUrl: input.connection.baseUrl,
     input: ['text', 'image'], cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, reasoning: false, contextWindow: 0, maxTokens: 0,
   };
 

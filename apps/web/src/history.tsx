@@ -137,7 +137,7 @@ export const plannedWriteDetails = (write: Pick<PlannedWrite, 'tool' | 'argument
     case 'drive.trash':
       return present([
         textValue(arguments_.fileName) ? `ファイル: ${String(arguments_.fileName)}` : null,
-        '削除はせず、「FlareChat のゴミ箱」フォルダに移します',
+        '削除はせず、「OrangeAgent のゴミ箱」フォルダに移します',
       ]);
     case 'skill.write':
     case 'skill.save_file':

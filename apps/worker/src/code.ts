@@ -1,5 +1,5 @@
 /**
- * `code.run`: the environment FlareChat lends every run to run code in
+ * `code.run`: the environment OrangeAgent lends every run to run code in
  * (ADR 0202, 0203). The run names the code, its language, and
  * the files it holds to place beside it; the Worker estimates what the work
  * needs, runs it on the lightest environment that fits (`environment.ts`),

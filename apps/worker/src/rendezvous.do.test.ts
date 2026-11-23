@@ -15,7 +15,7 @@ const serving: RunServing = {
   call: async (name, arguments_) => ({ name, arguments: arguments_ }),
 };
 
-const open = () => rendezvous({ namespace: calls, accountId: ACCOUNT, url: 'https://flarechat.example/mcp' }).open(serving);
+const open = () => rendezvous({ namespace: calls, accountId: ACCOUNT, url: 'https://orangeagent.example/mcp' }).open(serving);
 
 describe('a Run Token\'s Durable Object in the Workers runtime', () => {
   it('hands a call made with the token to the run, and the run\'s answer back', async () => {

@@ -5,7 +5,7 @@
  * Protocol (`cdp.ts`).
  *
  * The page is read by a script it runs, which writes each control's number
- * onto the control itself as `data-flarechat-ref`, so a later click names the
+ * onto the control itself as `data-orangeagent-ref`, so a later click names the
  * very element the reading showed. Every reading numbers the controls afresh.
  */
 
@@ -31,7 +31,7 @@ export const PAGE_CHARACTERS = 30_000;
 
 const LOAD_TIMEOUT_MS = 20_000;
 const SETTLE_MS = 600;
-const REF_ATTRIBUTE = 'data-flarechat-ref';
+const REF_ATTRIBUTE = 'data-orangeagent-ref';
 
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -377,9 +377,9 @@ export const restoreLogins = async (cdp: Cdp, page: BrowserPage, states: readonl
       const items = storage[location.origin];
       if (!items) return;
       try {
-        if (sessionStorage.getItem('flarechat-restored') === '1') return;
+        if (sessionStorage.getItem('orangeagent-restored') === '1') return;
         for (const [key, value] of Object.entries(items)) if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
-        sessionStorage.setItem('flarechat-restored', '1');
+        sessionStorage.setItem('orangeagent-restored', '1');
       } catch {}
     })()`,
   }, page.sessionId);

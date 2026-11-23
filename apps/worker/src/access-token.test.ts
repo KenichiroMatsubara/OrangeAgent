@@ -20,8 +20,8 @@ describe('Access Token credential', () => {
   });
 
   it('reads the credential only from the Authorization header, never the query string', () => {
-    expect(presentedToken(new Request('https://flarechat.example/mcp', { headers: { Authorization: 'Bearer abc' } }))).toBe('abc');
-    expect(presentedToken(new Request('https://flarechat.example/mcp?access_token=abc'))).toBeNull();
-    expect(presentedToken(new Request('https://flarechat.example/mcp', { headers: { Authorization: 'abc' } }))).toBeNull();
+    expect(presentedToken(new Request('https://orangeagent.example/mcp', { headers: { Authorization: 'Bearer abc' } }))).toBe('abc');
+    expect(presentedToken(new Request('https://orangeagent.example/mcp?access_token=abc'))).toBeNull();
+    expect(presentedToken(new Request('https://orangeagent.example/mcp', { headers: { Authorization: 'abc' } }))).toBeNull();
   });
 });

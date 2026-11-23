@@ -4,7 +4,7 @@
  * subscription, which the Worker sends each notification to (register.ts
  * registers the Service Worker that shows them).
  *
- * An iPhone or iPad receives them only in FlareChat added to the home screen
+ * An iPhone or iPad receives them only in OrangeAgent added to the home screen
  * and opened from there, so a page opened in Safari is told to do that first.
  */
 

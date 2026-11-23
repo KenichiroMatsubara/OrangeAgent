@@ -102,10 +102,10 @@ describe('the authorization screen', () => {
   });
 
   it('says why a request that cannot be answered goes nowhere', async () => {
-    vi.mocked(api.previewAuthorization).mockResolvedValue({ kind: 'unsafe', message: 'この接続元は FlareChat に登録されていません。' });
+    vi.mocked(api.previewAuthorization).mockResolvedValue({ kind: 'unsafe', message: 'この接続元は OrangeAgent に登録されていません。' });
     open(ready);
 
-    expect(await screen.findByText('この接続元は FlareChat に登録されていません。')).toBeTruthy();
+    expect(await screen.findByText('この接続元は OrangeAgent に登録されていません。')).toBeTruthy();
     expect(screen.queryByRole('button', { name: '許可する' })).toBeNull();
   });
 });

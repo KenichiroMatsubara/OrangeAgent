@@ -79,7 +79,7 @@ describe('the starting Automations', () => {
     expect(database.rows("SELECT skill_files.path, skill_files.content = ? AS shipped FROM skill_files JOIN skills ON skills.id = skill_files.skill_id WHERE skills.name = 'task-management'", TASK_PROGRAM))
       .toEqual([{ path: 'scripts/tasks.mjs', shipped: 1 }]);
     for (const words of ['code.run', '"javascript"', '"task-management"', 'new Tasks(tools)', "from './skills/task-management/scripts/tasks.mjs'", 'noticeOf']) expect(TASK_SKILL).toContain(words);
-    expect(TASK_SKILL).not.toMatch(/tasks\.py|FLARECHAT_|None/u);
+    expect(TASK_SKILL).not.toMatch(/tasks\.py|ORANGEAGENT_|None/u);
     for (const skill of [INTAKE_SKILL, REMINDER_SKILL]) expect(skill).toContain('tasks.mjs');
     expect(REMINDER_SKILL).toContain('noticeOf(task');
   });

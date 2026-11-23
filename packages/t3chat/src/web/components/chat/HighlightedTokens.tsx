@@ -1,4 +1,4 @@
-// FlareChat: shell-command and JSON token highlighting is cut (it pulled in the unbash parser and
+// OrangeAgent: shell-command and JSON token highlighting is cut (it pulled in the unbash parser and
 // a grammar per language). The code is shown as plain text with the same props.
 export function HighlightedTokens({
   code,

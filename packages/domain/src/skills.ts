@@ -108,7 +108,7 @@ export const skillFileText = (bytes: Uint8Array): string | null => {
 /**
  * What a SKILL.md says, as the Agent Skills specification (agentskills.io)
  * reads it: the Skill's name, which is its directory's, when it applies, its
- * instructions, and the string map `metadata`, where FlareChat keeps the
+ * instructions, and the string map `metadata`, where OrangeAgent keeps the
  * Skill's title in the words a person reads it by (`display-name`).
  */
 export interface SkillDocument {
@@ -140,7 +140,7 @@ export type SkillDocumentRefusal =
 
 export type SkillDocumentResult = ({ accepted: true } & SkillDocument) | { accepted: false; reason: SkillDocumentRefusal };
 
-/** The key of `metadata` FlareChat keeps a Skill's title under. */
+/** The key of `metadata` OrangeAgent keeps a Skill's title under. */
 export const SKILL_TITLE_KEY = 'display-name';
 
 /** The most characters a Skill's name and description may hold, as the specification sets them. */

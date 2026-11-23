@@ -49,7 +49,7 @@ export const scheduledEventQuery = (input: Record<string, unknown>): ScheduledEv
 
 /** The query_scheduled_events contract every caller offers. */
 export const SCHEDULED_EVENT_QUERY_TOOL = {
-  description: 'List this Account’s Scheduled Events, the events FlareChat records, with the ids every event write takes. With no arguments it returns every event starting on or after sixty days ago. Name a range or a phrase to find others.',
+  description: 'List this Account’s Scheduled Events, the events OrangeAgent records, with the ids every event write takes. With no arguments it returns every event starting on or after sixty days ago. Name a range or a phrase to find others.',
   parameters: {
     type: 'object',
     properties: {

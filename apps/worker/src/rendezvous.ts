@@ -1,7 +1,7 @@
 /**
  * Run Tokens: how a program that runs elsewhere calls a run's tools.
  *
- * A run that thinks in FlareChat — an Operator Chat answer, an Automation's
+ * A run that thinks in OrangeAgent — an Operator Chat answer, an Automation's
  * run, or its trial — issues one when its model asks. The token names one
  * Durable Object by its hash, and the run holds a WebSocket to that object for
  * as long as it thinks. A call made with the token at the MCP Server is put to
@@ -51,7 +51,7 @@ export interface OpenRunAccess extends RunAccess {
   close: () => void;
 }
 
-/** Where a run that thinks in FlareChat issues its Run Token. */
+/** Where a run that thinks in OrangeAgent issues its Run Token. */
 export interface Rendezvous {
   open: (serving: RunServing) => Promise<OpenRunAccess>;
 }

@@ -31,7 +31,7 @@ import {
 } from "@t3tools/client-runtime/t3ToolSummary.ts";
 import { mFallback, msg } from "gt-i18n";
 import { t3ToolSentence } from "./t3ToolSentences.ts";
-import { codeGroupLabel, flareChatToolPresentation, toolCodePlace } from "./flarechat.ts";
+import { codeGroupLabel, orangeAgentToolPresentation, toolCodePlace } from "./orangeagent.ts";
 import type { MFunctionType } from "gt-i18n/types";
 
 export type WorkLogToolLifecycleStatus = RuntimeItemStatus | "stopped" | "idle";
@@ -309,14 +309,14 @@ export function resolveWorkEntryToolPresentation(
   fallbackStatus?: "inProgress" | "completed",
   resolve: MFunctionType = mFallback,
 ): WorkEntryToolPresentation | null {
-  // FlareChat: its own browser and code tools are named as t3code names its preview browser.
-  const flareChat = flareChatToolPresentation(
+  // OrangeAgent: its own browser and code tools are named as t3code names its preview browser.
+  const orangeAgent = orangeAgentToolPresentation(
     workEntryToolName(entry),
     entry.toolLifecycleStatus ?? fallbackStatus,
     workEntryToolInput(entry),
     workEntryToolOutput(entry),
   );
-  if (flareChat) return flareChat;
+  if (orangeAgent) return orangeAgent;
   const definition = resolveT3McpToolDefinition(
     workEntryToolName(entry),
     workEntryToolInput(entry),
@@ -629,7 +629,7 @@ function toolGroupActionLabel(
         }),
       );
     case "code":
-      // FlareChat: `summarizeToolGroup` names the places code ran; this is the line without them.
+      // OrangeAgent: `summarizeToolGroup` names the places code ran; this is the line without them.
       return `コードを ${count} 回実行しました`;
     case "search":
       return resolve(

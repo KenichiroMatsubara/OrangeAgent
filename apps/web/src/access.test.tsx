@@ -10,7 +10,7 @@ describe('Issued Access Token', () => {
     name: 'cowork',
     tools: ['query_contacts', 'channel.send'],
     token: 'a-very-long-opaque-credential',
-    url: 'https://flarechat.example.workers.dev/api/public/organizations/org-1/mcp',
+    url: 'https://orangeagent.example.workers.dev/api/public/organizations/org-1/mcp',
   };
 
   it('shows the credential and the URL an outside agent needs', () => {

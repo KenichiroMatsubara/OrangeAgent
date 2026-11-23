@@ -84,7 +84,7 @@ export function QueuedRunsControl({
   const projection = useQuietThreadProjection(
     scopeThreadRef(props.environmentId, props.threadId),
   )?.projection;
-  // FlareChat: the queue's commands go to the conversation's transport (chat/queue.ts).
+  // OrangeAgent: the queue's commands go to the conversation's transport (chat/queue.ts).
   const commands = use(QueueContext);
   const [showAll, setShowAll] = useState(false);
   const queueListId = useId();
@@ -203,7 +203,7 @@ export function QueuedRunsControl({
     setBusyRunId(null);
   };
 
-  // FlareChat: a queued message moves up or down one place; t3code's queue has no way to reorder.
+  // OrangeAgent: a queued message moves up or down one place; t3code's queue has no way to reorder.
   const move = async (runId: RunId, beforeRunId: RunId | null) => {
     setBusyRunId(runId);
     await commands.change({ action: "move", runId, beforeRunId });

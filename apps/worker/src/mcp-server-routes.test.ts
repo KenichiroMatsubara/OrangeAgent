@@ -57,7 +57,7 @@ const issueToken = async (app_: TestApp, input: { contactIds: string[]; tools?: 
 };
 
 const rpc = (app_: TestApp, token: string | null, body: unknown): Request =>
-  new Request(`https://flarechat.example${MCP_PATH}`, {
+  new Request(`https://orangeagent.example${MCP_PATH}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: JSON.stringify(body),
@@ -288,7 +288,7 @@ describe('MCP Server endpoint', () => {
     fixture = await createAutomationTestApp();
     const token = await issueToken(fixture, { contactIds: [], tools: ['query_contacts'] });
     const meta = { 'io.modelcontextprotocol/protocolVersion': '2026-07-28', 'io.modelcontextprotocol/clientCapabilities': {} };
-    const stateless = (method: string) => new Request(`https://flarechat.example${MCP_PATH}`, {
+    const stateless = (method: string) => new Request(`https://orangeagent.example${MCP_PATH}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'MCP-Protocol-Version': '2026-07-28', 'Mcp-Method': method },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params: { _meta: meta } }),
@@ -323,7 +323,7 @@ describe('MCP Server endpoint', () => {
     fixture = await createAutomationTestApp();
 
     for (const method of ['GET', 'DELETE']) {
-      const response = await app.fetch(new Request(`https://flarechat.example${MCP_PATH}`, { method }), fixture.environment);
+      const response = await app.fetch(new Request(`https://orangeagent.example${MCP_PATH}`, { method }), fixture.environment);
 
       expect(response.status).toBe(405);
       expect(response.headers.get('Allow')).toBe('POST');

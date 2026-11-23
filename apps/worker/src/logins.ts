@@ -2,7 +2,7 @@
  * The Account's browser (ADR 0200): whether its runs may operate one, the
  * sites it is signed in to, and how a person signs in to one.
  *
- * A person signs in once, in Browser Run's Live View of a tab FlareChat
+ * A person signs in once, in Browser Run's Live View of a tab OrangeAgent
  * opened at the site; saving keeps what that browser then holds, its cookies
  * and the site's localStorage, under the Account's envelope encryption. Every
  * run's browser starts with every saved sign-in put back, and at its end
@@ -29,7 +29,7 @@ export const BROWSER_SETTING = 'browser';
 /** The `settings` key that holds the time zone the Browser's clock reads in. */
 export const BROWSER_TIME_ZONE_SETTING = 'browser.time_zone';
 
-/** The zone the Browser's clock reads until one is set: the zone FlareChat counts its days in. */
+/** The zone the Browser's clock reads until one is set: the zone OrangeAgent counts its days in. */
 export const DEFAULT_BROWSER_TIME_ZONE = 'Asia/Tokyo';
 
 /** The IANA zone `value` names, or null when it names none this runtime knows. */

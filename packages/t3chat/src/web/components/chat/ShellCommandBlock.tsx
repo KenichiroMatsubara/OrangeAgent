@@ -16,7 +16,7 @@ function PlainWords({ code }: { code: string }) {
 }
 
 export function ShellCommandBlock({ command }: { command: string }) {
-  // FlareChat: shell highlighting is cut; the command is shown as plain words.
+  // OrangeAgent: shell highlighting is cut; the command is shown as plain words.
   const code = withVisibleControlCharacters(command.trim());
   if (!code) return null;
   return (

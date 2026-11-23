@@ -5,7 +5,7 @@ import {
   updateClientSettings,
 } from "../hooks/useSettings";
 import { initializeI18n } from "./initializeI18n";
-import { DEFAULT_LOCALE, FLARECHAT_LOCALE } from "./locales";
+import { DEFAULT_LOCALE, ORANGEAGENT_LOCALE } from "./locales";
 import { setActiveLocale } from "./messages";
 
 type LocaleTranslations = Awaited<ReturnType<typeof getTranslationsSnapshot>>;
@@ -51,8 +51,8 @@ function activateLocale(locale: string): void {
 }
 
 function applyLanguageSetting(): void {
-  // FlareChat: the chat is always Japanese, whatever the browser or the saved setting says.
-  requestedLocale = FLARECHAT_LOCALE;
+  // OrangeAgent: the chat is always Japanese, whatever the browser or the saved setting says.
+  requestedLocale = ORANGEAGENT_LOCALE;
   void whenLocaleReady();
 }
 

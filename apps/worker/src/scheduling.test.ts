@@ -198,7 +198,7 @@ describe('changing a Scheduled Event when the call is performed', () => {
     expect(recorded()).toMatchObject({ location: '公民館' });
   });
 
-  it('fails, and records nothing, when a person edits the event between FlareChat reading it and writing it', async () => {
+  it('fails, and records nothing, when a person edits the event between OrangeAgent reading it and writing it', async () => {
     const { google, handlers, recorded, calendarEvent, editByHand } = await scheduled();
     const before = recorded();
     const read = google.calendar.readEvent;
@@ -265,7 +265,7 @@ describe('cancelling a Scheduled Event when the call is performed', () => {
   });
 });
 
-describe('rewriting a Scheduled Event’s description from what FlareChat holds', () => {
+describe('rewriting a Scheduled Event’s description from what OrangeAgent holds', () => {
   const respond = async (setup: Awaited<ReturnType<typeof scheduled>>) => {
     setup.google.addMessage({ id: 'gmail-reply', subject: 'Re: 例会', sender: '他クラブ <club@example.org>', body: '2名で参加します。' });
     return setup.handlers.record_event_response?.({
@@ -320,7 +320,7 @@ describe('creating a Scheduled Event an Automation planned', () => {
     );
 
     expect(providers.google.eventWrites).toMatchObject([{ operation: 'create', body: { attendees: [{ email: 'tanaka@example.com' }] } }]);
-    expect(providers.google.eventWrites[0]?.body.description).toBe('FlareChat が Gmail メッセージ gmail-1 から作成しました。');
+    expect(providers.google.eventWrites[0]?.body.description).toBe('OrangeAgent が Gmail メッセージ gmail-1 から作成しました。');
     expect(database.rows('SELECT gmail_message_id, subject, state FROM source_messages')).toEqual([{ gmail_message_id: 'gmail-1', subject: '例会のご案内', state: 'processed' }]);
     expect(database.rows('SELECT e.automation_id, s.gmail_message_id, e.status FROM events e JOIN source_messages s ON s.id = e.source_message_id'))
       .toEqual([{ automation_id: 'automation-1', gmail_message_id: 'gmail-1', status: 'scheduled' }]);

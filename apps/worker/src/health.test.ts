@@ -60,12 +60,12 @@ describe('Automation Inbox health', () => {
       inboxAddress: 'automation@example.com',
       failingSince: FAILING_SINCE,
       lastError: 'Token has been expired or revoked.',
-      appUrl: 'https://flarechat.example.workers.dev',
+      appUrl: 'https://orangeagent.example.workers.dev',
     });
 
     expect(notice.subject).toContain('automation@example.com');
     expect(notice.body).toContain('Google の認可が失効しました');
     expect(notice.body).toContain('Token has been expired or revoked.');
-    expect(notice.body).toContain('https://flarechat.example.workers.dev');
+    expect(notice.body).toContain('https://orangeagent.example.workers.dev');
   });
 });

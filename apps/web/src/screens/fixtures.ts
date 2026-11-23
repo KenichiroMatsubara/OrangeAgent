@@ -26,7 +26,7 @@ export const automationStatus = (overrides: Partial<AutomationStatus> = {}): Aut
 export const connections = (overrides: Partial<Connections> = {}): Connections => ({
   accountId: ACCOUNT_ID,
   accountName: 'Example',
-  line: { channelAccessTokenConfigured: true, channelSecretConfigured: true, webhookUrl: 'https://flarechat.example/api/line/webhook' },
+  line: { channelAccessTokenConfigured: true, channelSecretConfigured: true, webhookUrl: 'https://orangeagent.example/api/line/webhook' },
   ai: { apiKeyConfigured: true, model: 'gpt-4.1-mini', models: ['gpt-4.1-mini'], provider: 'openai' },
   transcription: { apiKeyConfigured: false, model: '' },
   microsoft: { configured: true, connected: false, email: null },

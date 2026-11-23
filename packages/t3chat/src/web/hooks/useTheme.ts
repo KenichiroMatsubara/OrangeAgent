@@ -40,8 +40,8 @@ type DesktopThemeBridge = Pick<DesktopBridge, "setTheme">;
 
 const STORAGE_KEY = "t3code:theme";
 const MEDIA_QUERY = "(prefers-color-scheme: dark)";
-/** FlareChat has one appearance, light, so the chat follows neither the system nor a stored theme. */
-const FLARECHAT_FIXED_LIGHT = true;
+/** OrangeAgent has one appearance, light, so the chat follows neither the system nor a stored theme. */
+const ORANGEAGENT_FIXED_LIGHT = true;
 
 const DEFAULT_THEME_SNAPSHOT: ThemeSnapshot = {
   theme: "system",
@@ -280,8 +280,8 @@ function resolveBrowserChromeSurface(): HTMLElement {
 }
 
 export function syncBrowserChromeTheme() {
-  // FlareChat: the chat lives inside FlareChat's page and never paints its <html> or <body>.
-  if (FLARECHAT_FIXED_LIGHT) return;
+  // OrangeAgent: the chat lives inside OrangeAgent's page and never paints its <html> or <body>.
+  if (ORANGEAGENT_FIXED_LIGHT) return;
   if (typeof document === "undefined" || typeof getComputedStyle === "undefined") return;
   const rootStyles = getComputedStyle(document.documentElement);
   const themeChromeColor = document.documentElement.dataset.themeId
@@ -309,9 +309,9 @@ export function syncBrowserChromeTheme() {
 }
 
 function applyTheme(theme: Theme, { suppressTransitions = false, preservePreview = true } = {}) {
-  // FlareChat: the chat is always light and writes no theme to the document; .t3chat holds its
+  // OrangeAgent: the chat is always light and writes no theme to the document; .t3chat holds its
   // colours (chat.css).
-  if (FLARECHAT_FIXED_LIGHT) return;
+  if (ORANGEAGENT_FIXED_LIGHT) return;
   if (typeof document === "undefined" || typeof window === "undefined") return;
   if (preservePreview && document.documentElement.dataset?.themeId === THEME_PREVIEW_ID) {
     return;
@@ -404,7 +404,7 @@ if (typeof document !== "undefined" && typeof window !== "undefined") {
 }
 
 function getSnapshot(): ThemeSnapshot {
-  if (FLARECHAT_FIXED_LIGHT || typeof window === "undefined") return DEFAULT_THEME_SNAPSHOT;
+  if (ORANGEAGENT_FIXED_LIGHT || typeof window === "undefined") return DEFAULT_THEME_SNAPSHOT;
   // Cache localStorage reads until signalled; useTheme calls this every render.
   if (!snapshotStale && lastSnapshot) return lastSnapshot;
   snapshotStale = false;

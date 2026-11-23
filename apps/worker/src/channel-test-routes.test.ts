@@ -162,7 +162,7 @@ describe('Channel Test send', () => {
     await connectLine(fixture);
     seedReachableContact(fixture, { id: 'contact-1', name: '一郎', destination: 'U-one' });
 
-    const response = await app.fetch(new Request('https://flarechat.example/api/organizations/organization-1/channel-tests', {
+    const response = await app.fetch(new Request('https://orangeagent.example/api/organizations/organization-1/channel-tests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contactId: 'contact-1', channel: 'line', texts: ['テスト'] }),

@@ -89,7 +89,7 @@ export function ComposerControlsBar(props: {
   modelPickerIconClassName: string | undefined;
   getModelDisabledReason: ChatComposerProps["getModelDisabledReason"];
   extraControls?: ChatComposerProps["extraControls"];
-  /** FlareChat: the conversation's runs, whose latest usage the context meter shows. */
+  /** OrangeAgent: the conversation's runs, whose latest usage the context meter shows. */
   contextRuns?: ChatComposerProps["activeThreadRuns"];
   preserveComposerFocusOnPointerDown?: boolean;
 }) {
@@ -204,8 +204,8 @@ export function ComposerControlsBar(props: {
       {providerSetupInstanceId ? gt("Open provider settings") : gt("No provider available")}
     </ComposerControl>
   ) : (
-    // FlareChat: no provider picker. An Account answers with the one AI Connection it configures on
-    // its connections screen; the model and its effort are FlareChat's own controls (extraControls).
+    // OrangeAgent: no provider picker. An Account answers with the one AI Connection it configures on
+    // its connections screen; the model and its effort are OrangeAgent's own controls (extraControls).
     <>
       <>
         {restingBlockDefs.map((def, index) => {
@@ -230,13 +230,13 @@ export function ComposerControlsBar(props: {
             </div>
           );
         })}
-        {/* FlareChat: its own controls, beside the approval mode. */}
+        {/* OrangeAgent: its own controls, beside the approval mode. */}
         {props.extraControls ? (
           <div data-flarechat-controls className="flex w-max min-w-max shrink-0 items-center gap-1">
             {props.extraControls}
           </div>
         ) : null}
-        {/* FlareChat: how much of the model's context the conversation holds. */}
+        {/* OrangeAgent: how much of the model's context the conversation holds. */}
         {props.contextRuns ? (
           <ComposerContextMeter
             runs={props.contextRuns}

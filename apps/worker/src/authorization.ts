@@ -68,7 +68,7 @@ export const protectedResourceMetadata = (env: Bindings, accountId: string) => (
   resource: mcpUrl(env, accountId),
   authorization_servers: [issuerOf(env)],
   bearer_methods_supported: ['header'],
-  resource_name: 'FlareChat',
+  resource_name: 'OrangeAgent',
 });
 
 export const authorizationServerMetadata = (env: Bindings) => ({
@@ -213,7 +213,7 @@ const sendBack = (env: Bindings, redirectUri: string, values: Record<string, str
 export const readAuthorizationRequest = async (env: Bindings, query: URLSearchParams): Promise<ReadAuthorization> => {
   const clientId = query.get('client_id') ?? '';
   const client = clientId ? await openClient(env, clientId) : null;
-  if (!client) return { kind: 'unsafe', message: 'この接続元は FlareChat に登録されていません。接続元でもう一度つなぎ直してください。' };
+  if (!client) return { kind: 'unsafe', message: 'この接続元は OrangeAgent に登録されていません。接続元でもう一度つなぎ直してください。' };
   const redirectUri = query.get('redirect_uri') ?? (client.redirectUris.length === 1 ? client.redirectUris[0] ?? '' : '');
   if (!redirectUri || !redirectMatches(client.redirectUris, redirectUri)) {
     return { kind: 'unsafe', message: 'この接続元が登録した戻り先ではありません。接続元でもう一度つなぎ直してください。' };

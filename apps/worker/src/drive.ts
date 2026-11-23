@@ -2,11 +2,11 @@
  * The Account's Google Drive as every run reaches it, through the Automation
  * Inbox's grant: finding and reading files, and filing them — making a folder,
  * moving or renaming a file, saving a file Claude wrote, and putting a file
- * away in FlareChat's own trash folder. Nothing deletes a file: putting one
+ * away in OrangeAgent's own trash folder. Nothing deletes a file: putting one
  * away moves it, and Google's trash is never used.
  *
  * Where in the Drive a run reaches is its Drive Reach: the whole Drive, or
- * beneath the Drive Folders the Account named, and FlareChat's trash folder
+ * beneath the Drive Folders the Account named, and OrangeAgent's trash folder
  * with them, so a file put away can be found and moved back.
  */
 
@@ -22,8 +22,8 @@ import { FileAnswer } from './turns';
 const FOLDER = 'application/vnd.google-apps.folder';
 const SHORTCUT = 'application/vnd.google-apps.shortcut';
 
-/** The folder at the top of My Drive that FlareChat puts files away in instead of deleting them. */
-export const DRIVE_TRASH_FOLDER_NAME = 'FlareChat のゴミ箱';
+/** The folder at the top of My Drive that OrangeAgent puts files away in instead of deleting them. */
+export const DRIVE_TRASH_FOLDER_NAME = 'OrangeAgent のゴミ箱';
 
 /** The most of one Drive file a run is handed, the most a mail carries. */
 export const MAX_DRIVE_FILE_BYTES = 25 * 1024 * 1024;
@@ -58,7 +58,7 @@ const refused = (message: string): Refusal => ({ isError: true, message });
 export interface DriveReach {
   granted: boolean;
   folders: readonly DriveFolder[];
-  /** FlareChat's trash folder, once it has made one. */
+  /** OrangeAgent's trash folder, once it has made one. */
   trashId: string | null;
   parents: Map<string, Promise<string[]>>;
 }
@@ -89,8 +89,8 @@ const driveSummary = (file: DriveFileResource) => ({
   url: file.webViewLink ?? null,
 });
 
-/** What a run is told when the grant reaches no more of the Drive than FlareChat's own files. */
-const DRIVE_UNGRANTED = 'Google has not granted FlareChat permission to reach this Drive. The administrator reconnects the mail inbox on the 接続 (Connections) screen to grant it.';
+/** What a run is told when the grant reaches no more of the Drive than OrangeAgent's own files. */
+const DRIVE_UNGRANTED = 'Google has not granted OrangeAgent permission to reach this Drive. The administrator reconnects the mail inbox on the 接続 (Connections) screen to grant it.';
 
 /** Google refusing the Drive for want of a scope, told to the run as the grant it lacks rather than thrown. */
 const driveRefusal = (error: unknown): Refusal => {
@@ -98,7 +98,7 @@ const driveRefusal = (error: unknown): Refusal => {
   throw error;
 };
 
-/** Whether a Drive file is one of the reach's folders, or FlareChat's trash folder, or lies anywhere beneath one, found by walking up its parents. */
+/** Whether a Drive file is one of the reach's folders, or OrangeAgent's trash folder, or lies anywhere beneath one, found by walking up its parents. */
 const beneath = async (session: DriveSession, file: DriveFileResource): Promise<boolean> => {
   if (!session.reach.folders.length) return true;
   const roots = new Set([...session.reach.folders.map((folder) => folder.id), ...(session.reach.trashId ? [session.reach.trashId] : [])]);
@@ -244,7 +244,7 @@ export const driveWriteCall = (tool: 'drive.create_folder' | 'drive.move' | 'dri
 /** The file a write names, read from Drive and checked against the name it was named by and the run's reach. */
 const namedFile = async (session: DriveSession, id: string, name: string, kind: 'file' | 'folder'): Promise<DriveFileResource | Refusal> => {
   const file = await session.google.drive.readFile(session.accessToken, id);
-  if (file.trashed) return refused(`${name} (${id}) is in Google's trash, which FlareChat does not reach.`);
+  if (file.trashed) return refused(`${name} (${id}) is in Google's trash, which OrangeAgent does not reach.`);
   // The top of My Drive is named by Google in its own words, whatever the Account calls it.
   if (id !== 'root' && file.name !== name) return refused(`${id} is named ${JSON.stringify(file.name ?? '')} in Drive, not ${JSON.stringify(name)}. Find it again with drive.search.`);
   if (kind === 'folder' && file.mimeType !== FOLDER) return refused(`${name} (${id}) is not a folder.`);
@@ -266,7 +266,7 @@ export const writableFolder = async (session: DriveSession, folderId: string, fo
 };
 
 /**
- * FlareChat's trash folder, made at the top of My Drive the first time a file
+ * OrangeAgent's trash folder, made at the top of My Drive the first time a file
  * is put away and recorded, and made again if it has since been removed.
  */
 const trashFolder = async (session: DriveSession, database: D1Database, at: Date): Promise<string> => {
@@ -283,8 +283,8 @@ const trashFolder = async (session: DriveSession, database: D1Database, at: Date
 
 /**
  * Performs one Drive write already read by `driveWriteCall`: it makes a folder,
- * moves or renames a file, or puts one away in FlareChat's trash folder, which
- * moves it there and records where it was. FlareChat's trash folder itself is
+ * moves or renames a file, or puts one away in OrangeAgent's trash folder, which
+ * moves it there and records where it was. OrangeAgent's trash folder itself is
  * never moved, renamed, or put away.
  */
 export const performDriveWrite = async (
@@ -304,7 +304,7 @@ export const performDriveWrite = async (
     }
     const file = await namedFile(session, call.fileId!, call.fileName!, 'file');
     if (isRefusal(file)) return file;
-    if (file.id === session.reach.trashId) return refused(`${DRIVE_TRASH_FOLDER_NAME} is where FlareChat puts files away; it is never moved, renamed, or put away itself.`);
+    if (file.id === session.reach.trashId) return refused(`${DRIVE_TRASH_FOLDER_NAME} is where OrangeAgent puts files away; it is never moved, renamed, or put away itself.`);
     const parents = file.parents ?? [];
     if (tool === 'drive.rename') return { renamed: true, file: driveSummary(await drive.updateFile(token, call.fileId!, { name: call.name! })) };
     if (tool === 'drive.move') {

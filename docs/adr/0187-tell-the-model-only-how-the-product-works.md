@@ -6,8 +6,8 @@ The Morning Notice that prompted this ran long and was hard to read, and none of
 
 ## Consequences
 
-- **A judgement no longer ships with a release.** An improvement to the default Prompt reaches only Prompts still in a wording FlareChat wrote, through a migration that moves them to the new one. An Account that rewrote its Prompt keeps its own judgement and does not receive the improvement.
-- **Moving the guidance changed no one's behaviour.** Migration 0041 moved every Prompt still in FlareChat's first wording to one that carries all the guidance. Every other Prompt an Agent Rule runs kept its words and gained, after them, the guidance that used to be added outside it.
+- **A judgement no longer ships with a release.** An improvement to the default Prompt reaches only Prompts still in a wording OrangeAgent wrote, through a migration that moves them to the new one. An Account that rewrote its Prompt keeps its own judgement and does not receive the improvement.
+- **Moving the guidance changed no one's behaviour.** Migration 0041 moved every Prompt still in OrangeAgent's first wording to one that carries all the guidance. Every other Prompt an Agent Rule runs kept its words and gained, after them, the guidance that used to be added outside it.
 - **What stays in code is what protects data or bounds a run.** Only a person reopens a Task. A Manual Override is never overwritten. A write reaches only whom its rule permits. A Prompt cannot change these, because they are not judgements about a message.
 
 ## Considered and rejected

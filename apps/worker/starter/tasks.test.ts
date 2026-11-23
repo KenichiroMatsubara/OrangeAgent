@@ -1,5 +1,5 @@
 /**
- * tasks.mjs を、FlareChat のツールの答え方をまねた偽物に対して確かめます。
+ * tasks.mjs を、OrangeAgent のツールの答え方をまねた偽物に対して確かめます。
  */
 
 import { readFileSync } from 'node:fs';
@@ -30,8 +30,8 @@ const CONTACTS = [
  * tasks.search / tasks.create / tasks.update / query_contacts を、Worker と同じ形の JSON 文字列で答えます。
  * planned なら、自動化のように書き込みを計画するだけで、Google ToDo は変わりません。
  */
-class FlareChat {
-  readonly lists = [{ id: 'L1', name: 'FlareChat' }, { id: 'L2', name: '私の ToDo' }];
+class OrangeAgent {
+  readonly lists = [{ id: 'L1', name: 'OrangeAgent' }, { id: 'L2', name: '私の ToDo' }];
   readonly tasks: View[] = [];
   readonly calls: Array<[string, Row]> = [];
 
@@ -105,12 +105,12 @@ describe('the notes', () => {
 
 describe('upsert', () => {
   it('creates a task in the form the notes are read in', async () => {
-    const flarechat = new FlareChat();
-    const [result] = await new Tasks(flarechat.call).upsert([{
+    const orangeagent = new OrangeAgent();
+    const [result] = await new Tasks(orangeagent.call).upsert([{
       title: '会場の予約', due: '2026-12-01', body: '公民館に電話', assignee: '山田太郎', event: '例会（12/5）', mail: '例会のご案内', mailId: 'm1',
     }]);
     expect(result?.result).toBe('created');
-    const [[name, args] = ['', {}]] = flarechat.writes();
+    const [[name, args] = ['', {}]] = orangeagent.writes();
     expect(name).toBe('tasks.create');
     expect(args.due).toBe('2026-12-01');
     expect(args).not.toHaveProperty('listId');
@@ -120,12 +120,12 @@ describe('upsert', () => {
   });
 
   it('changes the open task of the same key instead of making another', async () => {
-    const flarechat = new FlareChat();
+    const orangeagent = new OrangeAgent();
     const key = await makeKey('m1', '会場の予約');
-    flarechat.add({ title: '会場の予約', due: '2026-12-01', notes: `公民館に電話\n人が足した一行\n\n鍵: ${key}` });
-    const [result] = await new Tasks(flarechat.call).upsert([{ title: '会場の 予約', due: '2026-12-03', mailId: 'm1', assignee: '佐藤花子' }]);
+    orangeagent.add({ title: '会場の予約', due: '2026-12-01', notes: `公民館に電話\n人が足した一行\n\n鍵: ${key}` });
+    const [result] = await new Tasks(orangeagent.call).upsert([{ title: '会場の 予約', due: '2026-12-03', mailId: 'm1', assignee: '佐藤花子' }]);
     expect(result?.result).toBe('updated');
-    const [[name, args] = ['', {}]] = flarechat.writes();
+    const [[name, args] = ['', {}]] = orangeagent.writes();
     expect(name).toBe('tasks.update');
     expect(args.due).toBe('2026-12-03');
     // A title written differently is not written back, and what a person added stays.
@@ -134,45 +134,45 @@ describe('upsert', () => {
   });
 
   it('says unchanged when the same mail is read again', async () => {
-    const flarechat = new FlareChat();
+    const orangeagent = new OrangeAgent();
     const item = { title: '会場の予約', due: '2026-12-01', mailId: 'm1', assignee: '山田 太郎' };
-    await new Tasks(flarechat.call).upsert([item]);
-    const [again] = await new Tasks(flarechat.call).upsert([item]);
+    await new Tasks(orangeagent.call).upsert([item]);
+    const [again] = await new Tasks(orangeagent.call).upsert([item]);
     expect(again?.result).toBe('unchanged');
-    expect(flarechat.tasks).toHaveLength(1);
+    expect(orangeagent.tasks).toHaveLength(1);
   });
 
   it('changes nothing when the task of the same key is done or cancelled', async () => {
-    const flarechat = new FlareChat();
-    flarechat.add({ title: '会費の振込', status: 'completed', notes: `鍵: ${await makeKey('m1', '会費の振込')}` });
-    const [result] = await new Tasks(flarechat.call).upsert([{ title: '会費の振込', due: '2026-12-01', mailId: 'm1' }]);
+    const orangeagent = new OrangeAgent();
+    orangeagent.add({ title: '会費の振込', status: 'completed', notes: `鍵: ${await makeKey('m1', '会費の振込')}` });
+    const [result] = await new Tasks(orangeagent.call).upsert([{ title: '会費の振込', due: '2026-12-01', mailId: 'm1' }]);
     expect(result?.result).toBe('closed');
-    expect(flarechat.writes()).toEqual([]);
+    expect(orangeagent.writes()).toEqual([]);
   });
 
   it('refuses an assignee it cannot name as exactly one contact, and writes nothing', async () => {
-    const flarechat = new FlareChat();
-    const [missing, ambiguous] = await new Tasks(flarechat.call).upsert([
+    const orangeagent = new OrangeAgent();
+    const [missing, ambiguous] = await new Tasks(orangeagent.call).upsert([
       { title: 'a', mailId: 'm1', assignee: '田中' },
       { title: 'b', mailId: 'm1', assignee: '鈴木' },
     ]);
     expect(missing).toMatchObject({ result: 'refused', reason: expect.stringContaining('連絡先にいません') });
     expect(ambiguous).toMatchObject({ result: 'refused', reason: expect.stringContaining('2 人') });
-    expect(flarechat.writes()).toEqual([]);
+    expect(orangeagent.writes()).toEqual([]);
   });
 
   it('refuses a due day it cannot read', async () => {
-    const [result] = await new Tasks(new FlareChat().call).upsert([{ title: 'a', due: '12/1' }]);
+    const [result] = await new Tasks(new OrangeAgent().call).upsert([{ title: 'a', due: '12/1' }]);
     expect(result?.result).toBe('refused');
   });
 
   it('plans each key once in an Automation whose writes are applied later', async () => {
-    const flarechat = new FlareChat(true);
-    const tasks = new Tasks(flarechat.call);
+    const orangeagent = new OrangeAgent(true);
+    const tasks = new Tasks(orangeagent.call);
     const [first, again] = await tasks.upsert([{ title: '会場の予約', mailId: 'm1' }, { title: '会場の予約', mailId: 'm1' }]);
     const [later] = await tasks.upsert([{ title: '会場の予約', mailId: 'm1' }]);
     expect([first?.result, again?.result, later?.result]).toEqual(['planned', 'duplicate', 'duplicate']);
-    expect(flarechat.writes()).toHaveLength(1);
+    expect(orangeagent.writes()).toHaveLength(1);
   });
 
   it('reports a tool refusal as that item refused', async () => {
@@ -185,20 +185,20 @@ describe('upsert', () => {
 });
 
 describe('search', () => {
-  const seeded = (): FlareChat => {
-    const flarechat = new FlareChat();
-    flarechat.add({ title: '会場の予約', notes: '担当: 山田 太郎\n予定: 例会（12/5）' });
-    flarechat.add({ title: '案内の発送', notes: '担当: 佐藤花子' });
-    flarechat.add({ title: '名札の用意', status: 'completed', notes: '担当: 山田 太郎\n取りやめ: 例会が中止' });
-    flarechat.add({ title: '会費の振込', status: 'completed', notes: '担当: 山田 太郎' });
-    flarechat.add({ title: '牛乳', listId: 'L2' });
-    flarechat.add({ title: '椅子の手配' });
-    return flarechat;
+  const seeded = (): OrangeAgent => {
+    const orangeagent = new OrangeAgent();
+    orangeagent.add({ title: '会場の予約', notes: '担当: 山田 太郎\n予定: 例会（12/5）' });
+    orangeagent.add({ title: '案内の発送', notes: '担当: 佐藤花子' });
+    orangeagent.add({ title: '名札の用意', status: 'completed', notes: '担当: 山田 太郎\n取りやめ: 例会が中止' });
+    orangeagent.add({ title: '会費の振込', status: 'completed', notes: '担当: 山田 太郎' });
+    orangeagent.add({ title: '牛乳', listId: 'L2' });
+    orangeagent.add({ title: '椅子の手配' });
+    return orangeagent;
   };
   const titles = async (filters: Parameters<Tasks['search']>[0] = {}): Promise<string[]> =>
     (await new Tasks(seeded().call).search(filters)).map((task) => task.title);
 
-  it('reads only the FlareChat list unless asked for every list', async () => {
+  it('reads only the OrangeAgent list unless asked for every list', async () => {
     expect(await titles()).not.toContain('牛乳');
     expect(await titles({ allLists: true })).toContain('牛乳');
   });
@@ -220,15 +220,15 @@ describe('search', () => {
 
 describe('writing', () => {
   it('cancels as completed with the reason, and completes with a remark', async () => {
-    const flarechat = new FlareChat();
-    flarechat.add({ title: '会場の予約', notes: '公民館\n\n担当: 山田 太郎' });
-    flarechat.add({ title: '会費の振込' });
-    const tasks = new Tasks(flarechat.call);
+    const orangeagent = new OrangeAgent();
+    orangeagent.add({ title: '会場の予約', notes: '公民館\n\n担当: 山田 太郎' });
+    orangeagent.add({ title: '会費の振込' });
+    const tasks = new Tasks(orangeagent.call);
     const [reserve, fee] = await tasks.search() as [Task, Task];
     expect((await tasks.cancel(reserve, '例会が中止')).result).toBe('updated');
     expect((await tasks.complete(fee, '入金を確認')).result).toBe('updated');
-    expect(flarechat.tasks[0]).toMatchObject({ status: 'completed', notes: '公民館\n\n担当: 山田 太郎\n取りやめ: 例会が中止' });
-    expect(flarechat.tasks[1]?.notes).toBe('備考: 入金を確認');
+    expect(orangeagent.tasks[0]).toMatchObject({ status: 'completed', notes: '公民館\n\n担当: 山田 太郎\n取りやめ: 例会が中止' });
+    expect(orangeagent.tasks[1]?.notes).toBe('備考: 入金を確認');
     const cancelled = await tasks.search({ status: 'cancelled' });
     expect(cancelled.map((task) => task.title)).toEqual(['会場の予約']);
     expect((await tasks.search({ status: 'completed' })).map((task) => task.title)).toEqual(['会費の振込']);
@@ -237,26 +237,26 @@ describe('writing', () => {
   });
 
   it('updates only what was named', async () => {
-    const flarechat = new FlareChat();
-    flarechat.add({ title: '会場の予約', due: '2026-12-01', notes: '公民館\n\n担当: 山田 太郎\n備考: 一つ目' });
-    const tasks = new Tasks(flarechat.call);
+    const orangeagent = new OrangeAgent();
+    orangeagent.add({ title: '会場の予約', due: '2026-12-01', notes: '公民館\n\n担当: 山田 太郎\n備考: 一つ目' });
+    const tasks = new Tasks(orangeagent.call);
     const [task] = await tasks.search() as [Task];
     await tasks.update(task, { due: '2026-12-02', remark: '二つ目' });
-    const [[, args] = ['', {}]] = flarechat.writes();
+    const [[, args] = ['', {}]] = orangeagent.writes();
     expect(args).toEqual({ listId: 'L1', taskId: 't1', due: '2026-12-02', notes: '公民館\n\n担当: 山田 太郎\n備考: 一つ目\n備考: 二つ目' });
   });
 });
 
 describe('reminders', () => {
   it('gathers each assignee’s due tasks into one message', async () => {
-    const flarechat = new FlareChat();
-    flarechat.add({ title: '会場の予約', due: '2026-12-08', notes: '公民館に電話\n\n担当: 山田 太郎' });
-    flarechat.add({ title: '名簿の確認', due: '2026-12-01', notes: '担当: 山田 太郎' });
-    flarechat.add({ title: '案内の発送', due: '2026-11-30', notes: '担当: 佐藤花子' });
-    flarechat.add({ title: '椅子の手配', due: '2026-12-01' });
-    flarechat.add({ title: '受付の準備', due: '2026-12-04', notes: '担当: 鈴木' });
-    flarechat.add({ title: '来月の話', due: '2026-12-05', notes: '担当: 山田 太郎' });
-    const answer = await new Tasks(flarechat.call).reminders({ today: '2026-12-01', reportTo: '事務局' });
+    const orangeagent = new OrangeAgent();
+    orangeagent.add({ title: '会場の予約', due: '2026-12-08', notes: '公民館に電話\n\n担当: 山田 太郎' });
+    orangeagent.add({ title: '名簿の確認', due: '2026-12-01', notes: '担当: 山田 太郎' });
+    orangeagent.add({ title: '案内の発送', due: '2026-11-30', notes: '担当: 佐藤花子' });
+    orangeagent.add({ title: '椅子の手配', due: '2026-12-01' });
+    orangeagent.add({ title: '受付の準備', due: '2026-12-04', notes: '担当: 鈴木' });
+    orangeagent.add({ title: '来月の話', due: '2026-12-05', notes: '担当: 山田 太郎' });
+    const answer = await new Tasks(orangeagent.call).reminders({ today: '2026-12-01', reportTo: '事務局' });
     const byName = Object.fromEntries(answer.messages.map((message) => [message.contact.name, message]));
     expect(Object.keys(byName).sort()).toEqual(['佐藤花子', '山田 太郎']);
     expect(byName['山田 太郎']?.text).toBe([
@@ -277,11 +277,11 @@ describe('reminders', () => {
 
 describe('noticeOf', () => {
   const found = async (): Promise<Task[]> => {
-    const flarechat = new FlareChat();
-    flarechat.add({ title: '登録料の振込', due: '2026-11-13', status: 'completed', completedAt: '2026-11-20T13:30:00.000Z', notes: '熱田RACの口座へ 3 名分\n\n担当: 山田 太郎' });
-    flarechat.add({ title: '名札の用意', due: '2026-11-25', status: 'completed', notes: '担当: 山田 太郎\n取りやめ: 例会が中止' });
-    flarechat.add({ title: '会場の予約', due: '2026-11-25', notes: '公民館に電話\n\n担当: 山田 太郎' });
-    return new Tasks(flarechat.call).search({ allLists: true });
+    const orangeagent = new OrangeAgent();
+    orangeagent.add({ title: '登録料の振込', due: '2026-11-13', status: 'completed', completedAt: '2026-11-20T13:30:00.000Z', notes: '熱田RACの口座へ 3 名分\n\n担当: 山田 太郎' });
+    orangeagent.add({ title: '名札の用意', due: '2026-11-25', status: 'completed', notes: '担当: 山田 太郎\n取りやめ: 例会が中止' });
+    orangeagent.add({ title: '会場の予約', due: '2026-11-25', notes: '公民館に電話\n\n担当: 山田 太郎' });
+    return new Tasks(orangeagent.call).search({ allLists: true });
   };
 
   it('says a completed task was done on its day, not that its deadline passed', async () => {
@@ -306,7 +306,7 @@ describe('noticeOf', () => {
 });
 
 describe('the MCP Server, reached with a Run Token from where the network is reached', () => {
-  const serve = (flarechat: FlareChat, seen: Array<{ authorization: string | null; body: Row }>) =>
+  const serve = (orangeagent: OrangeAgent, seen: Array<{ authorization: string | null; body: Row }>) =>
     vi.fn(async (_url: string, init: RequestInit) => {
       const body = JSON.parse(text(init.body)) as { id: number; params: { name: string; arguments: Row } };
       const authorization = new Headers(init.headers).get('Authorization');
@@ -314,38 +314,38 @@ describe('the MCP Server, reached with a Run Token from where the network is rea
       if (authorization !== 'Bearer run_secret') {
         return Response.json({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'This token is not recognised, or it has expired.' } }, { status: 401 });
       }
-      const answered = await flarechat.call(body.params.name, body.params.arguments);
+      const answered = await orangeagent.call(body.params.name, body.params.arguments);
       const failed = answered.startsWith('{') && Boolean((JSON.parse(answered) as Row).isError);
       const message = failed ? String((JSON.parse(answered) as Row).message) : null;
       return Response.json({ jsonrpc: '2.0', id: body.id, result: { isError: failed, content: [{ type: 'text', text: message ?? answered }] } });
     });
 
   it('calls the tools through the MCP Server, with the token in the header alone', async () => {
-    const flarechat = new FlareChat();
+    const orangeagent = new OrangeAgent();
     const seen: Array<{ authorization: string | null; body: Row }> = [];
-    vi.stubGlobal('fetch', serve(flarechat, seen));
-    const [result] = await new Tasks(mcpCall('https://flarechat.example/mcp', 'run_secret')).upsert([{ title: '会場の予約', assignee: '山田太郎', mailId: 'm1' }]);
+    vi.stubGlobal('fetch', serve(orangeagent, seen));
+    const [result] = await new Tasks(mcpCall('https://orangeagent.example/mcp', 'run_secret')).upsert([{ title: '会場の予約', assignee: '山田太郎', mailId: 'm1' }]);
     expect(result?.result).toBe('created');
-    expect(flarechat.calls.map(([name]) => name)).toEqual(['query_contacts', 'tasks.search', 'tasks.create']);
+    expect(orangeagent.calls.map(([name]) => name)).toEqual(['query_contacts', 'tasks.search', 'tasks.create']);
     expect(seen.every((entry) => entry.authorization === 'Bearer run_secret')).toBe(true);
     expect(seen.every((entry) => !JSON.stringify(entry.body).includes('run_secret'))).toBe(true);
     expect(seen.at(-1)?.body.method).toBe('tools/call');
   });
 
   it('raises what the server or the tool refused', async () => {
-    vi.stubGlobal('fetch', serve(new FlareChat(), []));
-    await expect(new Tasks(mcpCall('https://flarechat.example/mcp', 'run_expired')).search()).rejects.toThrow(ToolError);
-    await expect(new Tasks(mcpCall('https://flarechat.example/mcp', 'run_expired')).search()).rejects.toThrow('not recognised');
-    await expect(new Tasks(mcpCall('https://flarechat.example/mcp', 'run_secret')).update({ id: 'missing', listId: 'L1', status: 'open', title: 'x' } as Task, { title: 'y' }))
+    vi.stubGlobal('fetch', serve(new OrangeAgent(), []));
+    await expect(new Tasks(mcpCall('https://orangeagent.example/mcp', 'run_expired')).search()).rejects.toThrow(ToolError);
+    await expect(new Tasks(mcpCall('https://orangeagent.example/mcp', 'run_expired')).search()).rejects.toThrow('not recognised');
+    await expect(new Tasks(mcpCall('https://orangeagent.example/mcp', 'run_secret')).update({ id: 'missing', listId: 'L1', status: 'open', title: 'x' } as Task, { title: 'y' }))
       .rejects.toThrow('is not in task list');
   });
 });
 
 describe('the tools code.run lends', () => {
   it('are called through their call, as env.TOOLS is', async () => {
-    const flarechat = new FlareChat();
-    flarechat.add({ title: '会場の予約' });
-    const tools = { call: (name: string, args: Row) => flarechat.call(name, args) };
+    const orangeagent = new OrangeAgent();
+    orangeagent.add({ title: '会場の予約' });
+    const tools = { call: (name: string, args: Row) => orangeagent.call(name, args) };
     expect((await new Tasks(tools).search()).map((task) => task.title)).toEqual(['会場の予約']);
   });
 });

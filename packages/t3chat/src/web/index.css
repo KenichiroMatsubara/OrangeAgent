@@ -1,6 +1,6 @@
-/* FlareChat: Tailwind and its preflight are imported by src/chat/chat.css, scoped to the
+/* OrangeAgent: Tailwind and its preflight are imported by src/chat/chat.css, scoped to the
    chat's own element, and every rule here that t3code wrote for its whole page (.t3chat, html,
-   body, *, scrollbars, icons) is scoped to `.t3chat`, so no other FlareChat screen changes. */
+   body, *, scrollbars, icons) is scoped to `.t3chat`, so no other OrangeAgent screen changes. */
 
 @custom-variant dark (&:is(.dark, .dark *));
 @custom-variant light (&:not(.dark, .dark *));
@@ -2224,7 +2224,7 @@ html[data-theme-id="t3-chat"] {
    the block being written in so the chunk does not pop. @starting-style only
    applies when an element is first inserted, and the rule is gated on
    data-streaming, so opening a finished thread never replays the fade.
-   FlareChat: only the last block fades. Every block before it is finished,
+   OrangeAgent: only the last block fades. Every block before it is finished,
    but @starting-style also fires when a finished block is inserted again or
    shown again: when several blocks arrive in one delta, or the row's blocks
    are rebuilt mid-answer. Fading those turned the whole answer grey on a

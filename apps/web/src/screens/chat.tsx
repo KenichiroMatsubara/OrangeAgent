@@ -29,7 +29,7 @@ export interface ChatData {
   capabilities: Promise<ChatCapabilities>;
 }
 
-/** Returns at once; the conversations, whether this FlareChat can notify, and the models it answers with fill in as they are read. */
+/** Returns at once; the conversations, whether this OrangeAgent can notify, and the models it answers with fill in as they are read. */
 export const loader = async (): Promise<ChatData> => {
   const accountId = await accountIdOf();
   return { threads: later(api.chatThreads(accountId)), push: later(api.pushSettings(accountId)), capabilities: later(api.chatCapabilities(accountId)) };

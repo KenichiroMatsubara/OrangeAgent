@@ -139,7 +139,7 @@ describe('what a run is told', () => {
     expect(system).toContain('call activate_skill with its name');
     expect(system).toContain('Whom you tell anything is what your Skills say');
     expect(system).toContain('its call answers planned');
-    expect(system).toContain('in the language your Skills are written in, not in the language of these instructions or of the request FlareChat starts the run with');
+    expect(system).toContain('in the language your Skills are written in, not in the language of these instructions or of the request OrangeAgent starts the run with');
     expect(system).toContain('You act for the Account "さくら会". Its own mailbox is sakura.club@example.com');
     expect(system).toContain('- contact-secretary: 鈴木華乃子 — 幹事/メール、登録用紙などの対応');
     expect(model.requests[0]?.messages[1]?.content).toContain('This Automation last ran at 2026-08-01T20:00:00.000Z');

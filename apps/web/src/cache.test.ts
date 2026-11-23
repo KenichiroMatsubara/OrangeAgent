@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { answerOf, cacheName, keepable, previousCache, staleCaches } from './cache';
 
-const ORIGIN = 'https://flarechat.example';
+const ORIGIN = 'https://orangeagent.example';
 const get = (path: string, mode = 'cors') => ({ method: 'GET', url: `${ORIGIN}${path}`, mode });
 
 describe('how the Service Worker answers a request', () => {

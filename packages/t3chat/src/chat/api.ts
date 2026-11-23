@@ -1,5 +1,5 @@
 /**
- * The seam between FlareChat and the chat copied from t3code. FlareChat owns this file and
+ * The seam between OrangeAgent and the chat copied from t3code. OrangeAgent owns this file and
  * everything under `src/chat`; the rest of `src` is the copy (NOTICE.md).
  *
  * A conversation is a log of events numbered per conversation (ADR 0201). The transport

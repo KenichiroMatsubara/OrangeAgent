@@ -214,7 +214,7 @@ describe('one way to reach the Drive', () => {
     }
   });
 
-  it('tells the run to have the Inbox reconnected when its grant reaches only FlareChat’s own files', async () => {
+  it('tells the run to have the Inbox reconnected when its grant reaches only OrangeAgent’s own files', async () => {
     database = createMigratedTestD1('organization');
     const { google, handlers } = drive(database, ['https://www.googleapis.com/auth/drive.file']);
 
@@ -294,7 +294,7 @@ describe('one way to reach the Drive', () => {
     await expect(elsewhere['file.hand']?.({ filename: 'screenshot-1.jpg' })).resolves.toMatchObject({ isError: true });
   });
 
-  it('puts a file away in FlareChat’s trash folder instead of deleting it, and moves it back from there', async () => {
+  it('puts a file away in OrangeAgent’s trash folder instead of deleting it, and moves it back from there', async () => {
     database = createMigratedTestD1('organization');
     const { google, handlers } = drive(database, ['https://www.googleapis.com/auth/drive']);
     database.execute(
@@ -304,13 +304,13 @@ describe('one way to reach the Drive', () => {
 
     const putAway = await handlers['drive.trash']?.({ fileId: 'doc-1', fileName: '11月例会 次第' });
 
-    expect(putAway).toMatchObject({ putAway: true, deleted: false, from: ['folder-1'], trashFolder: { id: 'folder:FlareChat のゴミ箱', name: 'FlareChat のゴミ箱' } });
-    expect(google.drive.held.find((file) => file.id === 'doc-1')).toMatchObject({ parents: ['folder:FlareChat のゴミ箱'], appProperties: { flarechatPutAwayFrom: 'folder-1' } });
-    expect(database.rows<{ value: string }>("SELECT value FROM settings WHERE key = 'drive_trash_folder'")).toEqual([{ value: 'folder:FlareChat のゴミ箱' }]);
+    expect(putAway).toMatchObject({ putAway: true, deleted: false, from: ['folder-1'], trashFolder: { id: 'folder:OrangeAgent のゴミ箱', name: 'OrangeAgent のゴミ箱' } });
+    expect(google.drive.held.find((file) => file.id === 'doc-1')).toMatchObject({ parents: ['folder:OrangeAgent のゴミ箱'], appProperties: { flarechatPutAwayFrom: 'folder-1' } });
+    expect(database.rows<{ value: string }>("SELECT value FROM settings WHERE key = 'drive_trash_folder'")).toEqual([{ value: 'folder:OrangeAgent のゴミ箱' }]);
     // The trash folder lies outside the Account's folders, yet a run bounded to them still finds what it put away there.
-    await expect(handlers['drive.search']?.({ folderId: 'folder:FlareChat のゴミ箱' })).resolves.toMatchObject({ files: [{ id: 'doc-1' }] });
+    await expect(handlers['drive.search']?.({ folderId: 'folder:OrangeAgent のゴミ箱' })).resolves.toMatchObject({ files: [{ id: 'doc-1' }] });
     await expect(handlers['drive.trash']?.({ fileId: 'doc-1', fileName: '11月例会 次第' })).resolves.toMatchObject({ isError: true, message: expect.stringContaining('already') });
-    await expect(handlers['drive.trash']?.({ fileId: 'folder:FlareChat のゴミ箱', fileName: 'FlareChat のゴミ箱' })).resolves.toMatchObject({ isError: true, message: expect.stringContaining('never moved') });
+    await expect(handlers['drive.trash']?.({ fileId: 'folder:OrangeAgent のゴミ箱', fileName: 'OrangeAgent のゴミ箱' })).resolves.toMatchObject({ isError: true, message: expect.stringContaining('never moved') });
     await expect(handlers['drive.trash']?.({ fileId: 'pdf-1', fileName: '案内.pdf' })).resolves.toMatchObject({ isError: true, message: expect.stringContaining('2026-27 例会 (folder-1)') });
 
     await expect(handlers['drive.move']?.({ fileId: 'doc-1', fileName: '11月例会 次第', folderId: 'folder-1', folderName: '2026-27 例会' }))
@@ -364,7 +364,7 @@ describe('one way to reach the Tasks, which are kept in Google Tasks', () => {
   // The suite's clock stands at 2026-08-01, so sixty days ago is 2026-06-02.
   it('lists every open Task and those completed lately from every list, soonest due first, and names the lists', async () => {
     const { google, handlers } = tasks();
-    google.tasks.lists.push({ id: 'list-own', title: 'FlareChat' });
+    google.tasks.lists.push({ id: 'list-own', title: 'OrangeAgent' });
     google.tasks.held.push(
       { id: 'open-due', listId: 'list-own', title: '会費を払う', notes: '口座へ振り込む\n\n担当: 田中', status: 'needsAction', due: '2026-08-10T00:00:00.000Z', updated: '2026-07-01T00:00:00.000Z', webViewLink: 'https://tasks.example/open-due' },
       { id: 'own-todo', listId: 'list-default', title: '牛乳を買う', status: 'needsAction', updated: '2026-01-05T00:00:00.000Z' },
@@ -375,7 +375,7 @@ describe('one way to reach the Tasks, which are kept in Google Tasks', () => {
 
     const found = await handlers['tasks.search']?.({}) as { lists: unknown[]; tasks: Array<{ id: string }> };
 
-    expect(found.lists).toEqual([{ id: 'list-default', name: 'マイタスク' }, { id: 'list-own', name: 'FlareChat' }]);
+    expect(found.lists).toEqual([{ id: 'list-default', name: 'マイタスク' }, { id: 'list-own', name: 'OrangeAgent' }]);
     expect(found.tasks.map(({ id }) => id)).toEqual(['done-lately', 'open-due', 'own-todo']);
     expect(found.tasks[1]).toEqual({
       id: 'open-due', listId: 'list-own', title: '会費を払う', notes: '口座へ振り込む\n\n担当: 田中', due: '2026-08-10', status: 'open',
@@ -390,14 +390,14 @@ describe('one way to reach the Tasks, which are kept in Google Tasks', () => {
     await expect(handlers['tasks.search']?.({ from: '3/1' })).resolves.toMatchObject({ isError: true, message: expect.stringContaining('YYYY-MM-DD') });
   });
 
-  it('puts a new Task in the list named FlareChat, making the list the first time and using it again the second', async () => {
+  it('puts a new Task in the list named OrangeAgent, making the list the first time and using it again the second', async () => {
     const { google, handlers } = tasks();
 
     const first = await handlers['tasks.create']?.({ title: '登録用紙を返送', due: '2026-10-30', notes: '氏名を記入して返送\n\n担当: 田中' });
     await handlers['tasks.create']?.({ title: '名簿を整える', due: null });
 
-    const own = google.tasks.lists.find((list) => list.title === 'FlareChat');
-    expect(google.tasks.lists.map(({ title }) => title)).toEqual(['マイタスク', 'FlareChat']);
+    const own = google.tasks.lists.find((list) => list.title === 'OrangeAgent');
+    expect(google.tasks.lists.map(({ title }) => title)).toEqual(['マイタスク', 'OrangeAgent']);
     expect(first).toMatchObject({ created: true, task: { listId: own?.id, title: '登録用紙を返送', notes: '氏名を記入して返送\n\n担当: 田中', due: '2026-10-30', status: 'open' } });
     expect(google.tasks.writes).toEqual([
       { operation: 'create', listId: own?.id, id: 'task-1', body: { title: '登録用紙を返送', notes: '氏名を記入して返送\n\n担当: 田中', due: '2026-10-30T00:00:00.000Z' } },
@@ -406,7 +406,7 @@ describe('one way to reach the Tasks, which are kept in Google Tasks', () => {
     // A list the run names takes the Task instead, and one Google Tasks does not hold is answered, not thrown.
     await expect(handlers['tasks.create']?.({ title: '牛乳を買う', due: null, listId: 'list-default' })).resolves.toMatchObject({ created: true, task: { listId: 'list-default' } });
     await expect(handlers['tasks.create']?.({ title: '別件', due: null, listId: 'list-9' })).resolves.toMatchObject({ isError: true, message: expect.stringContaining('list-9') });
-    // FlareChat keeps no copy.
+    // OrangeAgent keeps no copy.
     expect(database?.rows('SELECT id FROM tasks')).toEqual([]);
   });
 

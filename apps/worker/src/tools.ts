@@ -322,7 +322,7 @@ export const TOOL_DESCRIPTIONS: Readonly<Record<ToolName, ToolDescription>> = {
     },
   },
   cancel_scheduled_event: {
-    description: 'Cancel one Scheduled Event, named by its id. It is removed from Google Calendar without mailing anyone and kept in FlareChat as cancelled.',
+    description: 'Cancel one Scheduled Event, named by its id. It is removed from Google Calendar without mailing anyone and kept in OrangeAgent as cancelled.',
     parameters: { type: 'object', properties: { eventId: { type: 'string', description: 'An id query_scheduled_events returned.' } }, required: ['eventId'], additionalProperties: false },
   },
   attach_event_files: {
@@ -378,7 +378,7 @@ export const TOOL_DESCRIPTIONS: Readonly<Record<ToolName, ToolDescription>> = {
       additionalProperties: false,
     },
   },
-  // FlareChat's own environment, lent every model (ADR 0203).
+  // OrangeAgent's own environment, lent every model (ADR 0203).
   // A subagent: the same loop in a context of its own, whose writes are planned (ADR 0203).
   'agent.run': {
     description: AGENT_RUN_DESCRIPTION,
@@ -484,7 +484,7 @@ export const TOOL_DESCRIPTIONS: Readonly<Record<ToolName, ToolDescription>> = {
     },
   },
   'drive.move': {
-    description: 'Move one file or folder of the Account’s Google Drive into another folder, out of every folder it is in now. Also moves a file back out of FlareChat のゴミ箱.',
+    description: 'Move one file or folder of the Account’s Google Drive into another folder, out of every folder it is in now. Also moves a file back out of OrangeAgent のゴミ箱.',
     parameters: {
       type: 'object',
       properties: {
@@ -545,7 +545,7 @@ export const TOOL_DESCRIPTIONS: Readonly<Record<ToolName, ToolDescription>> = {
     },
   },
   'drive.trash': {
-    description: 'Move one Drive file or folder to FlareChat のゴミ箱 at the top of My Drive; nothing is deleted. Use it whenever asked to delete something in Drive. drive.move brings it back.',
+    description: 'Move one Drive file or folder to OrangeAgent のゴミ箱 at the top of My Drive; nothing is deleted. Use it whenever asked to delete something in Drive. drive.move brings it back.',
     parameters: {
       type: 'object',
       properties: {
@@ -800,9 +800,9 @@ export interface ToolContext {
   memory?: { store: MemoryStore; author?: MemoryAuthor };
   /** The browser the run operates, for a run whose Account lets it; absent for every other run. */
   browser?: RunBrowser;
-  /** The environment FlareChat lends the run's code, for a run whose AI Connection runs none of its own (ADR 0202). */
+  /** The environment OrangeAgent lends the run's code, for a run whose AI Connection runs none of its own (ADR 0202). */
   code?: CodeContext;
-  /** Starts a subagent (`subagent.ts`), for a run that thinks in FlareChat. */
+  /** Starts a subagent (`subagent.ts`), for a run that thinks in OrangeAgent. */
   agent?: (arguments_: Record<string, unknown>) => Promise<unknown>;
   at: () => Date;
 }
@@ -955,7 +955,7 @@ export const readHandlers = (context: Pick<ToolContext, 'database' | 'reach' | '
     return context.google;
   };
   const accessToken = async (name: string): Promise<string> => (await google(name).session()).accessToken;
-  // A grant without the whole Drive still lists FlareChat's own files, so whether it reaches the rest is asked of the grant itself.
+  // A grant without the whole Drive still lists OrangeAgent's own files, so whether it reaches the rest is asked of the grant itself.
   let reach: Promise<DriveReach> | undefined;
   const driveReach = (): Promise<DriveReach> => reach ??= driveReachOf(context.database);
   return {
@@ -989,7 +989,7 @@ export const readHandlers = (context: Pick<ToolContext, 'database' | 'reach' | '
     'meet.read': async (arguments_) => await meetRefusal(context.database)
       ?? readMeet({ google: google('meet.read').provider, accessToken: await accessToken('meet.read') }, typeof arguments_.meetingId === 'string' ? arguments_.meetingId.trim() : ''),
     // The loop a run thinks in answers it (`turns.ts`); a run that reaches this handler thinks elsewhere and has no Run Token to issue.
-    'run.token': async () => ({ isError: true, message: 'Only a run that thinks in FlareChat issues a Run Token.' }),
+    'run.token': async () => ({ isError: true, message: 'Only a run that thinks in OrangeAgent issues a Run Token.' }),
     activate_skill: async (arguments_) => context.skills
       ? activateSkill(context.skills, typeof arguments_.name === 'string' ? arguments_.name : '')
       : { isError: true, message: 'This run reads no Skills.' },

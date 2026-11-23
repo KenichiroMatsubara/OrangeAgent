@@ -2,10 +2,10 @@
  * What the Service Worker shows for a push from the Worker, and where tapping
  * it goes. The Worker sends a notification already in words (notices.ts);
  * the worker shows it as it is, and one that is not such a notification as a
- * plain one of FlareChat's, since a push must always show something.
+ * plain one of OrangeAgent's, since a push must always show something.
  *
  * Tapping a notification opens its conversation: a window already on it is
- * brought forward; otherwise a FlareChat window is brought forward and told to
+ * brought forward; otherwise a OrangeAgent window is brought forward and told to
  * go there; with none open, a new one opens there.
  */
 
@@ -19,7 +19,7 @@ export interface Notice {
 }
 
 /** What is shown for a push that does not say what it is. */
-const FALLBACK: Notice = { title: 'FlareChat', body: '新しいお知らせがあります。', url: '/chat', tag: 'flarechat' };
+const FALLBACK: Notice = { title: 'OrangeAgent', body: '新しいお知らせがあります。', url: '/chat', tag: 'orangeagent' };
 
 const TEXT_CHARACTERS = 200;
 
@@ -30,7 +30,7 @@ const text = (value: unknown, fallback: string): string =>
 const sitePath = (value: unknown): string =>
   typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : FALLBACK.url;
 
-/** The notification a push's text says, or FlareChat's plain one. */
+/** The notification a push's text says, or OrangeAgent's plain one. */
 export const noticeOf = (data: string | null): Notice => {
   if (!data) return FALLBACK;
   try {

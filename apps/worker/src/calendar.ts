@@ -1,5 +1,5 @@
 /**
- * A Scheduled Event as Google Calendar holds it and as FlareChat last wrote it:
+ * A Scheduled Event as Google Calendar holds it and as OrangeAgent last wrote it:
  * the Source Attribution that names its Source Message, the fields a change may
  * write, and the Manual Overrides a change leaves alone.
  */
@@ -13,7 +13,7 @@ const TIME_ZONE = 'Asia/Tokyo';
  * description that names the Gmail message it came from.
  */
 export const sourceMessageAttribution = (gmailMessageId: string): string =>
-  `FlareChat が Gmail メッセージ ${gmailMessageId} から作成しました。`;
+  `OrangeAgent が Gmail メッセージ ${gmailMessageId} から作成しました。`;
 
 /**
  * Reads the Gmail message ID out of every generation of the Source Attribution.
@@ -23,7 +23,7 @@ export const sourceMessageAttribution = (gmailMessageId: string): string =>
 export const attributedMessageId = (description: string): string | null =>
   /Gmail\s*メッセージ\s+([A-Za-z0-9_-]{1,200})\s*から作成しました/u.exec(description)?.[1] ?? null;
 
-/** One Google Calendar attendee, kept opaque beyond the fields FlareChat reads. */
+/** One Google Calendar attendee, kept opaque beyond the fields OrangeAgent reads. */
 export interface CalendarAttendee {
   email: string;
   displayName?: string;
@@ -85,8 +85,8 @@ const sameValue = (field: CalendarField, left: string, right: string): boolean =
 
 /**
  * Names the fields a person has taken over. A field whose live Calendar value
- * differs from the value FlareChat last wrote was changed by somebody else and is
- * a Manual Override that no automated change may overwrite. A field FlareChat
+ * differs from the value OrangeAgent last wrote was changed by somebody else and is
+ * a Manual Override that no automated change may overwrite. A field OrangeAgent
  * never recorded holds nothing to compare, so it is never read as a person's edit.
  */
 export const lockedCalendarFields = (current: CalendarEventFields, recorded: CalendarEventFields): CalendarField[] =>

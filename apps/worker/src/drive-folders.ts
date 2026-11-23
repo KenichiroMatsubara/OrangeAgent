@@ -6,7 +6,7 @@ import type { AccountDatabase } from './storage/database';
 
 export const DRIVE_FOLDERS_SETTING = 'drive_folders';
 
-/** The folder FlareChat keeps as the Account's trash, recorded once it has made one. */
+/** The folder OrangeAgent keeps as the Account's trash, recorded once it has made one. */
 export const DRIVE_TRASH_SETTING = 'drive_trash_folder';
 
 const isFolder = (value: unknown): value is DriveFolder => {
@@ -33,7 +33,7 @@ export const saveDriveFolders = async (database: AccountDatabase, folders: reado
     .onConflictDoUpdate({ target: settings.key, set: { value, updatedAt } }).run();
 };
 
-/** The id of the folder FlareChat made as the Account's trash, or null before it has made one. */
+/** The id of the folder OrangeAgent made as the Account's trash, or null before it has made one. */
 export const driveTrashFolderId = async (database: AccountDatabase): Promise<string | null> =>
   (await database.select({ value: settings.value }).from(settings).where(eq(settings.key, DRIVE_TRASH_SETTING)).get())?.value ?? null;
 

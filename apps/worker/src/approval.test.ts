@@ -145,7 +145,7 @@ describe('a call waiting for approval, as the member reads it', () => {
     expect(describeCall({ label: 'メールを送る', arguments: { to: 'a@example.com' }, preview: '宛先：a@example.com' })).toBe('メールを送る\n宛先：a@example.com');
   });
 
-  it('previews a mail or an event write in words, reading the event a change names as FlareChat recorded it', async () => {
+  it('previews a mail or an event write in words, reading the event a change names as OrangeAgent recorded it', async () => {
     const read: string[] = [];
     const preview = chatPreview(async (eventId) => {
       read.push(eventId);
@@ -155,8 +155,8 @@ describe('a call waiting for approval, as the member reads it', () => {
     expect(await preview('mail.send', { to: 'a@example.com', subject: '定例', body: 'よろしく' })).toBe('宛先：a@example.com\n件名：定例\n本文：\nよろしく');
     expect(await preview('update_scheduled_event', { eventId: 'event-1', startsAt: '2026-11-26T15:00:00+09:00', endsAt: '2026-11-26T15:30:00+09:00' }))
       .toBe('予定名：週次定例\n日時：2026年11月27日(金) 10:00〜10:30 → 2026年11月26日(木) 15:00〜15:30');
-    expect(await preview('cancel_scheduled_event', { eventId: 'event-2' })).toBe('予定：event-2（FlareChat に記録がありません）');
-    expect(await chatPreview(async () => { throw new Error('D1 is down'); })('cancel_scheduled_event', { eventId: 'event-1' })).toBe('予定：event-1（FlareChat に記録がありません）');
+    expect(await preview('cancel_scheduled_event', { eventId: 'event-2' })).toBe('予定：event-2（OrangeAgent に記録がありません）');
+    expect(await chatPreview(async () => { throw new Error('D1 is down'); })('cancel_scheduled_event', { eventId: 'event-1' })).toBe('予定：event-1（OrangeAgent に記録がありません）');
     // A tool without a preview keeps its arguments, and reads no event.
     expect(await preview('channel.send', { eventId: 'event-1', text: 'こんにちは' })).toBeNull();
     expect(await preview('create_scheduled_event', { eventId: 'event-1', title: '総会', startsAt: '2026-12-05', endsAt: '2026-12-06' })).toBe('予定名：総会\n日時：2026年12月5日(土) 終日');

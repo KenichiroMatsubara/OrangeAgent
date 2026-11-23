@@ -165,12 +165,12 @@ const transcriptDetail: TranscriptDetail = {
   ...transcriptSummary, lines: [{ at: 0.5, speaker: '話者1', text: '開会します。' }], minutes: null, minutesError: null, minutesModel: null, minutesInstructions: '',
 };
 const accessToken: AccessToken = { id: 'token-1', name: 'Agent', contactListId: 'list-1', suppressionWindow: 'day', lastUsedAt: null, tools: ['send_message'] };
-const issuedToken: IssuedAccessToken = { id: 'token-1', name: 'Agent', tools: ['send_message'], token: 'secret', url: 'https://flarechat.example/api/public/organizations/org-1/mcp' };
+const issuedToken: IssuedAccessToken = { id: 'token-1', name: 'Agent', tools: ['send_message'], token: 'secret', url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' };
 const operatorToken: OperatorToken = { id: 'operator-1', email: 'owner@example.com', client: 'Claude', createdAt: AT, expiresAt: AT, lastUsedAt: null };
 const loginCode: IssuedLoginCode = {
   code: 'ABCD-EFGH', expiresAt: AT,
-  exchangeUrl: 'https://flarechat.example/api/public/organizations/org-1/operator-tokens',
-  serverUrl: 'https://flarechat.example/api/public/organizations/org-1/mcp',
+  exchangeUrl: 'https://orangeagent.example/api/public/organizations/org-1/operator-tokens',
+  serverUrl: 'https://orangeagent.example/api/public/organizations/org-1/mcp',
 };
 const askPreview: AuthorizationPreview = {
   kind: 'ask', client: 'Claude', redirectHost: 'claude.ai', accounts: [{ accountId: A, name: 'Example', email: 'owner@example.com' }], expiresAt: AT,
@@ -453,7 +453,7 @@ const table: { [K in Method]: Row<K> } = {
     kind: 'json', route: 'PUT /api/organizations/:accountId/connections/discord',
     call: (c) => c.saveDiscordConnection(A, { botToken: 'bot', applicationPublicKey: 'a'.repeat(64) }),
     sends: { method: 'PUT', path: '/api/organizations/org-1/connections/discord', body: { json: { botToken: 'bot', applicationPublicKey: 'a'.repeat(64) } } },
-    data: { configured: true, interactionsUrl: 'https://flarechat.example/api/public/organizations/org-1/discord/interactions' },
+    data: { configured: true, interactionsUrl: 'https://orangeagent.example/api/public/organizations/org-1/discord/interactions' },
   },
   driveFolders: {
     kind: 'json', route: 'GET /api/organizations/:accountId/drive-folders', call: (c) => c.driveFolders(A),
@@ -835,7 +835,7 @@ const table: { [K in Method]: Row<K> } = {
   },
   mcpEndpoint: {
     kind: 'json', route: 'GET /api/organizations/:accountId/mcp-endpoint', call: (c) => c.mcpEndpoint(A),
-    sends: { method: 'GET', path: '/api/organizations/org-1/mcp-endpoint' }, data: { url: 'https://flarechat.example/api/public/organizations/org-1/mcp' },
+    sends: { method: 'GET', path: '/api/organizations/org-1/mcp-endpoint' }, data: { url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' },
   },
   issueLoginCode: {
     kind: 'json', route: 'POST /api/organizations/:accountId/login-codes', call: (c) => c.issueLoginCode(A),

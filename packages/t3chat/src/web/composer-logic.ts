@@ -260,8 +260,8 @@ export function collapseExpandedComposerCursor(
 }
 
 /**
- * FlareChat: the composer opens no menu as a person types. t3code's `@` (a file of the
- * workspace), `$` (a provider's skill), and `/` (a provider's command) name things FlareChat
+ * OrangeAgent: the composer opens no menu as a person types. t3code's `@` (a file of the
+ * workspace), `$` (a provider's skill), and `/` (a provider's command) name things OrangeAgent
  * does not have: it reaches no workspace, and its Skills are offered to the model whole.
  */
 export function detectComposerTrigger(_text: string, _cursorInput: number): ComposerTrigger | null {

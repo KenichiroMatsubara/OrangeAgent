@@ -67,7 +67,7 @@ describe('deployment contract', () => {
     expect(wrangler.env.local.browser).toBeUndefined();
   });
 
-  it('binds a Dynamic Worker loader and one container class per size FlareChat lends, and leaves local development without them', () => {
+  it('binds a Dynamic Worker loader and one container class per size OrangeAgent lends, and leaves local development without them', () => {
     const wrangler = JSON.parse(
       readFileSync(resolve(import.meta.dirname, '../wrangler.jsonc'), 'utf8'),
     ) as {

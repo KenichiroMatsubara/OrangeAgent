@@ -103,7 +103,7 @@ export const TASK_SKILL_TITLE = 'タスクの管理';
 export const TASK_SKILL_DESCRIPTION = 'タスクを探す・作る・変える・完了にする・取りやめる・担当者に知らせるとき。タスクは Google ToDo に置いていて、読み書きする scripts/tasks.mjs とその決まりがここにあります。';
 
 /** How the Account keeps its Tasks in Google Tasks: what a Task's notes carry, and when one is completed or cancelled. */
-export const TASK_SKILL = `この Account のタスクは Google ToDo のリスト「FlareChat」に置きます。FlareChat の中にタスクの控えはなく、Google ToDo にあるものがすべてです。人が Google ToDo で足したり、直したり、完了にしたりしたものも、そのまま正しいものとして扱います。
+export const TASK_SKILL = `この Account のタスクは Google ToDo のリスト「OrangeAgent」に置きます。OrangeAgent の中にタスクの控えはなく、Google ToDo にあるものがすべてです。人が Google ToDo で足したり、直したり、完了にしたりしたものも、そのまま正しいものとして扱います。
 
 タスクを探す・作る・変える・完了にする・取りやめる・担当者に知らせるときは、このスキルに同梱の tasks.mjs を使います。メモ欄の書き方と読み方、担当者と連絡先の照合、同じタスクを二度作らないことは tasks.mjs が決まった手順で行うので、メモ欄を自分で書いたり読み取ったりしません。何が同じ仕事か、いつ完了・取りやめにするかは、下の決まりに従って自分で判断します。
 
@@ -121,7 +121,7 @@ Python ではなく JavaScript で書きます。tools はそのプログラム�
 
 ## 使い方
 
-- 探す: await t.search({ status, assignee, event, text, dueFrom, dueTo })。どれも省けます。何も指定しなければ、リスト「FlareChat」の未完了すべてと、この 60 日に完了・変更されたものです。status は 'open'（未完了）、'completed'（終えた）、'cancelled'（取りやめ）。assignee は担当者の名前、'' なら担当者のいないもの。1 件は id、listId、title、due、status、body（仕事の内容）、assignee、event、mail、key、remarks、completedAt、cancelReason、url のオブジェクトです。
+- 探す: await t.search({ status, assignee, event, text, dueFrom, dueTo })。どれも省けます。何も指定しなければ、リスト「OrangeAgent」の未完了すべてと、この 60 日に完了・変更されたものです。status は 'open'（未完了）、'completed'（終えた）、'cancelled'（取りやめ）。assignee は担当者の名前、'' なら担当者のいないもの。1 件は id、listId、title、due、status、body（仕事の内容）、assignee、event、mail、key、remarks、completedAt、cancelReason、url のオブジェクトです。
 - 登録する: await t.upsert([{ title: …, due: 'YYYY-MM-DD' か null, body: …, assignee: 連絡先の名前, event: '題名（月/日）', mail: 元メールの件名, mailId: 元メールの ID, remark: 備考 }, …])。title のほかは省けます。同じメールの同じ題名のタスクがあれば、作らずにそれを変えます。1 件ごとの result は、created（作った）、planned（自動化が作ると計画した）、updated、unchanged、closed（完了・取りやめ済みなので何もしなかった）、duplicate（この実行で登録済み）、refused（書かなかった。reason に理由）です。
 - 変える: await t.update(task, { due, assignee, body, event, remark })。task は search が返した 1 件で、渡した項目だけが変わります。ほかの行と、人が Google ToDo で書き足した内容は残ります。
 - 完了: await t.complete(task, '入金を確認')。取りやめ: await t.cancel(task, '例会が中止')。
@@ -137,7 +137,7 @@ Python ではなく JavaScript で書きます。tools はそのプログラム�
 - 完了済み・取りやめ済みのタスクの仕事なら何も変えません。改めてはっきり頼まれたときだけ、新しいタスクを作ります。
 - 完了にするのは、受領や支払いが確認されたか、担当者が終えたと伝えたときだけです。取りやめにするのは、依頼がはっきり取り下げられたか、その予定が中止されたときだけです。
 - 完了済みのタスクを未完了に戻すこと、タスクを消すことはできません。戻すのは人が Google ToDo で行います。もう一度頼まれたと読めるときは、そのことを人に伝えます。
-- リスト「FlareChat」以外のリストにあるものは、この Google アカウントを使う人が自分で書いた ToDo です。t.search({ allLists: true }) で読んでかまいませんが、頼まれないかぎり変えません。
+- リスト「OrangeAgent」以外のリストにあるものは、この Google アカウントを使う人が自分で書いた ToDo です。t.search({ allLists: true }) で読んでかまいませんが、頼まれないかぎり変えません。
 
 ## コードを実行できないとき
 

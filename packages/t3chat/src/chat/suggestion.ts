@@ -1,7 +1,7 @@
 /**
  * The suggestion each conversation's composer offers: what the person is likely to write next after
  * its latest answer, read from the server once that answer completes (ADR 0201 keeps the chat's
- * server FlareChat's own, so t3code's `promptSuggestion` subscription has no server to answer it).
+ * server OrangeAgent's own, so t3code's `promptSuggestion` subscription has no server to answer it).
  * t3code's `usePromptSuggestion` reads it from here and offers it only while the answer it follows
  * is the conversation's latest completed one.
  */

@@ -25,7 +25,7 @@ import type { Bindings } from './types';
 const AUTHORITY = 'https://login.microsoftonline.com/common/oauth2/v2.0';
 const GRAPH = 'https://graph.microsoft.com/v1.0';
 
-/** Who the person is, and their OneDrive app folder alone: FlareChat never sees the rest of their files. */
+/** Who the person is, and their OneDrive app folder alone: OrangeAgent never sees the rest of their files. */
 export const MICROSOFT_SCOPES = ['openid', 'email', 'profile', 'offline_access', 'Files.ReadWrite.AppFolder'] as const;
 
 export const MICROSOFT_SETTING = 'microsoft_connection';
@@ -205,7 +205,7 @@ const graphError = async (response: Response, what: string): Promise<Error> => {
 
 /**
  * A Word, Excel, or PowerPoint file as Word, Excel, or PowerPoint for the web
- * renders it to a PDF: uploaded under a name of its own into FlareChat's app
+ * renders it to a PDF: uploaded under a name of its own into OrangeAgent's app
  * folder, converted, and removed whether or not the conversion succeeded.
  */
 export const renderPdfWithOffice = async (token: string, input: { extension: string; bytes: Uint8Array }): Promise<Uint8Array> => {

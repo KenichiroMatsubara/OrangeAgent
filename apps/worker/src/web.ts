@@ -37,7 +37,7 @@ export const MAX_WEB_FILE_BYTES = 20 * 1024 * 1024;
 
 const TIMEOUT_MS = 20_000;
 
-const USER_AGENT = 'Mozilla/5.0 (compatible; FlareChat/1.0)';
+const USER_AGENT = 'Mozilla/5.0 (compatible; OrangeAgent/1.0)';
 
 const refused = (message: string): Refusal => ({ isError: true, message });
 

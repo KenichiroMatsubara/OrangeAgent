@@ -746,7 +746,7 @@ export function ComposerAttachButton({
         ref={inputRef}
         type="file"
         multiple
-        // FlareChat: the kinds a message may carry (domain CHAT_ATTACHMENT_TYPES); a phone offers its camera roll.
+        // OrangeAgent: the kinds a message may carry (domain CHAT_ATTACHMENT_TYPES); a phone offers its camera roll.
         accept="image/*,application/pdf,.pdf,.docx,.xlsx,.csv,.txt,text/plain,text/csv"
         className="hidden"
         onChange={(event) => {

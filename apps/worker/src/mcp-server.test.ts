@@ -44,12 +44,12 @@ const account = (): TestD1Database => {
 
 /** Who the server says it is, at the origin the fixture serves the GUI from. */
 const SERVER_INFO = {
-  name: 'flarechat',
-  title: 'FlareChat',
+  name: 'orangeagent',
+  title: 'OrangeAgent',
   version: '1',
   icons: [
-    { src: 'https://flarechat.example/icon.svg', mimeType: 'image/svg+xml', sizes: ['any'] },
-    { src: 'https://flarechat.example/icon-512.png', mimeType: 'image/png', sizes: ['512x512'] },
+    { src: 'https://orangeagent.example/icon.svg', mimeType: 'image/svg+xml', sizes: ['any'] },
+    { src: 'https://orangeagent.example/icon-512.png', mimeType: 'image/png', sizes: ['512x512'] },
   ],
 };
 
@@ -61,7 +61,7 @@ const base = (overrides: { request?: ReturnType<typeof call>; grant?: string[]; 
     database,
     input: {
       request: overrides.request ?? call('tools/list'),
-      origin: 'https://flarechat.example/',
+      origin: 'https://orangeagent.example/',
       run: accessTokenRun(overrides.grant ?? ACCESS_TOKEN_TOOLS.map((tool) => tool.name)),
       prompts: overrides.prompts ?? [],
       handlers: toolHandlers({
@@ -76,7 +76,7 @@ const base = (overrides: { request?: ReturnType<typeof call>; grant?: string[]; 
 const listed = (result: unknown): string[] => (result as { tools: Array<{ name: string }> }).tools.map((tool) => tool.name);
 const text = (result: unknown): string => (result as { content: Array<{ text: string }> }).content[0]?.text ?? '';
 
-describe('FlareChat as an MCP Server', () => {
+describe('OrangeAgent as an MCP Server', () => {
   it('offers every tool an Access Token can be granted, described as every other run is told it', async () => {
     const response = await handleMcpServerRequest(base().input);
 
@@ -234,8 +234,8 @@ describe('FlareChat as an MCP Server', () => {
 
     expect((response.result as { messages: unknown[] }).messages).toEqual([
       { role: 'user', content: { type: 'text', text: 'Send it as examples/notice.md shows.' } },
-      { role: 'user', content: { type: 'resource', resource: { uri: 'flarechat://skills/weekly-notice/examples/notice.md', mimeType: 'text/markdown', text: '今週の例会は…' } } },
-      { role: 'user', content: { type: 'resource', resource: { uri: 'flarechat://skills/weekly-notice/logo.png', mimeType: 'image/png', blob: 'iVBORw==' } } },
+      { role: 'user', content: { type: 'resource', resource: { uri: 'orangeagent://skills/weekly-notice/examples/notice.md', mimeType: 'text/markdown', text: '今週の例会は…' } } },
+      { role: 'user', content: { type: 'resource', resource: { uri: 'orangeagent://skills/weekly-notice/logo.png', mimeType: 'image/png', blob: 'iVBORw==' } } },
     ]);
   });
 
@@ -253,7 +253,7 @@ describe('FlareChat as an MCP Server', () => {
     }
   });
 
-  it('names itself FlareChat, with the icon its GUI is served with', async () => {
+  it('names itself OrangeAgent, with the icon its GUI is served with', async () => {
     const response = await handleMcpServerRequest(base({ request: call('initialize', { protocolVersion: '2025-11-25' }) }).input);
 
     expect((response.result as { serverInfo: unknown }).serverInfo).toEqual(SERVER_INFO);
@@ -367,7 +367,7 @@ describe('an Operator Token’s run', () => {
     ];
     const response = await handleMcpServerRequest({
       request: call('tools/call', { name: 'mail.read', arguments: { messageId: 'm1' } }),
-      origin: 'https://flarechat.example',
+      origin: 'https://orangeagent.example',
       run: OPERATOR_TOKEN_RUN,
       prompts: [],
       handlers: { 'mail.read': async () => new FileAnswer({ subject: '遠足' }, files) },
@@ -378,8 +378,8 @@ describe('an Operator Token’s run', () => {
       content: [
         { type: 'text', text: JSON.stringify({ subject: '遠足' }) },
         { type: 'image', data: 'iVBORw==', mimeType: 'image/png' },
-        { type: 'resource', resource: { uri: 'flarechat://files/note.txt', mimeType: 'text/plain', text: '持ち物: 上履き' } },
-        { type: 'resource', resource: { uri: `flarechat://files/${encodeURIComponent('案内.pdf')}`, mimeType: 'application/pdf', blob: 'JVBERg==' } },
+        { type: 'resource', resource: { uri: 'orangeagent://files/note.txt', mimeType: 'text/plain', text: '持ち物: 上履き' } },
+        { type: 'resource', resource: { uri: `orangeagent://files/${encodeURIComponent('案内.pdf')}`, mimeType: 'application/pdf', blob: 'JVBERg==' } },
       ],
     });
   });
