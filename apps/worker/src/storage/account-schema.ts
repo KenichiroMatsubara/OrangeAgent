@@ -837,18 +837,10 @@ export const accessTokens = sqliteTable('access_tokens', {
   accountId: text('account_id').notNull(),
   name: text('name').notNull(),
   tokenHash: text('token_hash').notNull(),
-  contactListId: text('contact_list_id').notNull().references(() => contactLists.id, { onDelete: 'restrict' }),
-  suppressionWindow: text('suppression_window', { enum: ['none', 'hour', 'day', 'week', 'forever'] }).notNull().default('day'),
-  // No longer read: nothing counts a Token's calls or writes. Each keeps its default for rows written now.
-  callsPerHour: integer('calls_per_hour').notNull().default(60),
-  writesPerDay: integer('writes_per_day').notNull().default(100),
   lastUsedAt: text('last_used_at'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 }, (table) => [
-  check('access_tokens_window_check', sql`${table.suppressionWindow} in ('none', 'hour', 'day', 'week', 'forever')`),
-  check('access_tokens_calls_check', sql`${table.callsPerHour} > 0`),
-  check('access_tokens_writes_check', sql`${table.writesPerDay} > 0`),
   uniqueIndex('access_tokens_hash_idx').on(table.tokenHash),
 ]);
 

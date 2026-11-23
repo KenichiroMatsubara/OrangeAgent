@@ -128,6 +128,7 @@ describe('canonical D1 schemas', () => {
       '0064_agent_skills_names.sql',
       '0065_runs_browser_time.sql',
       '0066_key_browsers.sql',
+      '0067_plain_access_tokens.sql',
     ]);
   });
 

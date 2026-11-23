@@ -152,7 +152,7 @@ const browserLogins: BrowserLogin[] = [
 ];
 
 const accessTokens: AccessToken[] = [{
-  id: 'token-1', name: '会計ソフト連携', contactListId: 'list-1', suppressionWindow: 'day',
+  id: 'token-1', name: '会計ソフト連携',
   lastUsedAt: '2026-10-10T03:00:00.000Z', tools: ['query_contacts'],
 }];
 

@@ -114,7 +114,7 @@ describe('Automation screen', () => {
     vi.mocked(api.updateAutomation).mockResolvedValue(automation());
     const user = userEvent.setup();
     renderScreen(path, screenModule, url);
-    const granted = await screen.findByRole('group', { name: '使ってよいこと' });
+    const granted = await screen.findByRole('region', { name: '使ってよいこと' });
 
     expect(within(granted).getByRole('checkbox', { name: /メールを読む/u })).toHaveProperty('checked', true);
     expect(within(granted).getByRole('checkbox', { name: /メールを検索する/u })).toHaveProperty('checked', false);

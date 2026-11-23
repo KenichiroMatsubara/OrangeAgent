@@ -2,7 +2,7 @@
  * What the model is told about each tool in the product's one list, and the
  * one handler each tool has. Which tools a run may call is decided by
  * `selectTools` in the domain package; this module describes them, reads each
- * call, bounds it by whom and what the run may reach, and performs it.
+ * call, bounds it by what the run may reach, and performs it.
  *
  * A run that performs its writes calls `toolHandlers`; a run that plans them
  * reads and bounds each call the same way, records it, and its Planned Write
@@ -12,7 +12,7 @@
  */
 
 import { BROWSER_TOOLS, selectTools, toolNamed, type ToolName, type ToolRun } from '@mail/domain';
-import { asc, eq, inArray } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 
 import { SCHEDULED_EVENT_QUERY_TOOL, queryScheduledEvents, scheduledEventQuery } from './agenda';
 import { contactChannels } from './channel';
@@ -52,7 +52,6 @@ import {
 import { addMemory, searchMemory } from './memory/answer';
 import type { MemoryAuthor, MemoryStore } from './memory/store';
 import { activateSkill, performSkillWrite, readSkillResource, skillWriteCall, type SkillStore } from './skills';
-import { suppressionKey, type SuppressionWindow } from './suppression';
 import { accountDatabase as drizzleAccountDatabase } from './storage/database';
 import { attendance, contacts } from './storage/account-schema';
 import { TASK_CREATE_TOOL, TASK_SEARCH_TOOL, TASK_UPDATE_TOOL, createTask, searchTasks, taskWriteCall, tasksRefusal, updateTask } from './tasks';
@@ -601,28 +600,23 @@ export const MAX_MAIL_FILE_BYTES = 25 * 1024 * 1024;
 /**
  * The read tools backed by this Account's own database. Every roster entry
  * names the Channels its Contact can be reached on, so a run told whom to tell
- * knows how. A run bounded to a Contact List, as an Access Token is, sees only
- * that list's Contacts in the roster and in attendance.
+ * knows how.
  */
-export const accountReadHandlers = (database: D1Database, bound?: { contactIds: readonly string[] }): ToolHandlers => {
+export const accountReadHandlers = (database: D1Database): ToolHandlers => {
   const db = drizzleAccountDatabase(database);
-  const within = (column: typeof contacts.id | typeof attendance.contactId) =>
-    bound ? inArray(column, [...bound.contactIds]) : undefined;
   return {
     query_scheduled_events: async (arguments_) => queryScheduledEvents(db, scheduledEventQuery(arguments_)),
     query_contacts: async () => {
-      if (bound && !bound.contactIds.length) return [];
       const rows = await db.select({
         id: contacts.id, name: contacts.name, email: contacts.email, state: contacts.state,
         description: contacts.description, tags: contacts.tags,
-      }).from(contacts).where(within(contacts.id)).orderBy(asc(contacts.name)).all();
+      }).from(contacts).orderBy(asc(contacts.name)).all();
       return Promise.all(rows.map(async (row) => ({ ...row, channels: await contactChannels({ database, contactId: row.id }) })));
     },
     query_attendance: async () => {
-      if (bound && !bound.contactIds.length) return [];
       return db.select({
         eventId: attendance.eventId, contact: contacts.name, status: attendance.status, comment: attendance.comment,
-      }).from(attendance).innerJoin(contacts, eq(contacts.id, attendance.contactId)).where(within(attendance.contactId)).all();
+      }).from(attendance).innerJoin(contacts, eq(contacts.id, attendance.contactId)).all();
     },
   };
 };
@@ -689,30 +683,8 @@ export const writeCall = (name: WriteToolName, input: Record<string, unknown>): 
   }
 };
 
-/**
- * Whom a run may reach, which bounds every write that reaches a person.
- * Operator Chat and an Automation reach anyone, because the administrator
- * asking, or the Skills the Account wrote, name whom; an outside agent's
- * Access Token reaches its Contact List, and one that names none reaches
- * nobody.
- */
-export type Reach =
-  | { kind: 'anyone' }
-  | {
-    kind: 'contact_list';
-    holder: string;
-    contactIds: readonly string[];
-    emails: readonly string[];
-    /** Whether the roster it reads is that list too, as an outside caller's is, or the Account's. */
-    roster: 'list' | 'account';
-  };
-
 /** Which mail a run may read and take files from: the whole mailbox, or none. */
 export type MailScope = { kind: 'mailbox' } | { kind: 'none' };
-
-const outsideList = (who: string, holder: string): string => `${who} is outside the Contact List ${holder} reaches.`;
-
-const lowered = (values: readonly string[]): string[] => values.map((value) => value.trim().toLowerCase());
 
 /** Why a run may not name this mail, or null when it may: the files a write carries, and the mail it records, must come from mail the run reads. */
 export const unreadableFiles = (mail: MailScope, name: WriteToolName, call: Record<string, unknown>): string | null => {
@@ -723,50 +695,10 @@ export const unreadableFiles = (mail: MailScope, name: WriteToolName, call: Reco
   return named ? 'This run reads no mail, so it cannot name one.' : null;
 };
 
-/** The reason a run may not reach whom this write reaches, or null when it may. The one bound every entrance applies. */
-export const outOfReach = (reach: Reach, name: WriteToolName, call: Record<string, unknown>): string | null => {
-  if (reach.kind === 'anyone') return null;
-  switch (name) {
-    case 'channel.send': {
-      const send = call as unknown as ChannelSendCall;
-      if (!send.contactId) return `${reach.holder} reaches only its Contact List; name one of its Contacts by contactId.`;
-      return reach.contactIds.includes(send.contactId) ? null : outsideList(`Contact ${send.contactId}`, reach.holder);
-    }
-    case 'reminder.schedule': {
-      const reminder = call as unknown as ReminderCall;
-      return reach.contactIds.includes(reminder.contactId) ? null : outsideList(`Contact ${reminder.contactId}`, reach.holder);
-    }
-    case 'mail.send': {
-      const to = (call as unknown as MailSendCall).to.toLowerCase();
-      return lowered(reach.emails).includes(to) ? null : outsideList(to, reach.holder);
-    }
-    case 'create_scheduled_event': {
-      const { attendees } = call as { attendees: string[] };
-      const emails = lowered(reach.emails);
-      const outside = attendees.find((attendee) => !emails.includes(attendee.trim().toLowerCase()));
-      return outside === undefined ? null : outsideList(outside, reach.holder);
-    }
-    default:
-      return null;
-  }
-};
-
-/**
- * A write as it reaches only whom the run may reach: an event that invites
- * the roster invites the Contacts of a run bounded to a Contact List, named
- * as its attendees, so applying it later invites the same people.
- */
-export const reachedCall = (reach: Reach, name: WriteToolName, call: Record<string, unknown>): Record<string, unknown> => {
-  if (reach.kind === 'anyone' || name !== 'create_scheduled_event' || call.inviteRoster !== true) return call;
-  const attendees = [...new Set([...(call.attendees as string[]), ...reach.emails])];
-  return { ...call, inviteRoster: false, attendees };
-};
-
 /** What one run holds while its writes are performed. */
 export interface ToolContext {
   database: D1Database;
   accountId: string;
-  reach: Reach;
   mail: MailScope;
   /** The Automation Inbox, opened when a call first needs it; absent for a run that holds no Google grant. */
   google?: { provider: GoogleProvider; session: () => Promise<CalendarSession> };
@@ -806,9 +738,6 @@ export interface ToolContext {
   agent?: (arguments_: Record<string, unknown>) => Promise<unknown>;
   at: () => Date;
 }
-
-const failed = (result: unknown): result is { isError: true; message?: unknown } =>
-  typeof result === 'object' && result !== null && (result as { isError?: unknown }).isError === true;
 
 const requireGoogle = (context: ToolContext, name: string): NonNullable<ToolContext['google']> => {
   if (!context.google) throw new Error(`${name} needs the Automation Inbox, which this run does not hold.`);
@@ -926,16 +855,6 @@ const driveSession = async (context: ToolContext, name: string) => {
   return { google: google.provider, accessToken: session.accessToken, reach };
 };
 
-/** A Suppression Window a run's writes are held by: an Automation's or an Access Token's. */
-export interface ToolSuppression {
-  check(key: string): Promise<boolean>;
-  record(key: string): Promise<void>;
-  scope: string;
-  window: SuppressionWindow;
-  /** Who is suppressed, as a refusal names it: "this Automation" or "this Access Token". */
-  holder: string;
-}
-
 /** What a browser call answers in a run that holds no browser: one the Account turned off, or one no entrance gives a browser. */
 const noBrowser: ToolHandlers = Object.fromEntries(BROWSER_TOOLS.map((name) => [name, async () => ({
   isError: true,
@@ -946,7 +865,7 @@ const noBrowser: ToolHandlers = Object.fromEntries(BROWSER_TOOLS.map((name) => [
  * The reads one run makes, whether it plans its writes or performs them: the
  * Account's own records, and the mail, calendar, Drive, and Tasks the run holds.
  */
-export const readHandlers = (context: Pick<ToolContext, 'database' | 'reach' | 'mail' | 'google' | 'skills' | 'memory' | 'browser' | 'generatedFiles' | 'code' | 'agent'>): ToolHandlers => {
+export const readHandlers = (context: Pick<ToolContext, 'database' | 'mail' | 'google' | 'skills' | 'memory' | 'browser' | 'generatedFiles' | 'code' | 'agent'>): ToolHandlers => {
   const mailReader: MailReader | null = context.mail.kind === 'mailbox' && context.google
     ? mailboxReader({ google: context.google.provider, session: context.google.session })
     : null;
@@ -959,7 +878,7 @@ export const readHandlers = (context: Pick<ToolContext, 'database' | 'reach' | '
   let reach: Promise<DriveReach> | undefined;
   const driveReach = (): Promise<DriveReach> => reach ??= driveReachOf(context.database);
   return {
-    ...accountReadHandlers(context.database, context.reach.kind === 'contact_list' && context.reach.roster === 'list' ? { contactIds: context.reach.contactIds } : undefined),
+    ...accountReadHandlers(context.database),
     'mail.read': async (arguments_) => {
       if (!mailReader) return { isError: true, message: 'This run reads no mail.' };
       const messageId = typeof arguments_.messageId === 'string' ? arguments_.messageId.trim() : '';
@@ -1024,27 +943,18 @@ export const readHandlers = (context: Pick<ToolContext, 'database' | 'reach' | '
 
 /**
  * The handlers of a run that performs its writes when they are called:
- * Operator Chat and an Access Token. Each read is the one read every run
- * makes; each write is read by `writeCall`, bounded by `outOfReach`, held by
- * the Suppression Window when the run has one, and performed by
+ * Operator Chat, a member's CLI, and an outside agent's key. Each read is the
+ * one read every run makes; each write is read by `writeCall` and performed by
  * `performWrite`.
  */
-export const toolHandlers = (context: ToolContext, suppression?: ToolSuppression): ToolHandlers => {
+export const toolHandlers = (context: ToolContext): ToolHandlers => {
   const writes = Object.fromEntries((Object.keys(TOOL_DESCRIPTIONS) as ToolName[]).flatMap((name) => {
     if (!isWriteTool(name)) return [];
     const handler: ToolHandler = async (arguments_) => {
       const read = writeCall(name, arguments_);
-      const refusal = unreadableFiles(context.mail, name, read) ?? outOfReach(context.reach, name, read);
+      const refusal = unreadableFiles(context.mail, name, read);
       if (refusal) return { isError: true, message: refusal };
-      const call = reachedCall(context.reach, name, read);
-      if (!suppression || suppression.window === 'none') return performWrite(context, name, call);
-      const key = suppressionKey({ scope: suppression.scope, tool: name, arguments: call });
-      if (await suppression.check(key)) {
-        return { suppressed: true, message: `${suppression.holder} already made this ${name} call; the repeat is suppressed for the ${suppression.window} window.` };
-      }
-      const result = await performWrite(context, name, call);
-      if (!failed(result)) await suppression.record(key);
-      return result;
+      return performWrite(context, name, read);
     };
     return [[name, handler]];
   }));

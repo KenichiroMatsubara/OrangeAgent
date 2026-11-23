@@ -11,7 +11,6 @@ const handlers = (google = memoryGoogle()) => ({
   tools: toolHandlers({
     database: {} as D1Database,
     accountId: 'organization-1',
-    reach: { kind: 'anyone' },
     mail: { kind: 'mailbox' },
     google: { provider: google, session: async () => ({ accessToken: 'token', readAttachments: async () => [] }) },
     origin: { automationId: null, sourceMessageId: null },

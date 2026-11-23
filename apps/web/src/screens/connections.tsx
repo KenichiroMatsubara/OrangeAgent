@@ -2,7 +2,7 @@ import { Bot, CircleAlert, FileText, Mail, MessageCircle, MessagesSquare, Plus, 
 import { useId, useState, type FormEvent } from 'react';
 import { Link, useLoaderData, useRevalidator, useSearchParams } from 'react-router-dom';
 
-import { AI_PROVIDERS, CLAUDE_MODELS, DEFAULT_TRANSCRIPTION_MODEL, type AiProvider, modelLabel, modelNameProblem, type AccessToken, type AutomationStatus, type Connections, type ContactList, type McpEndpoint, type McpServer, type OperatorToken } from '@mail/domain';
+import { AI_PROVIDERS, CLAUDE_MODELS, DEFAULT_TRANSCRIPTION_MODEL, type AiProvider, modelLabel, modelNameProblem, type AccessToken, type AutomationStatus, type Connections, type McpEndpoint, type McpServer, type OperatorToken } from '@mail/domain';
 
 import { AccessTokens } from '../access';
 import { api } from '../api';
@@ -30,7 +30,6 @@ interface Shared {
 }
 
 interface Lent {
-  contactLists: ContactList[];
   accessTokens: AccessToken[];
   mcpServers: McpServer[];
   operatorTokens: OperatorToken[];
@@ -47,8 +46,8 @@ export const loader = async (): Promise<ConnectionsData> => {
   const accountId = await accountIdOf();
   return {
     shared: later(Promise.all([api.connections(accountId), api.currentAutomation(accountId)]).then(([connections, automation]) => ({ connections, automation }))),
-    lent: later(Promise.all([api.contactLists(accountId), api.accessTokens(accountId), api.mcpServers(accountId), api.operatorTokens(accountId), api.mcpEndpoint(accountId)])
-      .then(([contactLists, accessTokens, mcpServers, operatorTokens, endpoint]) => ({ contactLists, accessTokens, mcpServers, operatorTokens, endpoint }))),
+    lent: later(Promise.all([api.accessTokens(accountId), api.mcpServers(accountId), api.operatorTokens(accountId), api.mcpEndpoint(accountId)])
+      .then(([accessTokens, mcpServers, operatorTokens, endpoint]) => ({ accessTokens, mcpServers, operatorTokens, endpoint }))),
   };
 };
 
@@ -405,10 +404,10 @@ const ConnectionsScreen = () => {
         {sheet === 'microsoft' && <MicrosoftSheet connections={connections} onClose={close} />}
       </Section>;
     }}</Deferred>
-    <Deferred value={data.lent} fallback={<SkeletonRows />}>{({ contactLists, accessTokens, mcpServers, operatorTokens, endpoint }) => <>
+    <Deferred value={data.lent} fallback={<SkeletonRows />}>{({ accessTokens, mcpServers, operatorTokens, endpoint }) => <>
       {mcpReturn && <Banner tone={mcpReturn.tone} icon={mcpReturn.tone === 'danger' ? <CircleAlert size={18} aria-hidden="true" /> : undefined}>{mcpReturn.text}</Banner>}
       <McpServers accountId={account.accountId} servers={mcpServers} reload={reload} />
-      <AccessTokens accountId={account.accountId} lists={contactLists} tokens={accessTokens} reload={reload} />
+      <AccessTokens accountId={account.accountId} tokens={accessTokens} reload={reload} />
       <OperatorTokens accountId={account.accountId} tokens={operatorTokens} endpoint={endpoint.url} reload={reload} />
     </>}</Deferred>
     {sheet === 'discord' && <DiscordSheet accountId={account.accountId} onClose={close} />}

@@ -134,7 +134,6 @@ export const plannedWritesFor = (input: {
         database: input.database,
         accountId: input.accountId,
         // Whom it reaches was bounded when it was planned.
-        reach: { kind: 'anyone' },
         mail: { kind: 'none' },
         google: { provider: input.providers.google, session: inbox },
         ports,
