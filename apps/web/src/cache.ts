@@ -9,7 +9,7 @@
  * cache first. A page is answered with the release's own index.html, so the
  * installed app opens without waiting for the network, and with the network's
  * when the release has none. The Worker's own paths (`/api`, OAuth,
- * attendance, `.well-known`) are never answered from a cache nor kept in
+ * attendance, `.well-known`, and the public pages `/about` and `/privacy`) are never answered from a cache nor kept in
  * one: an answer there is the signed-in member's.
  *
  * Activating a release keeps its own cache and the one it replaced, so a page
@@ -29,7 +29,7 @@ export interface Release {
 export const cacheName = (version: string): string => `${CACHE_PREFIX}${version}`;
 
 /** Paths the Worker answers itself, which no cache answers or keeps. */
-const WORKER_PATHS = ['/api/', '/oauth/', '/attendance/', '/.well-known/'] as const;
+const WORKER_PATHS = ['/api/', '/oauth/', '/attendance/', '/.well-known/', '/about/', '/privacy/'] as const;
 
 /** How the worker answers a request. */
 export type Answer =

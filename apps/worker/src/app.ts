@@ -28,6 +28,7 @@ import { runRoutes } from './routes/runs';
 import { serverRoutes } from './routes/servers';
 import { loginRoutes } from './routes/logins';
 import { tokenRoutes } from './routes/tokens';
+import { siteRoutes } from './routes/site';
 import { createRequestContext } from './routes/request-context';
 
 /**
@@ -60,6 +61,7 @@ export const createApp = (providers: Providers) => {
   app.route('/api', portalRoutes);
   app.route('/', oauthRoutes);
   app.route('/', wellKnownRoutes);
+  app.route('/', siteRoutes);
   app.route('/api', authorizationRoutes);
   app.route('/api', presetRoutes);
   app.route('/api', connectionRoutes(providers));
