@@ -619,6 +619,14 @@ export const browserLogins = sqliteTable('browser_logins', {
   uniqueIndex('browser_logins_site_idx').on(table.site),
 ]);
 
+/** The browser an Access Token or an Operator Token keeps open between its MCP calls: its Browser Run session and page. */
+export const keyBrowsers = sqliteTable('key_browsers', {
+  keyId: text('key_id').primaryKey(),
+  sessionId: text('session_id').notNull(),
+  targetId: text('target_id').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
 export const chatConversations = sqliteTable('chat_conversations', {
   id: text('id').primaryKey(),
   accountId: text('account_id').notNull(),

@@ -71,6 +71,7 @@ import accountPushSubscriptionsMigration from '../migrations/organization/0062_p
 import accountChatRunsAbandonedMigration from '../migrations/organization/0063_chat_runs_abandoned.sql';
 import accountAgentSkillsNamesMigration from '../migrations/organization/0064_agent_skills_names.sql';
 import accountRunsBrowserTimeMigration from '../migrations/organization/0065_runs_browser_time.sql';
+import accountKeyBrowsersMigration from '../migrations/organization/0066_key_browsers.sql';
 
 type SchemaKind = 'control' | 'organization';
 
@@ -213,6 +214,7 @@ const ORGANIZATION_MIGRATIONS: readonly SchemaMigration[] = [
   { name: '0063_chat_runs_abandoned.sql', sql: accountChatRunsAbandonedMigration },
   { name: '0064_agent_skills_names.sql', sql: accountAgentSkillsNamesMigration },
   { name: '0065_runs_browser_time.sql', sql: accountRunsBrowserTimeMigration },
+  { name: '0066_key_browsers.sql', sql: accountKeyBrowsersMigration },
 ];
 const LEGACY_MIGRATION_CHECKSUMS = new Map<string, ReadonlySet<string>>([
   ['0001_tasks.sql', new Set(['4b2f3889191d0eafbbe45b78103db7139c7ce2b937c02cbbb6824f5131d7429f'])],

@@ -132,28 +132,19 @@ describe('MCP Server endpoint', () => {
     const response = await app.fetch(rpc(fixture, token, { jsonrpc: '2.0', id: 1, method: 'tools/list' }), fixture.environment);
 
     const body = await response.json() as { result: { tools: Array<{ name: string }> } };
-    expect(body.result.tools.map((tool) => tool.name)).toEqual(['query_contacts']);
+    // Opening the Account's Skills is offered whatever the grant, as in every run that holds them.
+    expect(body.result.tools.map((tool) => tool.name)).toEqual(['query_contacts', 'activate_skill', 'read_skill_resource']);
   });
 
-  it('grants a Token no Task tool, which reaches Google Tasks through a grant it does not hold, and refuses a call to one', async () => {
+  it('grants a Token the Task tools Operator Chat has, which reach Google Tasks through the Automation Inbox’s grant', async () => {
     fixture = await createAutomationTestApp();
     fixture.account.execute('UPDATE google_connections SET granted_scopes = ?', JSON.stringify(['https://www.googleapis.com/auth/tasks']));
-    const taskOnly = await app.fetch(fixture.jsonRequest('/api/organizations/organization-1/access-tokens', {
-      name: 'tasks', contactListId: 'list-1', tools: ['tasks.search', 'tasks.create', 'tasks.update'], suppressionWindow: 'day',
-    }), fixture.environment);
-    const token = await issueToken(fixture, { contactIds: [], tools: ['query_contacts', 'tasks.search', 'tasks.create', 'tasks.update'] });
+    const token = await issueToken(fixture, { contactIds: [], tools: ['tasks.search', 'tasks.create', 'tasks.update'] });
 
     const listed = await app.fetch(rpc(fixture, token, { jsonrpc: '2.0', id: 1, method: 'tools/list' }), fixture.environment);
-    const called = await app.fetch(rpc(fixture, token, {
-      jsonrpc: '2.0', id: 2, method: 'tools/call',
-      params: { name: 'tasks.create', arguments: { title: '会費を集める', notes: '外部から頼まれた作業', due: '2099-01-31' } },
-    }), fixture.environment);
 
-    // A grant that names only Task tools names nothing a Token can hold.
-    expect(taskOnly.status).toBe(400);
-    expect((await listed.json() as { result: { tools: Array<{ name: string }> } }).result.tools.map((tool) => tool.name)).toEqual(['query_contacts']);
-    expect((await called.json() as { error: { code: number; message: string } }).error).toMatchObject({ code: -32602, message: 'This token may not call tasks.create.' });
-    expect(fixture.account.rows('SELECT tool FROM access_token_tools')).toEqual([{ tool: 'query_contacts' }]);
+    expect((await listed.json() as { result: { tools: Array<{ name: string }> } }).result.tools.map((tool) => tool.name)).toEqual(expect.arrayContaining(['tasks.search', 'tasks.create', 'tasks.update']));
+    expect(fixture.account.rows('SELECT tool FROM access_token_tools ORDER BY tool')).toEqual([{ tool: 'tasks.create' }, { tool: 'tasks.search' }, { tool: 'tasks.update' }]);
   });
 
   it('reaches a Contact inside the bound list and records the delivery', async () => {
@@ -301,7 +292,7 @@ describe('MCP Server endpoint', () => {
     expect((await discovered.json() as { result: { supportedVersions: string[] } }).result.supportedVersions).toContain('2026-07-28');
     const body = await listed.json() as { result: { resultType: string; tools: Array<{ name: string }> } };
     expect(body.result.resultType).toBe('complete');
-    expect(body.result.tools.map((tool) => tool.name)).toEqual(['query_contacts']);
+    expect(body.result.tools.map((tool) => tool.name)).toEqual(['query_contacts', 'activate_skill', 'read_skill_resource']);
   });
 
   it('completes an older client’s handshake in the revision it asked for, and accepts its notification with 202', async () => {
@@ -313,8 +304,8 @@ describe('MCP Server endpoint', () => {
 
     const opened = (await initialized.json() as { result: { protocolVersion: string; instructions?: string } }).result;
     expect(opened.protocolVersion).toBe('2025-06-18');
-    // An outside agent is not a member, so it is told nothing of how a member's runs behave.
-    expect(opened.instructions).toBeUndefined();
+    // An outside agent is told what Operator Chat is told, so it uses the same tools the same way.
+    expect(opened.instructions).toEqual(expect.any(String));
     expect(notified.status).toBe(202);
     expect(await notified.text()).toBe('');
   });

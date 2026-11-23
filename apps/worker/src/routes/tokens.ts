@@ -1,5 +1,5 @@
 import { asc, eq, inArray } from 'drizzle-orm';
-import { OPERATOR_TOKEN_RUN, withoutMailbox, type AccessToken, type IssuedAccessToken, type IssuedLoginCode, type McpEndpoint, type OperatorToken, type OperatorTokenGrant } from '@mail/domain';
+import { OPERATOR_TOKEN_RUN, withoutBrowser, withoutMailbox, type AccessToken, type IssuedAccessToken, type IssuedLoginCode, type McpEndpoint, type OperatorToken, type OperatorTokenGrant } from '@mail/domain';
 
 import { accessTokenHash, generateAccessToken, presentedToken } from '../access-token';
 import { bearerChallenge, mcpUrl } from '../authorization';
@@ -24,6 +24,7 @@ import {
   recordOperatorTokenUse,
   revokeOperatorToken,
 } from '../operator';
+import { keyBrowser } from '../logins';
 import { memoryStoreOf } from '../memory/store';
 import type { Providers } from '../providers';
 import { gone, invalid, noAccess, notFound } from '../refusal';
@@ -197,52 +198,51 @@ export const tokenRoutes = (providers: Providers) => {
       const accountKey = await accountKeyFor(env, accountId);
       const ports = channelPorts({ database, credentials: await channelCredentials({ database, accountKey, accountId }) });
       const prompts = await publishedPrompts({ db, bucket: env.RECOVERY_RECEIPTS, accountId });
-      if (token) {
-        return send(await serveMcpServerRequest({ request, headers: context.req.raw.headers, answer: (era) => handleMcpServerRequest({
-          request,
-          era,
-          origin: env.WEB_ORIGIN || env.APP_URL,
-          run: accessTokenRun(token.grant),
-          prompts,
-          // An Access Token holds neither mail nor the Google grant, reaches only its Contact List, and sees only that list in the roster.
-          handlers: toolHandlers({
-            database, accountId, mail: { kind: 'none' },
-            reach: { kind: 'contact_list', holder: 'this Access Token', contactIds: token.contactIds, emails: [], roster: 'list' },
-            ports, origin: { automationId: null, sourceMessageId: null }, at: () => at,
-          }, {
-            ...suppressionPort({ database, scope: token.id, window: token.suppressionWindow, at }),
-            scope: token.id,
-            window: token.suppressionWindow,
-            holder: 'this Access Token',
-          }),
-        }) }));
-      }
-
       let session: Promise<InboxSession> | undefined;
       const inbox = (): Promise<InboxSession> => {
         session ??= openInbox({ env, accountId, database, google: providers.google });
         return session;
       };
       const skills: SkillStore = { db, bucket: env.RECOVERY_RECEIPTS, accountId };
-      // What the CLI keeps is the member's, by name, so 記憶 shows whose CLI wrote it.
-      const author = { kind: 'cli' as const, name: await memberName({ control: env.CONTROL_DB, identityId: operator?.identityId ?? '' }) };
-      const run = await hasAutomationInbox(database) ? OPERATOR_TOKEN_RUN : withoutMailbox(OPERATOR_TOKEN_RUN);
-      return send(await serveMcpServerRequest({ request, headers: context.req.raw.headers, answer: (era) => handleMcpServerRequest({
-        request,
-        era,
-        origin: env.WEB_ORIGIN || env.APP_URL,
-        run,
-        prompts,
-        // A member's own CLI is told what Operator Chat is told, with the same Skills listed.
-        instructions: async () => guidance((await runSkills(skills, [])).instructions),
-        // A member's own CLI is Operator Chat: it reaches anyone and reads any mail, because the member decides each step.
-        handlers: toolHandlers({
-          database, accountId, reach: { kind: 'anyone' }, mail: { kind: 'mailbox' },
-          google: { provider: providers.google, session: inbox }, ports,
-          origin: { automationId: null, sourceMessageId: null }, skills, at: () => at,
-          memory: { store: memoryStoreOf(env, db, accountId), author },
-        }),
-      }) }));
+      const mailbox = await hasAutomationInbox(database);
+      // The Account's browser, kept open between this key's calls; null when the Account has not turned it on.
+      const browser = await keyBrowser({ binding: env.BROWSER, database, key: accountKey, accountId, keyId: token ? token.id : operator?.id ?? '' });
+      // What a memory is kept under, so 記憶 shows which key or whose CLI wrote it.
+      const author = { kind: 'cli' as const, name: token ? token.name : await memberName({ control: env.CONTROL_DB, identityId: operator?.identityId ?? '' }) };
+      // Both keys reach what Operator Chat reaches; an Access Token is narrowed by its grant and its Contact List.
+      const shared = {
+        database, accountId, mail: { kind: 'mailbox' as const },
+        google: { provider: providers.google, session: inbox }, ports,
+        origin: { automationId: null, sourceMessageId: null }, skills, at: () => at,
+        memory: { store: memoryStoreOf(env, db, accountId), author },
+        ...(browser ? { browser } : {}),
+      };
+      const reached = token ? accessTokenRun(token.grant) : OPERATOR_TOKEN_RUN;
+      const held = mailbox ? reached : withoutMailbox(reached);
+      const run = browser ? held : withoutBrowser(held);
+      const handlers = token
+        ? toolHandlers({ ...shared, reach: { kind: 'contact_list', holder: 'this Access Token', contactIds: token.contactIds, emails: [], roster: 'list' } }, {
+          ...suppressionPort({ database, scope: token.id, window: token.suppressionWindow, at }),
+          scope: token.id,
+          window: token.suppressionWindow,
+          holder: 'this Access Token',
+        })
+        : toolHandlers({ ...shared, reach: { kind: 'anyone' } });
+      try {
+        return send(await serveMcpServerRequest({ request, headers: context.req.raw.headers, answer: (era) => handleMcpServerRequest({
+          request,
+          era,
+          origin: env.WEB_ORIGIN || env.APP_URL,
+          run,
+          prompts,
+          // Every outside caller is told what Operator Chat is told, with the same Skills listed.
+          instructions: async () => guidance((await runSkills(skills, [])).instructions),
+          handlers,
+        }) }));
+      } finally {
+        // Writes the sign-ins back and lets go of the browser, which stays open for the key's next call.
+        await browser?.close();
+      }
     } catch (error) {
       return rpcError(-32603, error instanceof Error ? error.message : 'The MCP Server failed.', 503);
     }

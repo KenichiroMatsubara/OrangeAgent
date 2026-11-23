@@ -1,5 +1,7 @@
 # Let a member's CLI act as Operator Chat
 
+> Superseded in part by ADR 0205: Access Tokens no longer keep ADR 0152's rule; they hold what an Operator Token holds, narrowed by their Tool Grant and their Contact List.
+
 A member can sign a CLI such as Claude Code into an Account for ninety days. The CLI then reaches the MCP Server as Operator Chat does: it holds the Automation Inbox's Google grant and the Account's Skills, reaches anyone, and has no Tool Grant. ADR 0152 kept the mailbox and the calendar away from every caller of the MCP Server. Access Tokens keep that rule. An Operator Token does not, because a different person is on the other end.
 
 An Access Token is handed to an outside agent that acts on documents its operator never wrote, and nobody watches its reasoning. An Operator Token is held by a member of the Account who has signed in with Google. That member could already read the same mail and send the same messages in Operator Chat. Their own CLI decides each step as Operator Chat's administrator does, and Claude Code asks before it calls a tool. So the boundary that matters is who holds the credential, not which entrance it reaches. The Token is therefore bound to that member's Identity, and their membership is checked on every call.

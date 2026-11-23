@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ACCESS_TOKEN_TOOLS, AUTOMATION_TOOLS, OPERATOR_CHAT_RUN, OPERATOR_TOKEN_RUN, TOOLS, automationRun, selectTools, toolLabel, toolNamed, withCode, withoutBrowser, withoutMailbox, BROWSER_TOOLS, type ToolNeed, type ToolRun } from './tools';
+import { ACCESS_TOKEN_RUN, ACCESS_TOKEN_TOOLS, AUTOMATION_TOOLS, OPERATOR_CHAT_RUN, OPERATOR_TOKEN_RUN, TOOLS, automationRun, selectTools, toolLabel, toolNamed, withCode, withoutBrowser, withoutMailbox, BROWSER_TOOLS, type ToolNeed, type ToolRun } from './tools';
 
 const names = (run: ToolRun): string[] => selectTools(run).map((tool) => tool.name);
 
@@ -43,26 +43,25 @@ describe('the one list of tools', () => {
     for (const run of [chat, timed]) expect(names(run)).toEqual(expect.arrayContaining(['mail.search', 'mail.read', 'calendar.search', 'record_event_response']));
   });
 
-  it('reads the Drive in any run that holds the Google grant, files it in any that may write, and never in an outside agent’s', () => {
+  it('reads the Drive in any run that holds the Google grant and files it in any that may write', () => {
     const filing = ['drive.create_folder', 'drive.move', 'drive.rename', 'drive.trash'];
     for (const run of [chat, timed]) expect(names(run)).toEqual(expect.arrayContaining(['drive.search', 'drive.read', ...filing]));
     expect(names(automationRun('read_only'))).toEqual(expect.arrayContaining(['drive.search', 'drive.read']));
     expect(names(automationRun('read_only'))).not.toEqual(expect.arrayContaining(['drive.move']));
-    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).not.toEqual(expect.arrayContaining(['drive.read']));
-    for (const name of filing) expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).not.toContain(name);
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).toEqual(expect.arrayContaining(['drive.search', 'drive.read', ...filing]));
   });
 
-  it('reads Meet transcripts in any run that holds the Google grant, transcribes a meeting in any that may write, and never in an outside agent’s', () => {
+  it('reads Meet transcripts in any run that holds the Google grant and transcribes a meeting in any that may write', () => {
     for (const run of [chat, timed]) expect(names(run)).toEqual(expect.arrayContaining(['meet.search', 'meet.read', 'meet.transcribe']));
     expect(names(automationRun('read_only'))).toEqual(expect.arrayContaining(['meet.search', 'meet.read']));
     expect(names(automationRun('read_only'))).not.toContain('meet.transcribe');
-    for (const name of ['meet.search', 'meet.read', 'meet.transcribe']) expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).not.toContain(name);
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).toEqual(expect.arrayContaining(['meet.search', 'meet.read', 'meet.transcribe']));
   });
 
-  it('lets every run the Account starts read its Skills whatever its grant, and an outside agent none of them', () => {
+  it('lets every run read the Account’s Skills whatever its grant', () => {
     for (const run of [chat, timed]) expect(names(run)).toEqual(expect.arrayContaining(['activate_skill', 'read_skill_resource']));
     expect(names({ ...timed, grant: [] })).toEqual(UNGRANTED);
-    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).not.toContain('activate_skill');
+    expect(names({ ...ACCESS_TOKEN_RUN, grant: [] })).toEqual(['activate_skill', 'read_skill_resource']);
   });
 
   it('lets every run that thinks in OrangeAgent issue a Run Token whatever its grant, and neither an outside agent nor a member’s CLI', () => {
@@ -73,7 +72,7 @@ describe('the one list of tools', () => {
     expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).not.toContain('run.token');
   });
 
-  it('lets a run a person is at keep and recall memories, an Automation only recall them, and an outside agent neither', () => {
+  it('lets a run a person is at or an outside agent keep and recall memories, and an Automation only recall them', () => {
     for (const run of [chat, OPERATOR_TOKEN_RUN, withoutMailbox(chat)]) expect(names(run)).toEqual(expect.arrayContaining(['memory.search', 'memory.add']));
     for (const executionMode of ['read_only', 'approval', 'unattended'] as const) {
       expect(names(automationRun(executionMode))).toContain('memory.search');
@@ -81,15 +80,15 @@ describe('the one list of tools', () => {
     }
     expect(AUTOMATION_TOOLS.map((tool) => tool.name)).toContain('memory.search');
     expect(names({ ...timed, grant: [] })).not.toContain('memory.search');
-    for (const name of ['memory.search', 'memory.add']) expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).not.toContain(name);
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).toEqual(expect.arrayContaining(['memory.search', 'memory.add']));
     expect(names({ ...chat, executionMode: 'read_only' })).toContain('memory.search');
   });
 
-  it('offers an Access Token the Account’s own records and its sends, but not its mailbox, its calendar, or its Tasks, which are kept in Google Tasks', () => {
-    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).toEqual([
-      'query_scheduled_events', 'query_contacts', 'query_attendance',
-      'channel.send', 'reminder.schedule',
-    ]);
+  it('offers an Access Token whatever a member’s own CLI is offered, so a tool added for Operator Chat reaches it too', () => {
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).toEqual(names(OPERATOR_TOKEN_RUN).filter((name) => toolNamed(name)?.ungranted !== true));
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).toEqual(expect.arrayContaining([
+      'query_contacts', 'channel.send', 'mail.search', 'mail.send', 'calendar.search', 'drive.read', 'tasks.create', 'skill.write', 'memory.add', 'web.search',
+    ]));
   });
 
   it('binds no write in read-only mode', () => {
@@ -97,16 +96,17 @@ describe('the one list of tools', () => {
     expect(selectTools(automationRun('read_only')).every((tool) => !tool.writes)).toBe(true);
   });
 
-  it('reads the web in every run the Account starts, whatever its model, and only as its grant allows', () => {
+  it('reads the web in every run, whatever its model, and only as its grant allows', () => {
     expect(names(chat)).toContain('web.search');
     expect(names(automationRun('read_only'))).toContain('web.search');
     expect(names(timed)).toContain('web.search');
     expect(names({ ...timed, grant: ['tasks.search'] })).not.toContain('web.search');
     expect(names({ ...timed, grant: ['web.search'] })).toEqual(['activate_skill', 'read_skill_resource', 'web.search', 'run.token', 'agent.run']);
-    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).not.toContain('web.search');
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).toContain('web.search');
+    expect(names(OPERATOR_TOKEN_RUN)).toContain('web.search');
   });
 
-  it('operates a browser in every unattended run the Account starts, chat or Automation alike, unless the Account turned it off', () => {
+  it('operates a browser in every unattended run, chat, Automation, or a key alike, unless the Account turned it off', () => {
     const browserIn = (run: ToolRun): string[] => names(run).filter((name) => name.startsWith('browser.'));
     expect(BROWSER_TOOLS).toEqual(['browser.open', 'browser.read', 'browser.click', 'browser.type', 'browser.select', 'browser.press']);
     expect(browserIn(chat)).toEqual(BROWSER_TOOLS);
@@ -118,9 +118,10 @@ describe('the one list of tools', () => {
     expect(browserIn(withoutBrowser(chat))).toEqual([]);
     expect(browserIn(withoutBrowser(timed))).toEqual([]);
     expect(browserIn({ ...timed, grant: ['browser.open', 'browser.read'] })).toEqual(['browser.open', 'browser.read']);
-    // Neither an outside agent nor a member's own CLI is a run OrangeAgent keeps a browser open for.
-    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name).filter((name) => name.startsWith('browser.'))).toEqual([]);
-    expect(browserIn(OPERATOR_TOKEN_RUN)).toEqual([]);
+    // An outside agent and a member's own CLI operate the Account's browser too, kept open between their calls.
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name).filter((name) => name.startsWith('browser.'))).toEqual(BROWSER_TOOLS);
+    expect(browserIn(OPERATOR_TOKEN_RUN)).toEqual(BROWSER_TOOLS);
+    expect(browserIn(withoutBrowser(OPERATOR_TOKEN_RUN))).toEqual([]);
     expect(TOOLS.filter((tool) => tool.acts).every((tool) => !tool.writes)).toBe(true);
   });
 
@@ -132,14 +133,14 @@ describe('the one list of tools', () => {
     expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name).filter(own)).toEqual([]);
   });
 
-  it('changes the Account’s Skills from every run the Account starts, an Automation only when granted, and never from an Access Token', () => {
+  it('changes the Account’s Skills from every run, an Automation or an Access Token only when granted', () => {
     const writes = ['skill.write', 'skill.delete_file'];
     expect(names(chat)).toEqual(expect.arrayContaining(writes));
     expect(names(OPERATOR_TOKEN_RUN)).toEqual(expect.arrayContaining(writes));
     expect(AUTOMATION_TOOLS.map((tool) => tool.name)).toEqual(expect.arrayContaining(writes));
     expect(names({ ...timed, grant: [] })).toEqual(UNGRANTED);
     expect(names(automationRun('read_only'))).not.toContain('skill.write');
-    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name).filter((name) => name.startsWith('skill.'))).toEqual([]);
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)).toEqual(expect.arrayContaining(writes));
   });
 
   it('offers a run of an Account with no mailbox no mail, calendar, Drive, Meet, or Task tool, and everything else it would have', () => {

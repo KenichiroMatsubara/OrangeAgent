@@ -73,11 +73,11 @@ export type ToolWrites = 'planned' | 'performed';
  * Something a run holds beyond the Account's own records: the Automation
  * Inbox's Google grant, which opens the whole mailbox, calendar, Drive, and
  * Google Tasks, the
- * Account's Skills, which every run the Account itself starts thinks with and
- * an outside agent's does not, the Account's Memory, which every run the
- * Account itself starts may recall and only a run a person is at may add to, the files an Operator Chat
+ * Account's Skills, which every run thinks with, the Account's Memory, which
+ * every run may recall and only a run a person or an outside caller is at may
+ * add to, the files an Operator Chat
  * conversation wrote, which only such a conversation has, or the web, whose
- * pages the Worker reads for every run the Account starts, or a Run
+ * pages the Worker reads for every run, or a Run
  * Token, which only a run that thinks in OrangeAgent — an Operator Chat answer or
  * an Automation's run — can issue, since only such a run is there to answer
  * the calls made with it, or a browser, which Cloudflare Browser Run lends a
@@ -156,7 +156,7 @@ export const TOOLS: readonly Tool[] = [
   // at once, signed in as the Account saved, and answers what the page shows next (ADR 0200).
   ...(['browser.open', 'browser.read', 'browser.click', 'browser.type', 'browser.select', 'browser.press'] as const)
     .map((name): Tool => ({ ...read(name, ['browser']), acts: true })),
-  // Every run the Account starts may recall what was kept; an outside agent's may not (ADR 0197).
+  // Every run may recall what was kept (ADR 0197, ADR 0205).
   read('memory.search', ['memory']),
   // A Run Token calls nothing but the run's own tools, as the run itself calls
   // them, so issuing one grants no reach a Tool Grant would have to allow (ADR 0199).
@@ -268,22 +268,25 @@ export const automationRun = (executionMode: ToolRun['executionMode']): Omit<Too
 export const AUTOMATION_TOOLS: readonly Tool[] = grantable(automationRun('unattended'));
 
 /**
- * What an outside agent's Access Token is: a run that performs each write when
- * it is called and holds nothing of the Account's own, neither a Source Message,
- * the Automation Inbox's Google grant, nor the Memory, so the mailbox,
- * calendar, Drive, Tasks, and what the Account keeps stay with the runs it starts.
+ * What a run outside OrangeAgent is when it reaches the MCP Server, an outside
+ * agent's Access Token or a member's own CLI with an Operator Token: Operator
+ * Chat without what only a run thinking in OrangeAgent can be lent. The files
+ * Claude writes in a conversation and a Run Token to answer belong to a run
+ * OrangeAgent itself drives; an outside caller writes its own files and thinks
+ * where it runs. It holds the Automation Inbox's Google grant, the Skills, the
+ * Memory, the web, and the Account's browser, kept open between its calls, as
+ * Operator Chat does, so a tool added there reaches it too.
  */
-export const ACCESS_TOKEN_RUN: Omit<ToolRun, 'grant'> = { executionMode: 'unattended', writes: 'performed', holds: [] };
+const OUTSIDE_RUN: Omit<ToolRun, 'grant'> = { ...OPERATOR_CHAT_RUN, holds: OPERATOR_CHAT_RUN.holds.filter((need) => need !== 'run_token' && need !== 'generated_files') };
 
 /**
- * What a member's own CLI is when it presents an Operator Token: Operator Chat
- * without the files Claude writes there or the web, since the CLI's own agent
- * writes its files and searches the web where it runs, and without a Run
- * Token or a browser, since the CLI thinks where it runs and is no run of
- * OrangeAgent's to answer one or to keep a browser open for. It holds the
- * Account's whole set, so it has no grant.
+ * What an outside agent's Access Token is: a run outside OrangeAgent, narrowed
+ * by its Tool Grant and by the one Contact List it may reach.
  */
-export const OPERATOR_TOKEN_RUN: Omit<ToolRun, 'grant'> = { ...OPERATOR_CHAT_RUN, holds: OPERATOR_CHAT_RUN.holds.filter((need) => need !== 'run_token' && need !== 'browser' && need !== 'generated_files' && need !== 'web') };
+export const ACCESS_TOKEN_RUN: Omit<ToolRun, 'grant'> = OUTSIDE_RUN;
+
+/** What a member's own CLI is when it presents an Operator Token: a run outside OrangeAgent with no grant, since it holds the Account's whole set. */
+export const OPERATOR_TOKEN_RUN: Omit<ToolRun, 'grant'> = OUTSIDE_RUN;
 
 /**
  * A run of an Account whose mailbox is not connected: it holds no Google grant,

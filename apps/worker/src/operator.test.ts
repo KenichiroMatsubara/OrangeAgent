@@ -138,7 +138,7 @@ describe('Operator Tokens', () => {
     expect(fixture.account.rows('SELECT id FROM operator_tokens')).toEqual([]);
   });
 
-  it('offer the CLI what Operator Chat holds: the mailbox, the calendar, and the Account’s Skills, but neither the web nor the files a conversation wrote', async () => {
+  it('offer the CLI what Operator Chat holds: the mailbox, the calendar, the Account’s Skills, and the web, but not the files a conversation wrote', async () => {
     fixture = await createAutomationTestApp();
     const { token } = await signIn(fixture);
 
@@ -146,7 +146,7 @@ describe('Operator Tokens', () => {
 
     expect(tools).toEqual(expect.arrayContaining(['mail.search', 'mail.read', 'mail.send', 'mail.draft', 'calendar.search', 'create_scheduled_event', 'channel.send', 'activate_skill', 'read_skill_resource']));
     expect(tools).not.toContain('drive.save_file');
-    expect(tools).not.toContain('web.search');
+    expect(tools).toContain('web.search');
   });
 
   it('read mail through the Automation Inbox’s own Google grant, which the CLI never holds', async () => {

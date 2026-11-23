@@ -16,11 +16,11 @@ import type { BrowserLogin, BrowserSettings, BrowserSignIn } from '@mail/domain'
 
 import { acquireBrowser, connectBrowser, MAX_KEEP_ALIVE_MS, type BrowserBinding, type Cdp } from './cdp';
 import { browserCookies, liveView, navigate, openPage, pageStorage, type BrowserPage, type LoginState } from './browser';
-import { runBrowser, type LoginStore, type RunBrowser } from './browsing';
+import { runBrowser, type BrowserKeeper, type LoginStore, type RunBrowser } from './browsing';
 import { decrypt, encrypt, type CipherEnvelope } from './cryptography';
 import { logBrowserSignIn } from './logging';
 import { invalid, notFound, upstream } from './refusal';
-import { browserLogins, runs, settings } from './storage/account-schema';
+import { browserLogins, keyBrowsers, runs, settings } from './storage/account-schema';
 import { accountDatabase, type AccountDatabase } from './storage/database';
 
 /** The `settings` key that holds whether the Account's runs may operate a browser. */
@@ -322,4 +322,36 @@ export const accountBrowser = async (input: { binding: BrowserBinding | undefine
       return ms;
     },
   };
+};
+
+/** Where a key names the browser it keeps between its MCP calls. */
+const keyKeeper = (db: AccountDatabase, keyId: string): BrowserKeeper => ({
+  load: async () => {
+    const row = await db.select().from(keyBrowsers).where(eq(keyBrowsers.keyId, keyId)).get();
+    return row ? { sessionId: row.sessionId, targetId: row.targetId } : null;
+  },
+  save: async (kept) => {
+    const updatedAt = new Date().toISOString();
+    await db.insert(keyBrowsers).values({ keyId, ...kept, updatedAt })
+      .onConflictDoUpdate({ target: keyBrowsers.keyId, set: { ...kept, updatedAt } }).run();
+  },
+});
+
+/**
+ * The browser an Access Token or an Operator Token operates through the MCP
+ * Server, or null when the Account has not turned it on or this Worker has no
+ * Browser Run binding: the Account's browser, signed in to every saved site,
+ * kept open between the key's calls since each arrives as its own request.
+ */
+export const keyBrowser = async (input: { binding: BrowserBinding | undefined; database: D1Database; key: CryptoKey; accountId: string; keyId: string }): Promise<RunBrowser | null> => {
+  if (!input.binding) return null;
+  const db = accountDatabase(input.database);
+  if (!await browserEnabled(db)) return null;
+  return runBrowser({
+    binding: input.binding,
+    timeZone: await browserTimeZone(db),
+    logins: loginStore({ db, key: input.key, accountId: input.accountId, at: () => new Date() }),
+    keeper: keyKeeper(db, input.keyId),
+    trace: { accountId: input.accountId, keyId: input.keyId, entrance: 'mcp' },
+  });
 };
