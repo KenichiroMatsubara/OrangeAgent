@@ -228,8 +228,18 @@ OrangeAgent は MCP サーバーとして呼べます。
 - 会話のイベントに書く provider の ID（`flarechat`）：各 Account の D1 に保存済みで、画面には出ません。
 - コンテナの古い名前：コンテナは `orangeagent.internal` と `ORANGEAGENT_MCP_URL`・`ORANGEAGENT_RUN_TOKEN` で MCP Server に届きます。改名前に書かれた Skill のために、`flarechat.internal` と `FLARECHAT_MCP_URL`・`FLARECHAT_RUN_TOKEN` も同じ値で受け付けます。
 - Drive のファイル：改名前に捨てたファイルには `flarechatPutAwayFrom`、いまは `orangeagentPutAwayFrom` を付けます。どちらも記録のためで、読むところはありません。
-- Google の OAuth 同意画面のアプリ名（「FlareChat」）：変えて保存するには、アプリのホームページとプライバシーポリシーの URL が要ります。OrangeAgent にはまだそのページがないので、旧名のままです。Google Cloud のプロジェクト表示名と Microsoft Entra のアプリ登録名は「OrangeAgent」に変えました。Google Cloud のプロジェクト ID（`flarechat-…`）は変えられません。
+- Google Cloud のプロジェクト ID（`flarechat-…`）：変えられません。プロジェクトの表示名、OAuth 同意画面のアプリ名、Microsoft Entra のアプリ登録名は「OrangeAgent」に変えました。同意画面には、公開ページ（`/about` と `/privacy`）をホームページとプライバシーポリシーとして載せています。
 - Google Cloud と Microsoft Entra の旧リダイレクト URI（`flarechat.<subdomain>.workers.dev/...`）：転送用の Worker をやめるときに一緒に消します。
+
+## 公開ページ
+
+ログインせずに開けるページが2つあります。Google の OAuth 同意画面と Microsoft Entra のアプリ登録に、この URL を載せています。
+
+- **ホームページ**（`/about`）：OrangeAgent が何をするか、Google のデータの扱い、運営者（GitHub の KenichiroMatsubara）とソースコードを書きます。
+- **プライバシーポリシー**（`/privacy`）：受け取るデータ、使い方、渡す相手、守り方、残す期間と消し方を書きます。Google API Services User Data Policy（Limited Use の要件を含む）に従うことも書きます。
+- どちらも日本語のあとに英語を並べた、スクリプトのない HTML です。Worker が管理画面より先に答え、Service Worker も横取りしません。
+- 問い合わせと Account の削除の依頼は GitHub の Issues で受けます。Account を消す画面はないので、依頼を受けたら運営者が本人を確かめてから30日以内に消します。
+- 受け取るデータ・渡す相手・残す期間を変えたら、同じ pull request でプライバシーポリシーと最終更新日も直します。
 
 ## アカウントとデータ
 

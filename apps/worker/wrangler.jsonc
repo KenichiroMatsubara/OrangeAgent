@@ -39,7 +39,7 @@
     "directory": "../web/dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/oauth/*", "/attendance/*", "/.well-known/*"]
+    "run_worker_first": ["/api/*", "/oauth/*", "/attendance/*", "/.well-known/*", "/about", "/privacy"]
   },
   "d1_databases": [
     {

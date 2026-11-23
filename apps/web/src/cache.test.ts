@@ -12,6 +12,8 @@ describe('how the Service Worker answers a request', () => {
     expect(answerOf(get('/oauth/google/callback?code=1', 'navigate'), ORIGIN)).toBe('network');
     expect(answerOf(get('/attendance/abc', 'navigate'), ORIGIN)).toBe('network');
     expect(answerOf(get('/.well-known/oauth-authorization-server'), ORIGIN)).toBe('network');
+    expect(answerOf(get('/about', 'navigate'), ORIGIN)).toBe('network');
+    expect(answerOf(get('/privacy', 'navigate'), ORIGIN)).toBe('network');
     expect(answerOf({ method: 'POST', url: `${ORIGIN}/assets/index-1.js`, mode: 'cors' }, ORIGIN)).toBe('network');
     expect(answerOf({ method: 'GET', url: 'https://fonts.example/a.woff2', mode: 'cors' }, ORIGIN)).toBe('network');
     expect(answerOf(get('/sw.js'), ORIGIN)).toBe('network');
