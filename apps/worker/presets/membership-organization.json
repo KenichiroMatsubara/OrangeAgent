@@ -1,0 +1,25 @@
+{
+  "id": "membership-organization",
+  "name": "Membership organization",
+  "description": "A starting configuration for membership organizations that coordinate schedules, treasury deadlines, and member notices.",
+  "skills": [
+    {
+      "key": "membership-assistant",
+      "name": "Membership assistant",
+      "description": "When the organization's mail asks it to coordinate work for its members.",
+      "instructions": "Read the mail that arrived since this Automation last ran, with the mail.search query its request names, and help the organization coordinate only the work each mail explicitly requests. Query existing Tasks before creating one; update the matching Task when a reply concerns the same work. Do not create Tasks for event-registration replies, acknowledgements, returned forms, promotional messages, or informational messages unless they contain explicit actionable work. Use the Task's Scheduled Event relation when the work belongs to a known event. Tell nobody anything until the organization names here whom to tell."
+    }
+  ],
+  "automations": [
+    {
+      "key": "membership-follow-up",
+      "name": "Membership follow-up",
+      "enabled": false,
+      "executionMode": "approval",
+      "skillKeys": [
+        "membership-assistant"
+      ],
+      "schedule": "daily 05:00"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-mock",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:mock"],
+      "port": 5199
+    },
+    {
+      "name": "web-mock-signed-out",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["MOCK_STATE=signed_out", "npm", "run", "dev:mock", "-w", "@mail/web", "--", "--port", "5201"],
+      "port": 5201
+    },
+    {
+      "name": "web-mock-unassigned",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["MOCK_STATE=unassigned", "npm", "run", "dev:mock", "-w", "@mail/web", "--", "--port", "5202"],
+      "port": 5202
+    },
+    {
+      "name": "web-mock-no-mailbox",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["MOCK_STATE=no_mailbox", "npm", "run", "dev:mock", "-w", "@mail/web", "--", "--port", "5203"],
+      "port": 5203
+    }
+  ]
+}

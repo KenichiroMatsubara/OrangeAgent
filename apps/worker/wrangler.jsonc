@@ -1,0 +1,229 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "flarechat",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-24",
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_do_not_populate_process_env"],
+  "vars": {
+    "CLOUDFLARE_WORKER_NAME": "flarechat"
+  },
+  "keep_vars": true,
+  "secrets": {
+    "required": [
+      "CLOUDFLARE_API_TOKEN",
+      "CREDENTIAL_MASTER_KEY",
+      "CREDENTIAL_MASTER_KEY_VERSION",
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET"
+    ]
+  },
+  "unsafe": {
+    "metadata": {
+      "keep_bindings": [
+        "d1",
+        "plain_text",
+        "json",
+        "secret_text",
+        "secret_key"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.sql", "**/starter/*.mjs", "**/lent/*.mjs"],
+      "fallthrough": true
+    }
+  ],
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/oauth/*", "/attendance/*", "/.well-known/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "CONTROL_DB",
+      "database_name": "flarechat-control-apac",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations/control"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "RECOVERY_RECEIPTS",
+      "bucket_name": "flarechat-recovery-receipts"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
+  "browser": {
+    "binding": "BROWSER"
+  },
+  "vectorize": [
+    {
+      "binding": "MEMORY_INDEX",
+      "index_name": "flarechat-memory"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CHAT_EXCHANGES",
+        "class_name": "ChatExchanges"
+      },
+      {
+        "name": "RUN_CALLS",
+        "class_name": "RunCalls"
+      },
+      {
+        "name": "CHAT_THREADS",
+        "class_name": "ChatThreads"
+      },
+      {
+        "name": "WORKBENCH_LITE",
+        "class_name": "WorkbenchLite"
+      },
+      {
+        "name": "WORKBENCH_BASIC",
+        "class_name": "WorkbenchBasic"
+      },
+      {
+        "name": "WORKBENCH_STANDARD_1",
+        "class_name": "WorkbenchStandard1"
+      },
+      {
+        "name": "WORKBENCH_STANDARD_4",
+        "class_name": "WorkbenchStandard4"
+      }
+    ]
+  },
+  "workflows": [
+    {
+      "binding": "TRANSCRIBER",
+      "name": "flarechat-transcriber",
+      "class_name": "Transcriber"
+    }
+  ],
+  "worker_loaders": [
+    {
+      "binding": "LOADER"
+    }
+  ],
+  "containers": [
+    {
+      "class_name": "WorkbenchLite",
+      "image": "./workbench/Dockerfile",
+      "instance_type": "lite",
+      "max_instances": 10
+    },
+    {
+      "class_name": "WorkbenchBasic",
+      "image": "./workbench/Dockerfile",
+      "instance_type": "basic",
+      "max_instances": 10
+    },
+    {
+      "class_name": "WorkbenchStandard1",
+      "image": "./workbench/Dockerfile",
+      "instance_type": "standard-1",
+      "max_instances": 5
+    },
+    {
+      "class_name": "WorkbenchStandard4",
+      "image": "./workbench/Dockerfile",
+      "instance_type": "standard-4",
+      "max_instances": 2
+    }
+  ],
+  "migrations": [
+    {
+      "tag": "v1-chat-exchanges",
+      "new_sqlite_classes": ["ChatExchanges"]
+    },
+    {
+      "tag": "v2-run-calls",
+      "new_sqlite_classes": ["RunCalls"]
+    },
+    {
+      "tag": "v3-chat-threads",
+      "new_sqlite_classes": ["ChatThreads"]
+    },
+    {
+      "tag": "v4-workbenches",
+      "new_sqlite_classes": ["WorkbenchLite", "WorkbenchBasic", "WorkbenchStandard1", "WorkbenchStandard4"]
+    }
+  ],
+  "triggers": {
+    "crons": ["*/30 * * * *"]
+  },
+  "env": {
+    "local": {
+      "workflows": [
+        {
+          "binding": "TRANSCRIBER",
+          "name": "flarechat-transcriber-local",
+          "class_name": "Transcriber"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "CHAT_EXCHANGES",
+            "class_name": "ChatExchanges"
+          },
+          {
+            "name": "RUN_CALLS",
+            "class_name": "RunCalls"
+          },
+          {
+            "name": "CHAT_THREADS",
+            "class_name": "ChatThreads"
+          }
+        ]
+      },
+      "d1_databases": [
+        {
+          "binding": "CONTROL_DB",
+          "database_name": "mail-automation-control-local",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "migrations/control"
+        },
+        {
+          "binding": "LOCAL_ORGANIZATION_DB_1",
+          "database_name": "flarechat-organization-local-1",
+          "database_id": "00000000-0000-0000-0000-000000000101",
+          "migrations_dir": "migrations/organization"
+        },
+        {
+          "binding": "LOCAL_ORGANIZATION_DB_2",
+          "database_name": "flarechat-organization-local-2",
+          "database_id": "00000000-0000-0000-0000-000000000102",
+          "migrations_dir": "migrations/organization"
+        },
+        {
+          "binding": "LOCAL_ORGANIZATION_DB_3",
+          "database_name": "flarechat-organization-local-3",
+          "database_id": "00000000-0000-0000-0000-000000000103",
+          "migrations_dir": "migrations/organization"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "RECOVERY_RECEIPTS",
+          "bucket_name": "mail-automation-recovery-receipts-local"
+        }
+      ],
+      "vars": {
+        "APP_URL": "http://localhost:8787",
+        "WEB_ORIGIN": "http://localhost:8787",
+        "RP_ID": "localhost",
+        "GOOGLE_CLIENT_ID": ""
+      }
+    }
+  },
+  "observability": {
+    "enabled": true
+  }
+}

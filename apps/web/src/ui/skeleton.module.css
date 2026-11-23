@@ -1,0 +1,10 @@
+.rows { display: flex; flex-direction: column; overflow: hidden; background: var(--fc-surface); border: 1px solid var(--fc-line); border-radius: var(--fc-radius-card); }
+.row { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 64px; padding: 0 16px; }
+.row + .row { border-top: 1px solid var(--fc-line); }
+.line { height: 12px; background: var(--fc-track); border-radius: 6px; animation: fc-pulse 1.4s ease-in-out infinite; }
+.line + .line { height: 10px; background: var(--fc-sunken); }
+.block { background: var(--fc-surface); border: 1px solid var(--fc-line); border-radius: var(--fc-radius-card); animation: fc-pulse 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .line, .block { animation: none; }
+}

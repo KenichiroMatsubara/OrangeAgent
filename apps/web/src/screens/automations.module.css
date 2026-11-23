@@ -1,0 +1,4 @@
+.when { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.error { padding: 0 16px 12px; list-style: none; }
+.actions { padding: 4px 8px 8px; list-style: none; border-top: 1px solid var(--fc-line); }
+.bubble { white-space: pre-wrap; }

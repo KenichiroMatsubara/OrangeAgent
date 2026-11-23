@@ -1,0 +1,5 @@
+.meta { margin: 0; color: var(--fc-muted); font-size: 13.5px; }
+.effects { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.effect { display: flex; flex-direction: column; gap: 4px; padding: 12px; background: var(--fc-ground); border-radius: var(--fc-radius); }
+.effectHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.detail { margin: 0; color: var(--fc-ink-2); font-size: 14px; overflow-wrap: anywhere; white-space: pre-wrap; }

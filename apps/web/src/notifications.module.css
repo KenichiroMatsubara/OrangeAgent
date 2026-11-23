@@ -1,0 +1,26 @@
+/* The browser the setting is for, and where it stands. */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status > svg {
+  flex: none;
+  color: var(--fc-muted);
+}
+
+.label {
+  font-weight: 700;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 1.4em;
+  color: var(--fc-ink-2);
+  font-size: 14px;
+}

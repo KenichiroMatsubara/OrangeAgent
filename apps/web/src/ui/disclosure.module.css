@@ -1,0 +1,17 @@
+.disclosure { background: var(--fc-surface); border: 1px solid var(--fc-line); border-radius: var(--fc-radius-card); overflow: hidden; }
+.disclosure + .disclosure { margin-top: 8px; }
+.summary { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 14px 10px 16px; list-style: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.summary::-webkit-details-marker { display: none; }
+.summary:hover { background: var(--fc-hover); }
+.summary:focus-visible { outline: 3px solid var(--fc-brand-soft); outline-offset: -3px; }
+.text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.title { font-size: 15px; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
+.sub { color: var(--fc-muted); font-size: 13px; line-height: 1.5; }
+.aside { display: flex; flex: none; align-items: center; gap: 8px; }
+.chevron { flex: none; color: var(--fc-faint); transition: transform .15s; }
+.disclosure[open] .chevron { transform: rotate(90deg); }
+.body { display: flex; flex-direction: column; gap: 12px; padding: 4px 16px 16px; border-top: 1px solid var(--fc-line); padding-top: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron { transition: none; }
+}

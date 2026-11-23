@@ -1,0 +1,54 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  background: var(--fc-surface);
+  border: 1px solid var(--fc-line);
+  border-radius: var(--fc-radius-card);
+}
+
+.item + .item { border-top: 1px solid var(--fc-line); }
+
+.row {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 14px 10px 16px;
+  color: var(--fc-ink);
+  text-align: left;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a.row, button.row { cursor: pointer; }
+a.row:hover, button.row:hover { background: var(--fc-hover); }
+a.row:focus-visible, button.row:focus-visible { outline: 3px solid var(--fc-brand-soft); outline-offset: -3px; }
+
+.leading { display: grid; flex: none; place-items: center; }
+.text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.title { font-size: 15px; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
+.sub { overflow: hidden; color: var(--fc-muted); font-size: 13px; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
+.wrap .sub { white-space: normal; }
+.aside { display: flex; flex: none; align-items: center; gap: 8px; color: var(--fc-muted); font-size: 14px; }
+.chevron { flex: none; color: var(--fc-faint); }
+
+.check input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--fc-flare); }
+label.row { cursor: pointer; }
+
+.controlRow { display: flex; align-items: center; gap: 4px; min-height: 64px; padding-left: 16px; }
+.controlLink { display: flex; flex: 1; align-items: center; gap: 12px; min-width: 0; min-height: 64px; padding: 10px 14px 10px 10px; color: var(--fc-ink); text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.controlLink:hover { background: var(--fc-hover); }
+.controlLink:focus-visible { outline: 3px solid var(--fc-brand-soft); outline-offset: -3px; }
+.done .title { color: var(--fc-muted); text-decoration: line-through; }
+.actionRow { display: flex; align-items: center; }
+.actionRow .controlLink { padding-left: 16px; text-align: left; background: transparent; border: 0; font: inherit; cursor: pointer; }
+.trailing { flex: none; padding-right: 8px; }

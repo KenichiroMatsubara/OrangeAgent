@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types"],
+    "target": "ES2023",
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@t3tools/*": ["../../packages/t3chat/src/*"]
+    }
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,28 @@
+/*
+ * One recording: the player, then the minutes, then the transcript line by
+ * line, each led by how far into the recording it was said, which plays the
+ * recording from there.
+ */
+.player { width: 100%; margin: 0 0 4px; }
+
+.facts { margin: 0 0 12px; color: var(--fc-ink-2); font-size: 13px; overflow-wrap: anywhere; }
+
+.lines { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; background: var(--fc-surface); border: 1px solid var(--fc-line); border-radius: var(--fc-radius-card); }
+.line { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; padding: 10px 14px; border-top: 1px solid var(--fc-line); }
+.line:first-child { border-top: 0; }
+.at { grid-row: span 2; align-self: start; padding: 2px 0; border: 0; background: none; color: var(--fc-brand); font: inherit; font-size: 12.5px; font-variant-numeric: tabular-nums; cursor: pointer; }
+.at:hover { text-decoration: underline; }
+.at:disabled { color: var(--fc-ink-2); cursor: default; text-decoration: none; }
+.speaker { color: var(--fc-ink-2); font-size: 12.5px; font-weight: 600; }
+.text { margin: 0; color: var(--fc-ink); font-size: 15px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.minutes { padding: 14px 16px; background: var(--fc-surface); border: 1px solid var(--fc-line); border-radius: var(--fc-radius-card); overflow-wrap: anywhere; }
+
+.working { display: inline-flex; align-items: center; gap: 8px; }
+.spin { animation: spin 1s linear infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .spin { animation: none; }
+}

@@ -1,0 +1,31 @@
+.line {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--fc-tabbar-height) + 12px + env(safe-area-inset-bottom));
+  z-index: 60;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  color: var(--fc-ink);
+  background: rgba(255, 255, 255, .97);
+  border: 1px solid var(--fc-line);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(var(--fc-shade), .18);
+  font-family: var(--fc-font);
+}
+
+.card strong { font-size: 13px; line-height: 1.5; }
+.card small { color: var(--fc-muted); font-size: 12px; line-height: 1.6; }
+.spin { flex: none; color: var(--fc-flare); animation: fc-spin 1s linear infinite; }
+
+@media (min-width: 1024px) {
+  .line { bottom: 20px; }
+}

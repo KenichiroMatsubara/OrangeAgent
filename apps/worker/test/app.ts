@@ -1,0 +1,183 @@
+import type { Bindings } from '../src/types';
+import { createMigratedTestD1, type TestD1Database } from './d1';
+import { createMemoryR2, seedAccountRoute, type MemoryR2 } from './seed';
+
+const CREATED_AT = '2026-07-25T00:00:00.000Z';
+const FUTURE = '2099-01-01T00:00:00.000Z';
+
+export interface TestApp {
+  control: TestD1Database;
+  account: TestD1Database;
+  environment: Bindings;
+  /** The R2 bucket the environment holds, so a test can read what was kept. */
+  r2: MemoryR2;
+  request: (path: string, init?: RequestInit) => Request;
+  jsonRequest: (path: string, body: unknown, method?: string) => Request;
+  /** A request whose body is a file, as its bytes, under the media type given. */
+  fileRequest: (path: string, body: string | Uint8Array, method?: string, mediaType?: string) => Request;
+  addAccount: (input: {
+    id: string;
+    bindingName: string;
+    name?: string;
+    migration?: string;
+  }) => TestD1Database;
+  close: () => void;
+}
+
+export const createTestApp = (
+  options: {
+    includeAutomationInbox?: boolean;
+    controlMigration?: string;
+    accountMigration?: string;
+  } = {},
+): TestApp => {
+  const control = createMigratedTestD1('control', options.controlMigration);
+  const account = createMigratedTestD1('organization', options.accountMigration);
+  const additionalDatabases: TestD1Database[] = [];
+  seedAccountRoute(control, {
+    id: 'organization-1',
+    bindingName: 'ORG_ORGANIZATION1',
+    databaseId: 'database-1',
+    name: 'Account One',
+  });
+  control.execute(
+    'INSERT INTO identities (id, google_subject, email, display_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+    'identity-1',
+    'google-subject-1',
+    'owner@example.com',
+    'Owner',
+    CREATED_AT,
+    CREATED_AT,
+  );
+  if (options.controlMigration && options.controlMigration < '0003_admins.sql') {
+    control.execute(
+      'INSERT INTO members (organization_id, identity_id, role, state, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      'organization-1',
+      'identity-1',
+      'owner',
+      'active',
+      CREATED_AT,
+      CREATED_AT,
+    );
+  } else {
+    control.execute(
+      'INSERT INTO admins (organization_id, identity_id, state, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+      'organization-1',
+      'identity-1',
+      'active',
+      CREATED_AT,
+      CREATED_AT,
+    );
+  }
+  control.execute(
+    'INSERT INTO sessions (id, identity_id, expires_at, created_at, last_seen_at) VALUES (?, ?, ?, ?, ?)',
+    'session-1',
+    'identity-1',
+    FUTURE,
+    CREATED_AT,
+    CREATED_AT,
+  );
+  if (options.includeAutomationInbox !== false) {
+    control.execute(
+      `INSERT INTO automation_inbox_claims
+        (google_subject, inbox_address, organization_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?)`,
+      'google-subject-1',
+      'owner@example.com',
+      'organization-1',
+      CREATED_AT,
+      CREATED_AT,
+    );
+    account.execute(
+      `INSERT INTO google_connections
+        (id, kind, google_subject, inbox_address, granted_scopes, token_envelope, gmail_history_id, enabled, status, created_at, updated_at)
+       VALUES (?, 'automation_inbox', ?, ?, ?, ?, ?, 1, 'active', ?, ?)`,
+      'google-1',
+      'google-subject-1',
+      'owner@example.com',
+      '[]',
+      '{}',
+      'history-1',
+      CREATED_AT,
+      CREATED_AT,
+    );
+  }
+  const r2 = createMemoryR2();
+  const environment = {
+    CONTROL_DB: control.binding,
+    ORG_ORGANIZATION1: account.binding,
+    RECOVERY_RECEIPTS: r2.bucket,
+    ASSETS: {} as Fetcher,
+    APP_URL: 'https://app.example.com',
+    WEB_ORIGIN: 'https://app.example.com',
+    RP_ID: 'app.example.com',
+    GOOGLE_CLIENT_ID: 'client-id',
+    GOOGLE_CLIENT_SECRET: 'client-secret',
+    CREDENTIAL_MASTER_KEY: '',
+    CREDENTIAL_MASTER_KEY_VERSION: '',
+    CLOUDFLARE_ACCOUNT_ID: '',
+    CLOUDFLARE_API_TOKEN: '',
+    CLOUDFLARE_WORKER_NAME: '',
+  } as unknown as Bindings;
+  const request = (path: string, init: RequestInit = {}): Request => new Request(
+    `https://app.example.com${path}`,
+    {
+      ...init,
+      headers: { Cookie: 'mail_session=session-1', ...init.headers },
+    },
+  );
+  return {
+    control,
+    account,
+    environment,
+    r2,
+    request,
+    jsonRequest: (path, body, method = 'POST') => request(path, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+    fileRequest: (path, body, method = 'PUT', mediaType = 'application/octet-stream') => request(path, {
+      method,
+      headers: { 'Content-Type': mediaType },
+      body: typeof body === 'string' ? body : new Uint8Array(body),
+    }),
+    addAccount: (input) => {
+      const database = createMigratedTestD1('organization', input.migration);
+      additionalDatabases.push(database);
+      seedAccountRoute(control, {
+        id: input.id,
+        bindingName: input.bindingName,
+        databaseId: `database-${input.id}`,
+        name: input.name ?? input.id,
+      });
+      if (options.controlMigration && options.controlMigration < '0003_admins.sql') {
+        control.execute(
+          'INSERT INTO members (organization_id, identity_id, role, state, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+          input.id,
+          'identity-1',
+          'owner',
+          'active',
+          CREATED_AT,
+          CREATED_AT,
+        );
+      } else {
+        control.execute(
+          'INSERT INTO admins (organization_id, identity_id, state, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+          input.id,
+          'identity-1',
+          'active',
+          CREATED_AT,
+          CREATED_AT,
+        );
+      }
+      (environment as unknown as Record<string, unknown>)[input.bindingName] = database.binding;
+      return database;
+    },
+    close: () => {
+      for (const database of additionalDatabases) database.close();
+      account.close();
+      control.close();
+    },
+  };
+};

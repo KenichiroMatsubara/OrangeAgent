@@ -1,0 +1,23 @@
+.cards { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.card { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; background: var(--fc-surface); border: 1px solid var(--fc-line); border-radius: 14px; }
+.card[data-focused] { border-color: var(--fc-brand); box-shadow: 0 0 0 3px var(--fc-brand-soft); }
+.content { margin: 0; color: var(--fc-ink); font-size: 15px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.source { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--fc-ink-2); font-size: 12.5px; }
+.conversation { display: inline-flex; align-items: center; gap: 4px; color: var(--fc-brand); text-decoration: none; }
+.conversation:hover { text-decoration: underline; }
+.actions { display: inline-flex; gap: 4px; }
+.nearness { display: inline-flex; align-items: center; gap: 8px; color: var(--fc-ink-2); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.bar { position: relative; width: 96px; height: 6px; overflow: hidden; background: var(--fc-ground); border-radius: 999px; }
+.bar > span { position: absolute; inset: 0 auto 0 0; background: var(--fc-brand); border-radius: 999px; }
+.search { display: flex; gap: 8px; align-items: stretch; margin-bottom: 12px; }
+.searchBox { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; padding: 0 12px; background: var(--fc-surface); border: 1px solid var(--fc-line); border-radius: 12px; color: var(--fc-ink-2); }
+.searchBox:focus-within { border-color: var(--fc-brand); }
+.searchBox input { flex: 1; min-width: 0; min-height: 44px; border: 0; outline: 0; background: transparent; color: var(--fc-ink); font: inherit; font-size: 15px; }
+.editor { min-height: 160px; resize: vertical; line-height: 1.7; }
+.matches { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.episode { margin: 0; padding: 12px 14px; background: var(--fc-ground); border-radius: 12px; color: var(--fc-ink-2); font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.episode mark { background: var(--fc-brand-soft); color: var(--fc-ink); border-radius: 4px; padding: 0 2px; }
+.history { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; color: var(--fc-ink-2); font-size: 13px; }
+.history li { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.history li > span:first-child { font-variant-numeric: tabular-nums; }

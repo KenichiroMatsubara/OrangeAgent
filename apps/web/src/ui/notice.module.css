@@ -1,0 +1,35 @@
+.chip { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; line-height: 1.6; white-space: nowrap; }
+.brand { color: var(--fc-brand); background: var(--fc-brand-soft); }
+.neutral { color: var(--fc-ink-2); background: var(--fc-sunken); }
+.muted { color: var(--fc-ink-2); background: var(--fc-track); }
+.warn { color: var(--fc-warn); background: var(--fc-warn-soft); }
+.danger { color: var(--fc-danger); background: var(--fc-danger-soft); }
+.info { color: var(--fc-info); background: var(--fc-info-soft); }
+
+.banner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 14px; border-radius: var(--fc-radius); font-size: 14px; }
+.banner > svg { flex: none; }
+.bannerText { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.bannerAction { display: flex; flex-wrap: wrap; gap: 8px; }
+.bannerAction a, .bannerAction button { color: inherit; font-weight: 700; }
+
+.empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 20px; text-align: center; background: var(--fc-surface); border: 1px dashed var(--fc-line-strong); border-radius: var(--fc-radius-card); }
+.empty svg { color: var(--fc-muted); }
+.emptyTitle { margin: 0; font-size: 16px; font-weight: 700; }
+.emptyText { margin: 0; color: var(--fc-muted); font-size: 14px; }
+
+.mark { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 999px; }
+.dot { flex: none; width: 10px; height: 10px; border-radius: 999px; }
+.dot.success { background: var(--fc-success); }
+.dot.warn { background: var(--fc-warn-dot); }
+.dot.danger { background: var(--fc-danger-strong); }
+.dot.info { background: var(--fc-info); }
+.dot.muted, .dot.neutral, .dot.brand { background: var(--fc-faint); }
+
+.avatar { display: grid; flex: none; place-items: center; color: var(--fc-brand); background: var(--fc-brand-soft); border-radius: 999px; font-weight: 700; }
+.avatar36 { width: 36px; height: 36px; font-size: 14px; }
+.avatar42 { width: 42px; height: 42px; font-size: 16px; }
+.avatar60 { width: 60px; height: 60px; font-size: 24px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.date { display: flex; flex: none; flex-direction: column; align-items: center; width: 48px; padding: 6px 0; color: var(--fc-brand); background: var(--fc-brand-soft); border-radius: 12px; line-height: 1.15; }
+.date small { font-size: 11.5px; font-weight: 600; }
+.date strong { font-size: 20px; }

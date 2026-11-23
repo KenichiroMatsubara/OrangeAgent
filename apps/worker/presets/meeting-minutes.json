@@ -1,0 +1,37 @@
+{
+  "id": "meeting-minutes",
+  "name": "会議の議事録",
+  "description": "Google Meet の会議を自動で文字起こしし、終わった会議ごとに議事録と要約を作ります。Google Workspace の Business Standard 以上が必要です。",
+  "skills": [
+    {
+      "key": "meeting-transcription",
+      "name": "会議の自動文字起こし",
+      "description": "カレンダーにある Google Meet の会議を、始まったら自動で文字起こしされるようにするとき。",
+      "instructions": "calendar.search で、今日から 7 日先までの予定を調べる。meetingCode を持つ予定のうち、このアカウントが主催する会議のそれぞれについて、meet.transcribe でその会議リンクの自動文字起こしをオンにする。title には予定の名前をそのまま書く。\n\n- 定期的な予定は会議リンクが一つなので、一度オンにすればすべての回が文字起こしされる。同じ meetingCode には一度だけ呼ぶ。\n- 他の人が主催する会議は断られる。断られたら次の会議に進み、やり直さない。\n- 文字起こしは英語以外の精度が落ちることがある。それでも議事録は作れるので、言語で会議を選り分けない。\n- 誰にも何も送らない。"
+    },
+    {
+      "key": "meeting-minutes",
+      "name": "会議の議事録",
+      "description": "文字起こしされた Google Meet の会議から、議事録と要約を作るとき。",
+      "instructions": "文字起こしが確定するのを待つため、この実行が扱うのは「前回の実行時刻の 30 分前」から「今の 30 分前」までに終わった会議とする。前回の実行がなければ、今の 90 分前から今の 30 分前までとする。\n\n1. meet.search で、その範囲の始まりの 1 日前から今までに始まった会議を探す。end がその範囲に入り、transcripts に ended か file_generated があるものだけを扱う。\n2. 扱う会議ごとに meet.read で文字起こしを読む。calendar.search でその会議の時間帯の予定を調べ、meetingCode が同じ予定があれば、その名前を会議名にする。なければ「会議（開始時刻）」とする。\n3. 文字起こしだけを根拠に、次の形で議事録を書く。文字起こしにないことは書かない。聞き取りの誤りと思われる語は、文脈から明らかなときだけ直し、直したと分かるように〔 〕で示す。\n\n```\n# 会議名\n日時: YYYY年M月D日 HH:MM〜HH:MM\n参加者: 名前、名前\n\n## 要約\n三〜五行で、何を話し、何が決まったか。\n\n## 決定事項\n- 決まったこと。なければ「なし」。\n\n## ToDo\n- 担当者: やること（期限があれば期限）。なければ「なし」。\n\n## 議事\n話題ごとに見出しを立て、誰が何を言ったかの要旨を箇条書きで。\n```\n\n4. 議事録の届け先は、この下に書かれた人だけとする。届け先が書かれていなければ誰にも送らず、議事録をこの実行の答えとして書く（実行の記録から読める）。\n\n届け先: （例:「query_contacts で 山田 太郎 を探し、channel.send で議事録を送る」「mail.draft で自分宛ての下書きにする」）"
+    }
+  ],
+  "automations": [
+    {
+      "key": "meeting-transcription",
+      "name": "会議の自動文字起こし",
+      "enabled": false,
+      "executionMode": "unattended",
+      "skillKeys": ["meeting-transcription"],
+      "schedule": "daily 07:00"
+    },
+    {
+      "key": "meeting-minutes",
+      "name": "会議の議事録",
+      "enabled": false,
+      "executionMode": "approval",
+      "skillKeys": ["meeting-minutes"],
+      "schedule": "hourly :30"
+    }
+  ]
+}

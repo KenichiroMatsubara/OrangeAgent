@@ -1,0 +1,117 @@
+import { describe, expect, it } from "vitest";
+
+import { codeGroupLabel, codePlace, flareChatToolPresentation } from "./flarechat.ts";
+import {
+  resolveWorkEntryToolPresentation,
+  summarizeToolGroup,
+  toolGroupSummaryKind,
+  type WorkLogPresentationEntry,
+} from "./presentation.ts";
+
+let next = 0;
+
+/** A tool call as the timeline holds it: its name, arguments, answer, and status. */
+const call = (
+  toolName: string,
+  input: unknown,
+  output: unknown,
+  status: WorkLogPresentationEntry["toolLifecycleStatus"] = "completed",
+): WorkLogPresentationEntry => ({
+  id: `entry-${next++}`,
+  createdAt: "2026-11-22T00:00:00.000Z",
+  label: toolName,
+  tone: "tool",
+  itemType: "dynamic_tool",
+  toolLifecycleStatus: status,
+  toolData: { toolName, input, output },
+});
+
+describe("flareChatToolPresentation", () => {
+  it("names a browser call by what it is doing, then by how it ended", () => {
+    const name = (status: string, output: unknown = null) =>
+      flareChatToolPresentation("browser.open", status, { url: "https://example.com" }, output)
+        ?.displayName;
+    expect(name("inProgress")).toBe("ブラウザでページを開いています");
+    expect(name("completed")).toBe("ブラウザでページを開きました");
+    expect(name("failed")).toBe("ブラウザでページを開けませんでした");
+    expect(name("stopped", "拒否したので実行しませんでした。")).toBe(
+      "ブラウザでページを開く操作は拒否されました",
+    );
+    expect(name("stopped")).toBe("ブラウザでページを開く操作を中止しました");
+    expect(flareChatToolPresentation("browser.click", "completed", {}, null)).toEqual({
+      displayName: "ブラウザでクリックしました",
+      icon: "browser",
+      action: "browser",
+    });
+  });
+
+  it("names where code.run ran: the answer's environment, else where its language goes", () => {
+    expect(codePlace({ language: "python" }, { environment: "Dynamic Worker (128 MiB)" })).toBe(
+      "Dynamic Worker",
+    );
+    expect(codePlace({ language: "javascript" }, { environment: "コンテナ lite (256 MiB)" })).toBe(
+      "Cloudflare Container",
+    );
+    // An answer too long to keep whole is kept as cut text.
+    const cut = `{"environment":"コンテナ basic (1 GiB)","stdout":"${"x".repeat(40)}…（残り 9 文字は画面に表示しません）`;
+    expect(codePlace({ language: "python" }, cut)).toBe("Cloudflare Container");
+    expect(codePlace({ language: "javascript" }, null)).toBe("Dynamic Worker");
+    expect(codePlace({ language: "shell" }, null)).toBe("Cloudflare Container");
+
+    expect(
+      flareChatToolPresentation("code.run", "inProgress", { language: "javascript" }, null),
+    ).toEqual({
+      displayName: "Dynamic Worker でコードを実行しています",
+      icon: "code",
+      action: "code",
+    });
+    const ran = (output: unknown) =>
+      flareChatToolPresentation("code.run", "completed", { language: "python" }, output)
+        ?.displayName;
+    expect(ran({ environment: "コンテナ lite (256 MiB)", exitCode: 0 })).toBe(
+      "Cloudflare Container でコードを実行しました",
+    );
+    expect(ran({ environment: "コンテナ lite (256 MiB)", exitCode: 1 })).toBe(
+      "Cloudflare Container でコードを実行できませんでした",
+    );
+    expect(
+      flareChatToolPresentation("code_execution", "completed", {}, null)?.displayName,
+    ).toBe("Anthropic のサンドボックスでコードを実行しました");
+    expect(flareChatToolPresentation("mail.search", "completed", {}, null)).toBeNull();
+  });
+});
+
+describe("a row of FlareChat's browser and code calls", () => {
+  it("shows each call by its own sentence and icon", () => {
+    const entry = call("browser.read", {}, null, "inProgress");
+    expect(resolveWorkEntryToolPresentation(entry)).toMatchObject({
+      displayName: "ブラウザの画面を読んでいます",
+      icon: "browser",
+    });
+  });
+
+  it("folds consecutive browser calls into one line", () => {
+    const entries = [
+      call("browser.open", { url: "https://example.com" }, "ok"),
+      call("browser.click", {}, "ok"),
+      call("browser.read", {}, "ok"),
+    ];
+    expect(toolGroupSummaryKind(entries)).toBe("browser");
+    expect(summarizeToolGroup(entries).summary).toBe("Used browser 3 times");
+  });
+
+  it("folds consecutive code calls into one line naming each place", () => {
+    const worker = { environment: "Dynamic Worker (128 MiB)", exitCode: 0 };
+    const container = { environment: "コンテナ lite (256 MiB)", exitCode: 0 };
+    const twice = [
+      call("code.run", { language: "javascript" }, worker),
+      call("code.run", { language: "javascript" }, worker),
+    ];
+    expect(toolGroupSummaryKind(twice)).toBe("code");
+    expect(summarizeToolGroup(twice).summary).toBe("Dynamic Worker を 2 回使用しました");
+    expect(
+      summarizeToolGroup([...twice, call("code.run", { language: "python" }, container)]).summary,
+    ).toBe("Dynamic Worker を 2 回、Cloudflare Container を 1 回使用しました");
+    expect(codeGroupLabel(["Cloudflare Container"])).toBe("Cloudflare Container を 1 回使用しました");
+  });
+});

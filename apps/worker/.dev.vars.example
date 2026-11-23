@@ -1,0 +1,23 @@
+# Google Cloud OAuth client: register both local redirect URIs documented in README.md.
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+# `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='` で生成した32バイトのbase64url値
+CREDENTIAL_MASTER_KEY=
+CREDENTIAL_MASTER_KEY_VERSION=local-1
+# Local Organization D1 bindings are declared in wrangler.jsonc; Cloudflare credentials are not required.
+# Optional: an OpenRouter key offers the rebuilt chat's 自動 approval mode; left out, 自動 is not offered.
+# OPENROUTER_API_KEY=
+# Optional: Web Push for the rebuilt chat's notifications. Without all three, no notification is sent and
+# /chat/next's 通知 section says notifications are unavailable here. Make a key pair once per deployment
+# (P-256; VAPID_PUBLIC_KEY is the uncompressed point, VAPID_PRIVATE_KEY its private scalar, both base64url):
+#   node -e "crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign']).then(async(k)=>{const raw=Buffer.from(await crypto.subtle.exportKey('raw',k.publicKey)).toString('base64url');const {d}=await crypto.subtle.exportKey('jwk',k.privateKey);console.log('VAPID_PUBLIC_KEY='+raw+'\nVAPID_PRIVATE_KEY='+d)})"
+# In production set them with `wrangler secret put VAPID_PUBLIC_KEY` (and the other two). Changing the pair
+# stops every browser subscribed with the old one; each must turn notifications on again.
+# VAPID_PUBLIC_KEY=
+# VAPID_PRIVATE_KEY=
+# VAPID_SUBJECT=mailto:you@example.com
+# Optional: Google Picker, with which Operator Chat attaches a file from Drive and saves a file in a Drive folder
+# the member chooses. Create a browser API key restricted to the Picker API and use the Cloud project's number
+# as the app id. Without both, the composer offers no Drive file and 「Drive に保存」 saves into AI に聞く.
+# GOOGLE_PICKER_API_KEY=
+# GOOGLE_PICKER_APP_ID=

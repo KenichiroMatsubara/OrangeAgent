@@ -1,0 +1,93 @@
+/* The chat scrolls inside itself. On a phone it cancels the shell's padding on every side,
+   the top included, so its bar sits right under the browser's and takes that height too. */
+.frame {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--fc-tabbar-height) - 12px - env(safe-area-inset-bottom));
+  margin: -20px calc(-1 * max(var(--fc-gutter), env(safe-area-inset-left))) -28px;
+  overflow: hidden;
+  background: var(--fc-surface);
+}
+
+@media (min-width: 1024px) {
+  .frame {
+    height: calc(100dvh - 32px - 24px);
+    margin: 0 0 -40px;
+    border: 1px solid var(--fc-line);
+    border-radius: var(--fc-radius-card);
+  }
+}
+
+/* A narrow bar above the chat, back to the list of conversations. */
+.bar {
+  display: flex;
+  align-items: center;
+  flex: none;
+  min-height: 40px;
+  padding: 0 var(--fc-gutter);
+  border-bottom: 1px solid var(--fc-line);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--fc-muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--fc-ink);
+}
+
+.chat {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
+/* What the conversation is called, between the way back and what can be done to it. */
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 8px;
+  color: var(--fc-ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fc-muted);
+  cursor: pointer;
+}
+
+.action:hover:not(:disabled) {
+  background: var(--fc-sunken);
+  color: var(--fc-ink);
+}
+
+.action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* On a phone the way back is its arrow alone, so the conversation's name has the bar. */
+@media (max-width: 480px) {
+  .backLabel {
+    display: none;
+  }
+}

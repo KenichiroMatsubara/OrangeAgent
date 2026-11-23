@@ -1,0 +1,43 @@
+// The TypeScript no workspace's project holds: the scripts, the suite's
+// setup and helpers, the Vitest and Drizzle configurations, and the few tests
+// beside a workspace's sources. It runs on Node and in workerd, and the
+// setup it holds imports both the Worker and the chat, so it carries the
+// types of both runtimes and resolves the chat's aliases as its build does.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "node",
+      "@cloudflare/workers-types",
+      "@cloudflare/vitest-plugin/types",
+      "vite/client"
+    ],
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "~/*": [
+        "./packages/t3chat/src/web/*"
+      ],
+      "@t3tools/*": [
+        "./packages/t3chat/src/*"
+      ]
+    },
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "*.config.ts",
+    "scripts",
+    "test",
+    "apps/web/*.test.ts",
+    "apps/worker/test/d1.test.ts",
+    "apps/worker/test/workers.ts",
+    "apps/worker/src/sql.d.ts",
+    "packages/t3chat/vite.test.ts",
+    "packages/t3chat/src/web/vite-env.d.ts"
+  ]
+}

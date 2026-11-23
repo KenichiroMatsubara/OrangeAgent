@@ -1,0 +1,116 @@
+/*
+ * A Skill's folder: the tree beside the open file on a wide screen, and one
+ * after the other on a phone, where choosing a file opens it and the pane's
+ * own button returns to the tree.
+ */
+.explorer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--fc-surface);
+  border: 1px solid var(--fc-line);
+  border-radius: var(--fc-radius-card);
+}
+
+.tree { display: flex; flex-direction: column; min-width: 0; background: var(--fc-hover); }
+.treeTools { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px; border-bottom: 1px solid var(--fc-line); }
+
+.root, .branch { margin: 0; padding: 0; list-style: none; }
+.root { flex: 1; padding: 6px 0; overflow: auto; }
+
+.node { display: flex; align-items: center; min-height: 44px; padding-inline-end: 8px; border-radius: 8px; }
+.node:hover { background: var(--fc-sunken); }
+.selected, .selected:hover { background: var(--fc-brand-soft); }
+.selected .nodeButton { color: var(--fc-brand); font-weight: 700; }
+
+.toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 44px;
+  padding: 0;
+  color: var(--fc-muted);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.nodeButton {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 6px;
+  color: var(--fc-ink);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 14.5px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.nodeButton svg { flex: none; color: var(--fc-muted); }
+.selected .nodeButton svg { color: var(--fc-brand); }
+.nodeName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { flex: none; width: 8px; height: 8px; margin-inline-start: auto; background: var(--fc-warn-dot); border-radius: 999px; }
+
+.usage { margin: 0; padding: 10px 14px; color: var(--fc-muted); border-top: 1px solid var(--fc-line); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.pane { display: flex; flex-direction: column; min-width: 0; }
+.paneBody { display: flex; flex-direction: column; gap: 14px; padding: 16px; }
+.paneHeader { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.paneTitle { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: 16px; overflow-wrap: anywhere; }
+.paneTitle svg { flex: none; color: var(--fc-muted); }
+.paneMeta { display: inline-flex; align-items: center; gap: 8px; color: var(--fc-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Outweighs the field's own textarea height. */
+.pane textarea.editor {
+  min-height: 60vh;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, var(--fc-font);
+  font-size: 14px;
+  line-height: 1.65;
+  tab-size: 2;
+}
+
+.rename { display: flex; flex-direction: column; gap: 8px; }
+.rename > button { align-self: flex-start; }
+
+.facts { display: grid; gap: 10px; margin: 0; padding: 12px; background: var(--fc-ground); border-radius: var(--fc-radius); }
+.facts dt { color: var(--fc-muted); font-size: 12.5px; }
+.facts dd { margin: 2px 0 0; font-size: 14px; overflow-wrap: anywhere; }
+
+.backToTree {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  min-height: 44px;
+  margin: 6px 6px -8px;
+  padding: 0 10px;
+  color: var(--fc-brand);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 859px) {
+  .explorer[data-view='tree'] .pane { display: none; }
+  .explorer[data-view='pane'] .tree { display: none; }
+  .backToTree { display: inline-flex; }
+}
+
+@media (min-width: 860px) {
+  .explorer { grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); min-height: 70vh; }
+  .tree { border-inline-end: 1px solid var(--fc-line); }
+}
+
+/* A file that is not text: what it is, and the image itself when it is one. */
+.preview { display: block; align-self: flex-start; max-width: 100%; max-height: 60vh; object-fit: contain; background: var(--fc-ground); border-radius: var(--fc-radius); }

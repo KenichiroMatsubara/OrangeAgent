@@ -1,0 +1,32 @@
+{
+  "name": "@mail/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "CLOUDFLARE_ENV=local vite",
+    "dev:mock": "vite --config vite.mock.ts --configLoader runner --mode mock",
+    "build": "tsrs -p tsconfig.json && tsrs -p tsconfig.sw.json && vite build",
+    "typecheck": "tsrs -p tsconfig.json && tsrs -p tsconfig.sw.json"
+  },
+  "dependencies": {
+    "@mail/domain": "*",
+    "@mail/t3chat": "*",
+    "fflate": "^0.8.3",
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.18.1"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "~1.70.1",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.6.0",
+    "jsdom": "30.0.1",
+    "vite": "^7.0.6"
+  }
+}

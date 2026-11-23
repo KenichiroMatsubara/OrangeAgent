@@ -1,0 +1,27 @@
+.markdown { display: flex; flex-direction: column; gap: 10px; min-width: 0; line-height: 1.75; overflow-wrap: anywhere; }
+.paragraph { margin: 0; }
+.heading { margin: 6px 0 0; font-size: 16px; line-height: 1.5; }
+.list { display: flex; flex-direction: column; gap: 4px; margin: 0; padding-left: 1.4em; }
+.list li::marker { color: var(--fc-faint); }
+.code { padding: 1px 6px; background: var(--fc-sunken); border-radius: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em; }
+.block { margin: 0; overflow: hidden; background: var(--fc-sunken); border: 1px solid var(--fc-line); border-radius: var(--fc-radius); }
+.blockHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 34px; padding: 0 4px 0 14px; color: var(--fc-muted); background: var(--fc-ground); border-bottom: 1px solid var(--fc-line); font-size: 12px; }
+.language { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: lowercase; }
+.blockCopy { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 0 8px; color: var(--fc-muted); background: transparent; border: 0; border-radius: 8px; font: inherit; cursor: pointer; }
+.blockCopy:hover { color: var(--fc-ink); background: var(--fc-sunken); }
+.blockCopy:focus-visible { outline: 2px solid var(--fc-brand); outline-offset: -2px; }
+.check { display: flex; align-items: flex-start; gap: 8px; margin-left: -1.4em; list-style: none; }
+.check[data-done] > span:last-child { color: var(--fc-muted); text-decoration: line-through; }
+.box { display: grid; flex: none; place-items: center; width: 16px; height: 16px; margin-top: .35em; color: var(--fc-surface); border: 1.5px solid var(--fc-line-strong); border-radius: 4px; }
+.check[data-done] .box { background: var(--fc-brand); border-color: var(--fc-brand); }
+.markdown del { color: var(--fc-muted); }
+.pre { margin: 0; padding: 12px 14px; overflow-x: auto; background: var(--fc-sunken); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; line-height: 1.6; white-space: pre; }
+.quote { margin: 0; padding: 2px 0 2px 14px; color: var(--fc-ink-2); border-left: 3px solid var(--fc-line-strong); }
+.rule { width: 100%; margin: 4px 0; border: 0; border-top: 1px solid var(--fc-line); }
+.tableWrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--fc-line); border-radius: var(--fc-radius); }
+.table { width: max-content; min-width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.55; }
+.table th, .table td { max-width: 16em; padding: 8px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--fc-line); }
+.table td { word-break: keep-all; overflow-wrap: anywhere; }
+.table th { color: var(--fc-ink-2); background: var(--fc-ground); font-weight: 700; white-space: nowrap; }
+.table tr:last-child td { border-bottom: 0; }
+.markdown a { color: var(--fc-brand); text-underline-offset: 2px; }

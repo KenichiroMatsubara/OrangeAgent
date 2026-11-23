@@ -1,0 +1,39 @@
+{
+  "name": "@mail/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "predev": "npm run db:local",
+    "dev": "wrangler dev --env local --port 8787",
+    "build": "tsrs -p tsconfig.json && wrangler deploy --dry-run --containers-rollout=none --env=\"\"",
+    "typecheck": "tsrs -p tsconfig.json",
+    "db:local": "npm run db:local:control && npm run db:local:organization:1 && npm run db:local:organization:2 && npm run db:local:organization:3",
+    "db:local:control": "wrangler d1 migrations apply CONTROL_DB --env local --local",
+    "db:local:organization:1": "wrangler d1 migrations apply LOCAL_ORGANIZATION_DB_1 --env local --local",
+    "db:local:organization:2": "wrangler d1 migrations apply LOCAL_ORGANIZATION_DB_2 --env local --local",
+    "db:local:organization:3": "wrangler d1 migrations apply LOCAL_ORGANIZATION_DB_3 --env local --local",
+    "deploy": "npm run deploy --prefix ../..",
+    "deploy:worker:release": "wrangler deploy --env=\"\" --config wrangler.deploy.json",
+    "deploy:worker:preview": "wrangler versions upload --env=\"\" --config wrangler.deploy.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "@cloudflare/sandbox": "1.0.3",
+    "@earendil-works/pi-agent-core": "^1.6.0",
+    "@earendil-works/pi-ai": "^1.6.0",
+    "@mail/domain": "*",
+    "@mail/t3chat": "*",
+    "acorn": "^8.19.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.8.12"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "0.9.12",
+    "docx": "9.16.0",
+    "exceljs": "4.4.0",
+    "fflate": "0.8.3",
+    "pdf-lib": "1.17.1",
+    "pptxgenjs": "4.0.1"
+  }
+}

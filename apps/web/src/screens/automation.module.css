@@ -1,0 +1,2 @@
+.heading { margin: 4px 0 0; font-size: 14px; }
+.text { max-height: 320px; margin: 0; overflow: auto; padding: 12px; color: var(--fc-ink-2); background: var(--fc-ground); border-radius: var(--fc-radius); font-family: inherit; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
