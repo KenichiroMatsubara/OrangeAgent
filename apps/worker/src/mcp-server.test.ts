@@ -73,6 +73,9 @@ const base = (overrides: { request?: ReturnType<typeof call>; grant?: string[]; 
   };
 };
 
+/** Opening the Account's Skills, which every run that holds them is offered whatever its grant. */
+const SKILL_READS = ['activate_skill', 'read_skill_resource'];
+
 const listed = (result: unknown): string[] => (result as { tools: Array<{ name: string }> }).tools.map((tool) => tool.name);
 const text = (result: unknown): string => (result as { content: Array<{ text: string }> }).content[0]?.text ?? '';
 
@@ -80,7 +83,7 @@ describe('OrangeAgent as an MCP Server', () => {
   it('offers every tool an Access Token can be granted, described as every other run is told it', async () => {
     const response = await handleMcpServerRequest(base().input);
 
-    expect(listed(response.result)).toEqual(ACCESS_TOKEN_TOOLS.map((tool) => tool.name));
+    expect(listed(response.result)).toEqual(expect.arrayContaining(ACCESS_TOKEN_TOOLS.map((tool) => tool.name)));
     const tools = (response.result as { tools: Array<{ name: string; inputSchema: { required?: string[] } }> }).tools;
     expect(tools.find((tool) => tool.name === 'channel.send')?.inputSchema.required).toEqual(['channel', 'text']);
   });
@@ -88,17 +91,17 @@ describe('OrangeAgent as an MCP Server', () => {
   it('lists only the tools the Access Token was granted', async () => {
     const response = await handleMcpServerRequest(base({ grant: ['query_contacts'] }).input);
 
-    expect(listed(response.result)).toEqual(['query_contacts']);
+    expect(listed(response.result)).toEqual(['query_contacts', ...SKILL_READS]);
   });
 
-  it('never offers the Account’s mailbox, calendar, or Google Tasks, even when a grant names them', async () => {
+  it('offers the Account’s mailbox, calendar, and Google Tasks when the grant names them, as Operator Chat has them', async () => {
     const response = await handleMcpServerRequest(base({ grant: ['mail.search', 'mail.read', 'mail.send', 'calendar.search', 'tasks.search', 'tasks.create', 'tasks.update', 'query_contacts'] }).input);
 
-    expect(listed(response.result)).toEqual(['query_contacts']);
+    expect(listed(response.result)).toEqual(expect.arrayContaining(['mail.search', 'mail.read', 'mail.send', 'calendar.search', 'tasks.search', 'tasks.create', 'tasks.update', 'query_contacts']));
   });
 
-  it('refuses a call to a Task tool, which only a run holding the Google grant makes', async () => {
-    const { input } = base({ request: call('tools/call', { name: 'tasks.create', arguments: { title: '会費を集める', due: null } }) });
+  it('refuses a call to a Task tool the grant does not name', async () => {
+    const { input } = base({ grant: ['query_contacts'], request: call('tools/call', { name: 'tasks.create', arguments: { title: '会費を集める', due: null } }) });
 
     const response = await handleMcpServerRequest(input);
 
@@ -285,9 +288,9 @@ describe('OrangeAgent as an MCP Server', () => {
     const handshake = await handleMcpServerRequest(base({ grant: ['query_contacts'] }).input);
 
     expect(stateless.result).toMatchObject({ resultType: 'complete', ttlMs: 0, cacheScope: 'private' });
-    expect(listed(stateless.result)).toEqual(['query_contacts']);
+    expect(listed(stateless.result)).toEqual(['query_contacts', ...SKILL_READS]);
     expect(handshake.result).not.toHaveProperty('resultType');
-    expect(listed(handshake.result)).toEqual(['query_contacts']);
+    expect(listed(handshake.result)).toEqual(['query_contacts', ...SKILL_READS]);
   });
 });
 
@@ -391,7 +394,7 @@ describe('granted server tools', () => {
   });
 
   it('ignores a name that is not an Access Token’s to call', () => {
-    expect(grantedServerTools(['query_contacts', 'contacts.delete', 'mail.read'])).toEqual(['query_contacts']);
+    expect(grantedServerTools(['query_contacts', 'contacts.delete', 'run.token'])).toEqual(['query_contacts']);
   });
 
   it('reads a grant stored under an old name as the tool that replaced it, once', () => {

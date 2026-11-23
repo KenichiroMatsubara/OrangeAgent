@@ -197,51 +197,41 @@ export const tokenRoutes = (providers: Providers) => {
       const accountKey = await accountKeyFor(env, accountId);
       const ports = channelPorts({ database, credentials: await channelCredentials({ database, accountKey, accountId }) });
       const prompts = await publishedPrompts({ db, bucket: env.RECOVERY_RECEIPTS, accountId });
-      if (token) {
-        return send(await serveMcpServerRequest({ request, headers: context.req.raw.headers, answer: (era) => handleMcpServerRequest({
-          request,
-          era,
-          origin: env.WEB_ORIGIN || env.APP_URL,
-          run: accessTokenRun(token.grant),
-          prompts,
-          // An Access Token holds neither mail nor the Google grant, reaches only its Contact List, and sees only that list in the roster.
-          handlers: toolHandlers({
-            database, accountId, mail: { kind: 'none' },
-            reach: { kind: 'contact_list', holder: 'this Access Token', contactIds: token.contactIds, emails: [], roster: 'list' },
-            ports, origin: { automationId: null, sourceMessageId: null }, at: () => at,
-          }, {
-            ...suppressionPort({ database, scope: token.id, window: token.suppressionWindow, at }),
-            scope: token.id,
-            window: token.suppressionWindow,
-            holder: 'this Access Token',
-          }),
-        }) }));
-      }
-
       let session: Promise<InboxSession> | undefined;
       const inbox = (): Promise<InboxSession> => {
         session ??= openInbox({ env, accountId, database, google: providers.google });
         return session;
       };
       const skills: SkillStore = { db, bucket: env.RECOVERY_RECEIPTS, accountId };
-      // What the CLI keeps is the member's, by name, so 記憶 shows whose CLI wrote it.
-      const author = { kind: 'cli' as const, name: await memberName({ control: env.CONTROL_DB, identityId: operator?.identityId ?? '' }) };
-      const run = await hasAutomationInbox(database) ? OPERATOR_TOKEN_RUN : withoutMailbox(OPERATOR_TOKEN_RUN);
+      const mailbox = await hasAutomationInbox(database);
+      // What a memory is kept under, so 記憶 shows which key or whose CLI wrote it.
+      const author = { kind: 'cli' as const, name: token ? token.name : await memberName({ control: env.CONTROL_DB, identityId: operator?.identityId ?? '' }) };
+      // Both keys reach what Operator Chat reaches; an Access Token is narrowed by its grant and its Contact List.
+      const shared = {
+        database, accountId, mail: { kind: 'mailbox' as const },
+        google: { provider: providers.google, session: inbox }, ports,
+        origin: { automationId: null, sourceMessageId: null }, skills, at: () => at,
+        memory: { store: memoryStoreOf(env, db, accountId), author },
+      };
+      const reached = token ? accessTokenRun(token.grant) : OPERATOR_TOKEN_RUN;
+      const run = mailbox ? reached : withoutMailbox(reached);
+      const handlers = token
+        ? toolHandlers({ ...shared, reach: { kind: 'contact_list', holder: 'this Access Token', contactIds: token.contactIds, emails: [], roster: 'list' } }, {
+          ...suppressionPort({ database, scope: token.id, window: token.suppressionWindow, at }),
+          scope: token.id,
+          window: token.suppressionWindow,
+          holder: 'this Access Token',
+        })
+        : toolHandlers({ ...shared, reach: { kind: 'anyone' } });
       return send(await serveMcpServerRequest({ request, headers: context.req.raw.headers, answer: (era) => handleMcpServerRequest({
         request,
         era,
         origin: env.WEB_ORIGIN || env.APP_URL,
         run,
         prompts,
-        // A member's own CLI is told what Operator Chat is told, with the same Skills listed.
+        // Every outside caller is told what Operator Chat is told, with the same Skills listed.
         instructions: async () => guidance((await runSkills(skills, [])).instructions),
-        // A member's own CLI is Operator Chat: it reaches anyone and reads any mail, because the member decides each step.
-        handlers: toolHandlers({
-          database, accountId, reach: { kind: 'anyone' }, mail: { kind: 'mailbox' },
-          google: { provider: providers.google, session: inbox }, ports,
-          origin: { automationId: null, sourceMessageId: null }, skills, at: () => at,
-          memory: { store: memoryStoreOf(env, db, accountId), author },
-        }),
+        handlers,
       }) }));
     } catch (error) {
       return rpcError(-32603, error instanceof Error ? error.message : 'The MCP Server failed.', 503);

@@ -2,6 +2,8 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ACCESS_TOKEN_TOOLS } from '@mail/domain';
+
 import { api } from '../api';
 import { fakeApi } from '../fake';
 import { ACCOUNT_ID, automationStatus, connections as connectionsView, contactList } from './fixtures';
@@ -248,7 +250,7 @@ describe('Connections screen', () => {
     expect(screen.getByText('taro@example.com ・ PDF を Word と同じ見た目で作ります')).toBeTruthy();
   });
 
-  it('issues a key for an outside agent bounded to one Contact List, and shows it once', async () => {
+  it('issues a key for an outside agent that may do all Operator Chat does, bounded to one Contact List, and shows it once', async () => {
     vi.mocked(api.issueAccessToken).mockResolvedValue({ id: 'token-1', name: 'cowork', tools: ['query_contacts'], token: 'secret-token', url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' });
     const user = userEvent.setup();
     renderScreen('connections', connections);
@@ -259,7 +261,7 @@ describe('Connections screen', () => {
     await user.click(within(sheet).getByRole('button', { name: '発行する' }));
 
     await waitFor(() => expect(api.issueAccessToken).toHaveBeenCalledWith(ACCOUNT_ID, {
-      name: 'cowork', contactListId: 'list-1', tools: ['query_contacts', 'channel.send', 'reminder.schedule'], suppressionWindow: 'day',
+      name: 'cowork', contactListId: 'list-1', tools: ACCESS_TOKEN_TOOLS.map((tool) => tool.name), suppressionWindow: 'day',
     }));
     expect(await within(sheet).findByDisplayValue('secret-token')).toBeTruthy();
   });

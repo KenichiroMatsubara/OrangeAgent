@@ -15,9 +15,8 @@ import { Banner, Empty } from './ui/notice';
 import { Note, Section, Toolbar } from './ui/page';
 import { Sheet } from './ui/sheet';
 
+/** Every tool a key can be granted, all checked when it is first issued: an outside agent does what Operator Chat does unless a person unchecks it. */
 const SERVER_TOOLS: readonly string[] = ACCESS_TOKEN_TOOLS.map((entry) => entry.name);
-/** Checked when a key is first issued: finding a Contact and reaching one, which are useless apart. */
-const DEFAULT_TOOLS: readonly string[] = ['query_contacts', 'channel.send', 'reminder.schedule'];
 const WINDOWS = ['none', 'hour', 'day', 'week', 'forever'] as const;
 
 /** Shows the credential exactly once, because only its hash is stored. */
@@ -42,7 +41,7 @@ const IssueToken = ({ accountId, lists, reload, onClose }: { accountId: string; 
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState('');
   const [listId, setListId] = useState(lists[0]?.id ?? '');
-  const [tools, setTools] = useState<string[]>([...DEFAULT_TOOLS]);
+  const [tools, setTools] = useState<string[]>([...SERVER_TOOLS]);
   const [window, setWindow] = useState('day');
   const submit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();

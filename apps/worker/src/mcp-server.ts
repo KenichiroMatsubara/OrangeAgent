@@ -87,7 +87,7 @@ export const grantedServerTools = (grant: readonly string[]): ToolName[] => {
   return ACCESS_TOKEN_TOOLS.flatMap((tool) => named.has(tool.name) ? [tool.name] : []);
 };
 
-/** What an Access Token's run is: a run that holds nothing of the Account's own, narrowed by its Tool Grant. */
+/** What an Access Token's run is: a run outside OrangeAgent, narrowed by its Tool Grant. */
 export const accessTokenRun = (grant: readonly string[]): ToolRun => ({ ...ACCESS_TOKEN_RUN, grant: grantedServerTools(grant) });
 
 const textContent = (value: unknown) => ({ type: 'text', text: typeof value === 'string' ? value : JSON.stringify(value) });
@@ -126,7 +126,7 @@ export const handleMcpServerRequest = async (input: {
   era?: McpEra;
   /** Where the GUI is served, whose icon the server names itself with. */
   origin: string;
-  /** What a member's run is told, as Operator Chat is (`guidance.ts`); an Access Token's run is told nothing. */
+  /** What an outside caller is told, as Operator Chat is (`guidance.ts`). */
   instructions?: () => Promise<string>;
 }): Promise<JsonRpcResponse> => {
   const id = input.request.id ?? null;
