@@ -130,6 +130,36 @@ export const suppressionWindow: Readonly<Record<string, string>> = {
 /** The tools an Automation or an Access Token may be granted, by what they let it do; the Worker names a tool waiting for approval by the same words. */
 export const tool: Readonly<Record<string, string>> = TOOL_LABELS;
 
+/** What a granted tool works on, in the order a grant lists them; a tool none of these names is listed last, under その他. */
+export const TOOL_AREAS = ['メール', '予定と出欠', '連絡先とメッセージ', 'Google ToDo', 'Google Drive', 'Google Meet', 'ウェブとブラウザ', 'スキル', '記憶', 'その他'] as const;
+export type ToolArea = typeof TOOL_AREAS[number];
+
+/** Each area by the part of a tool's name before its dot, or by the whole name of a tool that has none. */
+const AREA_OF: Readonly<Record<string, ToolArea>> = {
+  mail: 'メール',
+  calendar: '予定と出欠',
+  query_scheduled_events: '予定と出欠',
+  query_attendance: '予定と出欠',
+  create_scheduled_event: '予定と出欠',
+  update_scheduled_event: '予定と出欠',
+  cancel_scheduled_event: '予定と出欠',
+  attach_event_files: '予定と出欠',
+  record_event_response: '予定と出欠',
+  query_contacts: '連絡先とメッセージ',
+  channel: '連絡先とメッセージ',
+  reminder: '連絡先とメッセージ',
+  tasks: 'Google ToDo',
+  drive: 'Google Drive',
+  meet: 'Google Meet',
+  web: 'ウェブとブラウザ',
+  browser: 'ウェブとブラウザ',
+  skill: 'スキル',
+  memory: '記憶',
+};
+
+/** What a tool works on, so a grant shows the mail tools together, the calendar tools together, and so on. */
+export const toolArea = (name: string): ToolArea => AREA_OF[name.split('.')[0] ?? name] ?? 'その他';
+
 /** Who wrote a memory, as 記憶 says it. */
 export const memoryAuthor: Readonly<Record<MemoryAuthorKind, string>> = {
   chat: 'AI（チャット）',

@@ -21,7 +21,6 @@ const noServers: McpFetch = async () => new Response('{}');
 const context = (db: TestD1Database, overrides: Partial<ToolContext> = {}): ToolContext => ({
   database: db.binding,
   accountId: 'organization-1',
-  reach: { kind: 'anyone' },
   mail: { kind: 'none' },
   origin: { automationId: null, sourceMessageId: null },
   at: () => new Date('2026-10-12T00:00:00.000Z'),
@@ -349,16 +348,6 @@ describe('a planned write is the same call, performed later', () => {
 
     await expect(handlers.record_event_response?.({ messageId: 'gmail-1', eventId: 'event-1', guests: [] }))
       .resolves.toMatchObject({ isError: true, message: 'This run reads no mail, so it cannot name one.' });
-  });
-
-  it('bounds a send by whom the run may reach, the same way however it applies its writes', async () => {
-    database = createMigratedTestD1('organization');
-    const bounded = toolHandlers(context(database, { reach: { kind: 'contact_list', holder: 'This Automation', contactIds: ['contact-1'], emails: [], roster: 'account' } }));
-
-    await expect(bounded['channel.send']?.({ channel: 'line', contactId: 'contact-9', text: 'こんにちは' })).resolves.toMatchObject({ isError: true, message: expect.stringContaining('outside the Contact List') });
-    await expect(bounded['channel.send']?.({ channel: 'line', destination: 'line-group-1', text: 'こんにちは' }))
-      .resolves.toMatchObject({ isError: true, message: 'This Automation reaches only its Contact List; name one of its Contacts by contactId.' });
-    await expect(bounded['mail.send']?.({ to: 'outside@example.com', subject: '件名', body: '本文' })).resolves.toMatchObject({ isError: true, message: expect.stringContaining('outside@example.com') });
   });
 });
 

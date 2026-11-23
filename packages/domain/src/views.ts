@@ -579,17 +579,13 @@ export interface ContactListInput {
 export interface AccessToken {
   id: string;
   name: string;
-  contactListId: string;
-  suppressionWindow: string;
   lastUsedAt: string | null;
   tools: string[];
 }
 
 export interface AccessTokenInput {
   name: string;
-  contactListId: string;
   tools: string[];
-  suppressionWindow: string;
 }
 
 /** The credential exactly once, because only its hash is kept. */

@@ -8,12 +8,7 @@ import { now } from '../clock';
 import { guidance } from '../guidance';
 import { hasAutomationInbox, openInbox, type InboxSession } from '../inbox';
 import { accessTokenRun, grantedServerTools, handleMcpServerRequest, serveMcpServerRequest, type JsonRpcRequest, type McpServerReply } from '../mcp-server';
-import {
-  authenticateAccessToken,
-  publishedPrompts,
-  recordAccessTokenUse,
-  suppressionPort,
-} from '../mcp-server-store';
+import { authenticateAccessToken, publishedPrompts, recordAccessTokenUse } from '../mcp-server-store';
 import {
   authenticateOperatorToken,
   exchangeLoginCode,
@@ -27,11 +22,10 @@ import {
 import { keyBrowser } from '../logins';
 import { memoryStoreOf } from '../memory/store';
 import type { Providers } from '../providers';
-import { gone, invalid, noAccess, notFound } from '../refusal';
+import { gone, invalid, noAccess } from '../refusal';
 import { json, resource } from '../response';
-import { accessTokens, accessTokenTools, contactLists } from '../storage/account-schema';
+import { accessTokens, accessTokenTools } from '../storage/account-schema';
 import { accountDatabase as drizzleAccountDatabase } from '../storage/database';
-import { SUPPRESSION_WINDOWS, type SuppressionWindow } from '../suppression';
 import { activeAccountDatabase } from './request-context';
 import { accountKeyFor } from '../keys';
 import { accountRoute, publicAccount } from './account';
@@ -57,26 +51,18 @@ export const tokenRoutes = (providers: Providers) => {
     return rows.map((row) => ({
       id: row.id,
       name: row.name,
-      contactListId: row.contactListId,
-      suppressionWindow: row.suppressionWindow,
       lastUsedAt: row.lastUsedAt,
       tools: grantedServerTools(grants.flatMap((grant) => grant.tokenId === row.id ? [grant.tool] : [])),
     }));
   }));
 
   /** Issues a Token once; the credential is shown here and never again, because only its hash is stored. */
-  routes.post('/organizations/:accountId/access-tokens', accountRoute<{ name?: string; contactListId?: string; tools?: unknown; suppressionWindow?: string }>(async ({ db, env, accountId, body }): Promise<IssuedAccessToken> => {
+  routes.post('/organizations/:accountId/access-tokens', accountRoute<{ name?: string; tools?: unknown }>(async ({ db, env, accountId, body }): Promise<IssuedAccessToken> => {
     const name = body.name?.trim() ?? '';
-    const contactListId = body.contactListId?.trim() ?? '';
-    if (!name) throw invalid('Access Token 名を入力してください。');
-    if (!contactListId) throw invalid('到達できる Contact List を選んでください。');
+    if (!name) throw invalid('鍵の名前を入力してください。');
     const requested = Array.isArray(body.tools) ? body.tools.filter((tool): tool is string => typeof tool === 'string') : [];
     const tools = grantedServerTools(requested);
     if (!tools.length) throw invalid('許可するツールを1つ以上選んでください。');
-    const window = body.suppressionWindow ?? 'day';
-    if (!SUPPRESSION_WINDOWS.includes(window as SuppressionWindow)) throw invalid('重複抑止の窓の指定が不正です。');
-    const list = await db.select({ id: contactLists.id }).from(contactLists).where(eq(contactLists.id, contactListId)).get();
-    if (!list) throw notFound('指定された Contact List が見つかりません。');
     const token = generateAccessToken();
     const id = crypto.randomUUID();
     const timestamp = now();
@@ -85,8 +71,6 @@ export const tokenRoutes = (providers: Providers) => {
       accountId,
       name,
       tokenHash: await accessTokenHash(token),
-      contactListId,
-      suppressionWindow: window as SuppressionWindow,
       createdAt: timestamp,
       updatedAt: timestamp,
     }).run();
@@ -209,7 +193,7 @@ export const tokenRoutes = (providers: Providers) => {
       const browser = await keyBrowser({ binding: env.BROWSER, database, key: accountKey, accountId, keyId: token ? token.id : operator?.id ?? '' });
       // What a memory is kept under, so 記憶 shows which key or whose CLI wrote it.
       const author = { kind: 'cli' as const, name: token ? token.name : await memberName({ control: env.CONTROL_DB, identityId: operator?.identityId ?? '' }) };
-      // Both keys reach what Operator Chat reaches; an Access Token is narrowed by its grant and its Contact List.
+      // Both keys reach what and whom Operator Chat reaches; an Access Token is narrowed by its Tool Grant alone.
       const shared = {
         database, accountId, mail: { kind: 'mailbox' as const },
         google: { provider: providers.google, session: inbox }, ports,
@@ -220,14 +204,7 @@ export const tokenRoutes = (providers: Providers) => {
       const reached = token ? accessTokenRun(token.grant) : OPERATOR_TOKEN_RUN;
       const held = mailbox ? reached : withoutMailbox(reached);
       const run = browser ? held : withoutBrowser(held);
-      const handlers = token
-        ? toolHandlers({ ...shared, reach: { kind: 'contact_list', holder: 'this Access Token', contactIds: token.contactIds, emails: [], roster: 'list' } }, {
-          ...suppressionPort({ database, scope: token.id, window: token.suppressionWindow, at }),
-          scope: token.id,
-          window: token.suppressionWindow,
-          holder: 'this Access Token',
-        })
-        : toolHandlers({ ...shared, reach: { kind: 'anyone' } });
+      const handlers = toolHandlers(shared);
       try {
         return send(await serveMcpServerRequest({ request, headers: context.req.raw.headers, answer: (era) => handleMcpServerRequest({
           request,

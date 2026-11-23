@@ -215,7 +215,7 @@ describe('Schema Lifecycle', () => {
 
     expect(receipt).toMatchObject({
       kind: 'organization',
-      currentMigration: '0066_key_browsers.sql',
+      currentMigration: '0067_plain_access_tokens.sql',
       appliedMigrations: [
         '0001_tasks.sql',
         '0002_line_destination_roster.sql',
@@ -283,6 +283,7 @@ describe('Schema Lifecycle', () => {
         '0064_agent_skills_names.sql',
         '0065_runs_browser_time.sql',
         '0066_key_browsers.sql',
+        '0067_plain_access_tokens.sql',
       ],
     });
     expect(database.rows<{ display_name: string }>(
@@ -315,7 +316,7 @@ describe('Schema Lifecycle', () => {
       category: 'migration_apply_failed',
       kind: 'organization',
       currentMigration: '0000_initial.sql',
-      expectedMigration: '0066_key_browsers.sql',
+      expectedMigration: '0067_plain_access_tokens.sql',
     });
 
     database.execute('DROP INDEX tasks_source_role_deadline_title_idx');
@@ -324,7 +325,7 @@ describe('Schema Lifecycle', () => {
       kind: 'organization',
       database: database.binding,
     })).resolves.toMatchObject({
-      currentMigration: '0066_key_browsers.sql',
+      currentMigration: '0067_plain_access_tokens.sql',
     });
   });
 
@@ -345,7 +346,7 @@ describe('Schema Lifecycle', () => {
       category: 'checksum_mismatch',
       kind: 'organization',
       currentMigration: '0000_initial.sql',
-      expectedMigration: '0066_key_browsers.sql',
+      expectedMigration: '0067_plain_access_tokens.sql',
     });
   });
 
@@ -361,7 +362,7 @@ describe('Schema Lifecycle', () => {
     await expect(schemaLifecycle.ensureCurrent({
       kind: 'organization',
       database: database.binding,
-    })).resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+    })).resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
   });
 
   it('accepts the legacy Operational Task Roles checksum recorded by the local schema lifecycle', async () => {
@@ -376,7 +377,7 @@ describe('Schema Lifecycle', () => {
     await expect(schemaLifecycle.ensureCurrent({
       kind: 'organization',
       database: database.binding,
-    })).resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+    })).resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
   });
 
   it('carries a Task named by a legacy role across to an unassigned Contact assignment', async () => {
@@ -408,7 +409,7 @@ describe('Schema Lifecycle', () => {
     job('job-other', 'gmail.sync', '{"historyId":"1"}', 'gmail.sync:1', 'succeeded');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows<{ id: string; kind: string; payload: string; idempotency_key: string }>(
       'SELECT id, kind, payload, idempotency_key FROM jobs ORDER BY id',
@@ -431,7 +432,7 @@ describe('Schema Lifecycle', () => {
       .rejects.toMatchObject({
         category: 'migration_apply_failed',
         currentMigration: '0029_agent_email_summary.sql',
-        expectedMigration: '0066_key_browsers.sql',
+        expectedMigration: '0067_plain_access_tokens.sql',
       });
     expect(database.rows<{ kind: string }>('SELECT kind FROM jobs')).toEqual([{ kind: 'task_reminder' }]);
   });
@@ -487,7 +488,7 @@ describe('Schema Lifecycle', () => {
     const before = database.rows<Record<string, unknown>>('SELECT * FROM tasks ORDER BY id');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     const after = database.rows<Record<string, unknown>>('SELECT * FROM tasks ORDER BY id');
     expect(after).toEqual([
@@ -541,7 +542,7 @@ describe('Schema Lifecycle', () => {
     task('blank', '   ', '');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT id, deadline, description, status FROM tasks ORDER BY id')).toEqual([
       { id: 'blank', deadline: null, description: '', status: 'open' },
@@ -566,7 +567,7 @@ describe('Schema Lifecycle', () => {
     );
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows("SELECT name FROM sqlite_master WHERE name LIKE 'proposed_actions%'")).toEqual([]);
   });
@@ -613,7 +614,7 @@ describe('Schema Lifecycle', () => {
     database.execute("INSERT INTO settings (key, value, updated_at) VALUES ('baseline-agent-rule:v1', '{}', ?), ('morning-automation:v1', '{}', ?), ('kept', '1', ?)", at, at, at);
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     const tables = database.rows<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'").map(({ name }) => name);
     expect(tables).toEqual(expect.arrayContaining(['skills', 'skill_revisions', 'automations', 'automation_skills', 'automation_tools', 'automation_revisions', 'runs', 'planned_writes']));
@@ -654,7 +655,7 @@ describe('Schema Lifecycle', () => {
     );
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT id, parent_turn_id FROM chat_turns ORDER BY conversation_id, position')).toEqual([
       { id: 'one-a', parent_turn_id: null },
@@ -690,7 +691,7 @@ describe('Schema Lifecycle', () => {
     );
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT id, source, member_name, conversation_id, turn_id, content, content_hash, state, received_at FROM memory_episodes ORDER BY id')).toEqual([
       { id: 'legacy-chat-1', source: 'legacy', member_name: '', conversation_id: 'talk', turn_id: 'turn-1', content: '山田さんは和食が好き', content_hash: 'legacy:chat-1', state: 'committed', received_at: '2026-11-01T01:00:00.000Z' },
@@ -746,7 +747,7 @@ describe('Schema Lifecycle', () => {
     database.execute("INSERT INTO settings (key, value, updated_at) VALUES ('task_reminders_enabled', 'true', ?), ('task_reminder_days', '[7,3]', ?), ('morning_notice_sent_for', ?, ?), ('kept', '1', ?)", at, at, at, at, at);
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT id, state, contact_list_id, next_run_at FROM automations ORDER BY id')).toEqual([
       { id: 'mail', state: 'archived', contact_list_id: null, next_run_at: null },
@@ -775,7 +776,7 @@ describe('Schema Lifecycle', () => {
     const before = database.rows<Record<string, unknown>>('SELECT * FROM mcp_servers ORDER BY id');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT * FROM mcp_servers ORDER BY id')).toEqual(before.map((row) => ({ ...row, oauth_envelope: null, oauth_error: null })));
   });
@@ -790,7 +791,7 @@ describe('Schema Lifecycle', () => {
     const before = database.rows<Record<string, unknown>>('SELECT * FROM chat_conversations');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT * FROM chat_conversations')).toEqual(before);
     expect(database.rows('SELECT id, title, last_sequence, created_at, updated_at FROM chat_threads')).toEqual([
@@ -807,7 +808,7 @@ describe('Schema Lifecycle', () => {
     const before = legacy.map((table) => database.rows<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`));
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     // The old chat's rows stay as they were but for the Run of the exchange left being written, which 0063 fails.
     const after = legacy.map((table) => database.rows<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`));
@@ -840,7 +841,7 @@ describe('Schema Lifecycle', () => {
     const before = database.rows<Record<string, unknown>>('SELECT * FROM chat_threads');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT * FROM chat_threads')).toEqual(before);
     expect(database.rows('SELECT * FROM chat_thread_modes')).toEqual([]);
@@ -863,7 +864,7 @@ describe('Schema Lifecycle', () => {
     const before = database.rows<Record<string, unknown>>('SELECT * FROM chat_files');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT * FROM chat_files')).toEqual(before.map((row) => ({ ...row, origin: 'response', position: 0 })));
     expect(() => database.execute(
@@ -889,7 +890,7 @@ describe('Schema Lifecycle', () => {
     skill('99999999-1111-2222-3333-444444444444', 'タスクのリマインド');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows<Record<string, unknown>>('SELECT id, name, title, directory FROM skills ORDER BY id')).toEqual([
       { id: '99999999-1111-2222-3333-444444444444', name: 'skill-999999991111', title: 'タスクのリマインド', directory: null },
@@ -913,7 +914,7 @@ describe('Schema Lifecycle', () => {
     const turns = database.rows<Record<string, unknown>>('SELECT * FROM chat_turns ORDER BY id');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     const after = database.rows<Record<string, unknown>>('SELECT * FROM runs ORDER BY id');
     // 0065 adds each Run's browser time, 0 for every Run written before it.
@@ -935,7 +936,7 @@ describe('Schema Lifecycle', () => {
     const before = database.rows<Record<string, unknown>>('SELECT * FROM chat_threads');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT * FROM chat_threads')).toEqual(before);
     expect(database.rows('SELECT * FROM push_subscriptions')).toEqual([]);
@@ -976,7 +977,7 @@ describe('Schema Lifecycle', () => {
     const before = database.rows<Record<string, unknown>>('SELECT * FROM tasks ORDER BY id');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT * FROM tasks ORDER BY id')).toEqual(before.map((row) => ({ ...row, google_task_id: null })));
     expect(database.rows('SELECT automation_id, tool FROM automation_tools ORDER BY automation_id, tool')).toEqual([
@@ -1030,8 +1031,8 @@ describe('Schema Lifecycle', () => {
     ]);
 
     expect(receipts).toEqual([
-      expect.objectContaining({ currentMigration: '0066_key_browsers.sql' }),
-      expect.objectContaining({ currentMigration: '0066_key_browsers.sql' }),
+      expect.objectContaining({ currentMigration: '0067_plain_access_tokens.sql' }),
+      expect.objectContaining({ currentMigration: '0067_plain_access_tokens.sql' }),
     ]);
   });
 
@@ -1040,7 +1041,7 @@ describe('Schema Lifecycle', () => {
     database.execute("INSERT INTO runs (id, trigger, execution_mode, status, started_at, updated_at) VALUES ('run-1', 'chat', 'unattended', 'completed', '2026-11-22T00:00:00.000Z', '2026-11-22T00:00:00.000Z')");
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows<{ browser_ms: number }>("SELECT browser_ms FROM runs WHERE id = 'run-1'")).toEqual([{ browser_ms: 0 }]);
     expect(() => database.execute("UPDATE runs SET browser_ms = -1 WHERE id = 'run-1'")).toThrow('CHECK');
@@ -1050,10 +1051,30 @@ describe('Schema Lifecycle', () => {
     const database = databaseBefore('0066_key_browsers.sql');
 
     await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
-      .resolves.toMatchObject({ currentMigration: '0066_key_browsers.sql' });
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
 
     expect(database.rows('SELECT key_id FROM key_browsers')).toEqual([]);
     database.execute("INSERT INTO key_browsers (key_id, session_id, target_id, updated_at) VALUES ('token-1', 'session-1', 'target-1', '2026-11-23T00:00:00.000Z')");
     expect(() => database.execute("INSERT INTO key_browsers (key_id, session_id, target_id, updated_at) VALUES ('token-1', 'session-2', 'target-2', '2026-11-23T00:00:00.000Z')")).toThrow('UNIQUE');
+  });
+
+  it('keeps every key and its grant while it drops the key’s Contact List and Suppression Window (0067)', async () => {
+    const database = databaseBefore('0067_plain_access_tokens.sql');
+    database.execute("INSERT INTO contact_lists (id, account_id, name, created_at, updated_at) VALUES ('list-1', 'account-1', '全員', '2026-01-01', '2026-01-01')");
+    database.execute("INSERT INTO access_tokens (id, account_id, name, token_hash, contact_list_id, suppression_window, last_used_at, created_at, updated_at) VALUES ('token-1', 'account-1', 'cowork', 'hash-1', 'list-1', 'day', '2026-11-20T00:00:00.000Z', '2026-01-01', '2026-01-02')");
+    database.execute("INSERT INTO access_token_tools (token_id, tool) VALUES ('token-1', 'mail.read'), ('token-1', 'channel.send')");
+    database.execute("INSERT INTO suppressions (key, scope, tool, recorded_at, expires_at) VALUES ('token-1 channel.send x', 'token-1', 'channel.send', '2026-11-20', NULL), ('automation-1 channel.send x', 'automation-1', 'channel.send', '2026-11-20', NULL)");
+
+    await expect(schemaLifecycle.ensureCurrent({ kind: 'organization', database: database.binding }))
+      .resolves.toMatchObject({ currentMigration: '0067_plain_access_tokens.sql' });
+
+    expect(database.rows('SELECT id, account_id, name, token_hash, last_used_at, created_at, updated_at FROM access_tokens')).toEqual([
+      { id: 'token-1', account_id: 'account-1', name: 'cowork', token_hash: 'hash-1', last_used_at: '2026-11-20T00:00:00.000Z', created_at: '2026-01-01', updated_at: '2026-01-02' },
+    ]);
+    expect(database.rows('SELECT tool FROM access_token_tools ORDER BY tool')).toEqual([{ tool: 'channel.send' }, { tool: 'mail.read' }]);
+    expect(database.rows('SELECT scope FROM suppressions')).toEqual([{ scope: 'automation-1' }]);
+    expect(database.rows("SELECT name FROM pragma_table_info('access_tokens') WHERE name IN ('contact_list_id', 'suppression_window')")).toEqual([]);
+    database.execute("DELETE FROM contact_lists WHERE id = 'list-1'");
+    expect(() => database.execute("INSERT INTO access_tokens (id, account_id, name, token_hash, created_at, updated_at) VALUES ('token-2', 'account-1', 'other', 'hash-1', '2026-01-01', '2026-01-01')")).toThrow('UNIQUE');
   });
 });

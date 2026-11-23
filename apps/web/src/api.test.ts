@@ -164,7 +164,7 @@ const transcriptSummary: TranscriptSummary = {
 const transcriptDetail: TranscriptDetail = {
   ...transcriptSummary, lines: [{ at: 0.5, speaker: '話者1', text: '開会します。' }], minutes: null, minutesError: null, minutesModel: null, minutesInstructions: '',
 };
-const accessToken: AccessToken = { id: 'token-1', name: 'Agent', contactListId: 'list-1', suppressionWindow: 'day', lastUsedAt: null, tools: ['send_message'] };
+const accessToken: AccessToken = { id: 'token-1', name: 'Agent', lastUsedAt: null, tools: ['send_message'] };
 const issuedToken: IssuedAccessToken = { id: 'token-1', name: 'Agent', tools: ['send_message'], token: 'secret', url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' };
 const operatorToken: OperatorToken = { id: 'operator-1', email: 'owner@example.com', client: 'Claude', createdAt: AT, expiresAt: AT, lastUsedAt: null };
 const loginCode: IssuedLoginCode = {
@@ -818,10 +818,10 @@ const table: { [K in Method]: Row<K> } = {
   // Reads `name`, `contactListId`, `tools`, `suppressionWindow`.
   issueAccessToken: {
     kind: 'json', route: 'POST /api/organizations/:accountId/access-tokens',
-    call: (c) => c.issueAccessToken(A, { name: 'Agent', contactListId: 'list-1', tools: ['send_message'], suppressionWindow: 'day' }),
+    call: (c) => c.issueAccessToken(A, { name: 'Agent', tools: ['send_message'] }),
     sends: {
       method: 'POST', path: '/api/organizations/org-1/access-tokens',
-      body: { json: { name: 'Agent', contactListId: 'list-1', tools: ['send_message'], suppressionWindow: 'day' } },
+      body: { json: { name: 'Agent', tools: ['send_message'] } },
     },
     data: issuedToken,
   },

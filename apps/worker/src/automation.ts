@@ -31,19 +31,15 @@ import { suppressionKey } from './suppression';
 import { accountDatabase, type AccountDatabase } from './storage/database';
 import { automations, automationTools } from './storage/account-schema';
 import {
-  outOfReach,
-  reachedCall,
   readHandlers,
   unreadableFiles,
   writeCall,
   type MailScope,
-  type Reach,
   type ToolContext,
   type WriteToolName,
 } from './tools';
 import {
   resolveTools,
-  RunStopped,
   think,
   ThinkingFailed,
   toolCaller,
@@ -140,13 +136,6 @@ export const runnableAutomations = async (db: AccountDatabase, input: { activeOn
   })));
 };
 
-/**
- * Whom an Automation reaches: any of the Account's Contacts, because whom it
- * tells is what its Skills say, as it is when the Account asks in Operator
- * Chat. What bounds it is its Tool Grant and its Suppression Window.
- */
-const AUTOMATION_REACH: Reach = { kind: 'anyone' };
-
 /** What one run is handed when its Trigger Time arrives. */
 export interface TriggerWork {
   /** What the run is asked first. */
@@ -236,7 +225,6 @@ const EVENT_WRITES: readonly WriteToolName[] = ['update_scheduled_event', 'cance
 const planner = (input: {
   database: D1Database;
   automation: RunnableAutomation;
-  reach: Reach;
   mail: MailScope;
   at: Date;
   writes: PlannedWriteInput[];
@@ -254,8 +242,6 @@ const planner = (input: {
     }
     const unreadable = unreadableFiles(input.mail, name, read);
     if (unreadable) return { isError: true, message: unreadable };
-    const refusal = outOfReach(input.reach, name, read);
-    if (refusal) throw new RunStopped(refusal);
     let answer: Record<string, unknown> = { status: 'planned' };
     if (EVENT_WRITES.includes(name)) {
       const eventId = read.eventId as string;
@@ -265,7 +251,7 @@ const planner = (input: {
         return { isError: true, message: error instanceof Error ? error.message : `Scheduled Event ${eventId} cannot be changed.` };
       }
     }
-    const call = reachedCall(input.reach, name, read);
+    const call = read;
     if (suppression && await suppression.check(suppressionKey({ scope: input.automation.id, tool: name, arguments: call }))) {
       return { suppressed: true, message: `This Automation already made this ${name} call; the repeat is suppressed for the ${input.automation.suppressionWindow} window.` };
     }
@@ -296,7 +282,6 @@ export const planAutomation = async (input: {
   try {
     const skillStore: SkillStore = thinking.skills;
     skills = await runSkills(skillStore, automation.skillIds);
-    const reach = AUTOMATION_REACH;
     const mail: MailScope = { kind: 'mailbox' };
     // Every model runs code where OrangeAgent lends it an environment, when the Worker binds one (ADR 0203).
     const code = thinking.code;
@@ -315,7 +300,7 @@ export const planAutomation = async (input: {
     const connection = automationConnection(thinking.connection, automation.model);
     const handlers: ToolHandlers = {
       ...held.watch(readHandlers({
-        database: thinking.database, reach, mail, skills: skillStore,
+        database: thinking.database, mail, skills: skillStore,
         // A subagent this run starts plans its writes, as the run itself does (`subagent.ts`).
         agent: (arguments_: Record<string, unknown>) => runSubagent({
           model: thinking.model, connection, models: thinking.connection.models,
@@ -328,7 +313,7 @@ export const planAutomation = async (input: {
         ...(browser ? { browser } : {}),
         ...(code ? { code: { run: code, find: (filename: string) => Promise.resolve(held.find(filename)) } } : {}),
       })),
-      ...planner({ database: thinking.database, automation, reach, mail, at: thinking.at, writes }),
+      ...planner({ database: thinking.database, automation, mail, at: thinking.at, writes }),
     };
     const thought = await think({
       model: thinking.model,

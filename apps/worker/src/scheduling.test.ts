@@ -11,7 +11,7 @@ import { seedAutomation } from '../test/automation';
 
 /** The handlers Operator Chat performs its writes with, over this Account and calendar. */
 const chatHandlers = (google: ReturnType<typeof memoryGoogle>, database: D1Database) => toolHandlers({
-  database, accountId: 'organization-1', reach: { kind: 'anyone' }, mail: { kind: 'mailbox' },
+  database, accountId: 'organization-1', mail: { kind: 'mailbox' },
   google: { provider: google, session: async () => ({ accessToken: 'token', readAttachments: (messageId, parts) => google.gmail.readAttachments('token', messageId, parts) }) },
   origin: { automationId: null, sourceMessageId: null }, at: () => new Date(),
 });

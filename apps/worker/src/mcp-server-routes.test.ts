@@ -38,18 +38,10 @@ const connectLine = async (app_: TestApp): Promise<void> => {
   expect(response.status).toBe(200);
 };
 
-const issueToken = async (app_: TestApp, input: { contactIds: string[]; tools?: string[]; window?: string }): Promise<string> => {
-  const listed = await app.fetch(app_.jsonRequest(
-    '/api/organizations/organization-1/contact-lists/list-1',
-    { name: 'reachable', contactIds: input.contactIds },
-    'PUT',
-  ), app_.environment);
-  expect(listed.status).toBe(200);
+const issueToken = async (app_: TestApp, input: { tools?: string[] } = {}): Promise<string> => {
   const issued = await app.fetch(app_.jsonRequest('/api/organizations/organization-1/access-tokens', {
     name: 'cowork',
-    contactListId: 'list-1',
     tools: input.tools ?? ['query_contacts', 'channel.send', 'reminder.schedule'],
-    suppressionWindow: input.window ?? 'day',
   }), app_.environment);
   expect(issued.status).toBe(200);
   const body = await issued.json() as { data: { token: string } };
@@ -127,7 +119,7 @@ describe('MCP Server endpoint', () => {
     fixture = await createAutomationTestApp();
     await connectLine(fixture);
     seedContact(fixture, { id: 'contact-1', name: '田中', destination: 'U1' });
-    const token = await issueToken(fixture, { contactIds: ['contact-1'], tools: ['query_contacts'] });
+    const token = await issueToken(fixture, { tools: ['query_contacts'] });
 
     const response = await app.fetch(rpc(fixture, token, { jsonrpc: '2.0', id: 1, method: 'tools/list' }), fixture.environment);
 
@@ -139,7 +131,7 @@ describe('MCP Server endpoint', () => {
   it('grants a Token the Task tools Operator Chat has, which reach Google Tasks through the Automation Inbox’s grant', async () => {
     fixture = await createAutomationTestApp();
     fixture.account.execute('UPDATE google_connections SET granted_scopes = ?', JSON.stringify(['https://www.googleapis.com/auth/tasks']));
-    const token = await issueToken(fixture, { contactIds: [], tools: ['tasks.search', 'tasks.create', 'tasks.update'] });
+    const token = await issueToken(fixture, { tools: ['tasks.search', 'tasks.create', 'tasks.update'] });
 
     const listed = await app.fetch(rpc(fixture, token, { jsonrpc: '2.0', id: 1, method: 'tools/list' }), fixture.environment);
 
@@ -147,11 +139,11 @@ describe('MCP Server endpoint', () => {
     expect(fixture.account.rows('SELECT tool FROM access_token_tools ORDER BY tool')).toEqual([{ tool: 'tasks.create' }, { tool: 'tasks.search' }, { tool: 'tasks.update' }]);
   });
 
-  it('reaches a Contact inside the bound list and records the delivery', async () => {
+  it('reaches any Contact of the Account, as Operator Chat does, and records the delivery', async () => {
     fixture = await createAutomationTestApp();
     await connectLine(fixture);
     seedContact(fixture, { id: 'contact-1', name: '田中', destination: 'U1' });
-    const token = await issueToken(fixture, { contactIds: ['contact-1'] });
+    const token = await issueToken(fixture);
     stubLine();
 
     const response = await app.fetch(rpc(fixture, token, {
@@ -166,78 +158,30 @@ describe('MCP Server endpoint', () => {
       .toEqual([{ destination: 'U1', outcome: 'succeeded' }]);
   });
 
-  it('refuses a Contact outside the bound list without reaching LINE', async () => {
+  it('sends the same message again when asked, as Operator Chat does', async () => {
     fixture = await createAutomationTestApp();
     await connectLine(fixture);
     seedContact(fixture, { id: 'contact-1', name: '田中', destination: 'U1' });
-    seedContact(fixture, { id: 'contact-2', name: '佐藤', destination: 'U2' });
-    const token = await issueToken(fixture, { contactIds: ['contact-1'] });
+    const token = await issueToken(fixture);
     stubLine();
-
-    const response = await app.fetch(rpc(fixture, token, {
-      jsonrpc: '2.0', id: 1, method: 'tools/call',
-      params: { name: 'channel.send', arguments: { contactId: 'contact-2', channel: 'line', text: 'hi' } },
-    }), fixture.environment);
-
-    const body = await response.json() as { result: { isError: boolean } };
-    expect(body.result.isError).toBe(true);
-    expect(fixture.account.rows<{ count: number }>('SELECT COUNT(*) AS count FROM deliveries')).toEqual([{ count: 0 }]);
-  });
-
-  it('suppresses the same message sent again inside the window', async () => {
-    fixture = await createAutomationTestApp();
-    await connectLine(fixture);
-    seedContact(fixture, { id: 'contact-1', name: '田中', destination: 'U1' });
-    const token = await issueToken(fixture, { contactIds: ['contact-1'] });
-    stubLine();
-    const send = () => app.fetch(rpc(fixture as TestApp, token, {
-      jsonrpc: '2.0', id: 1, method: 'tools/call',
-      params: { name: 'channel.send', arguments: { contactId: 'contact-1', channel: 'line', text: '同じ内容' } },
-    }), (fixture as TestApp).environment);
-
-    await send();
-    const second = await send();
-
-    const body = await second.json() as { result: { content: Array<{ text: string }> } };
-    expect(body.result.content[0]?.text).toContain('suppressed');
-    expect(fixture.account.rows<{ count: number }>('SELECT COUNT(*) AS count FROM deliveries')).toEqual([{ count: 1 }]);
-  });
-
-  it('suppresses a repeat until the window ends, then lets the same message through again', async () => {
-    fixture = await createAutomationTestApp();
-    await connectLine(fixture);
-    seedContact(fixture, { id: 'contact-1', name: '田中', destination: 'U1' });
-    const token = await issueToken(fixture, { contactIds: ['contact-1'], window: 'hour' });
-    stubLine();
-    // The clock is frozen, so this is the instant the first send happens at.
-    const start = Date.now();
-    const sendAt = async (minutes: number): Promise<string> => {
-      vi.setSystemTime(start + minutes * 60_000);
+    const send = async (): Promise<string> => {
       const response = await app.fetch(rpc(fixture as TestApp, token, {
         jsonrpc: '2.0', id: 1, method: 'tools/call',
         params: { name: 'channel.send', arguments: { contactId: 'contact-1', channel: 'line', text: '同じ内容' } },
       }), (fixture as TestApp).environment);
       return (await response.json() as { result: { content: Array<{ text: string }> } }).result.content[0]?.text ?? '';
     };
-    const deliveries = (): number => (fixture as TestApp).account.row<{ count: number }>('SELECT COUNT(*) AS count FROM deliveries')?.count ?? 0;
 
-    const first = await sendAt(0);
-    const inside = await sendAt(59);
-    const insideCount = deliveries();
-    const after = await sendAt(60);
-
-    expect(first).toContain('"delivered":true');
-    expect(inside).toContain('suppressed');
-    expect(insideCount).toBe(1);
-    expect(after).toContain('"delivered":true');
-    expect(deliveries()).toBe(2);
+    expect(await send()).toContain('"delivered":true');
+    expect(await send()).toContain('"delivered":true');
+    expect(fixture.account.rows<{ count: number }>('SELECT COUNT(*) AS count FROM deliveries')).toEqual([{ count: 2 }]);
   });
 
   it('answers a caller however many calls it makes', async () => {
     fixture = await createAutomationTestApp();
     await connectLine(fixture);
     seedContact(fixture, { id: 'contact-1', name: '田中', destination: 'U1' });
-    const token = await issueToken(fixture, { contactIds: ['contact-1'], tools: ['query_contacts'] });
+    const token = await issueToken(fixture, { tools: ['query_contacts'] });
     const call = () => app.fetch(rpc(fixture as TestApp, token, { jsonrpc: '2.0', id: 1, method: 'tools/list' }), (fixture as TestApp).environment);
 
     const answers = [];
@@ -250,7 +194,7 @@ describe('MCP Server endpoint', () => {
     fixture = await createAutomationTestApp();
     await connectLine(fixture);
     seedContact(fixture, { id: 'contact-1', name: '田中', destination: 'U1' });
-    const token = await issueToken(fixture, { contactIds: ['contact-1'] });
+    const token = await issueToken(fixture);
     stubLine();
 
     const response = await app.fetch(rpc(fixture, token, {
@@ -268,7 +212,7 @@ describe('MCP Server endpoint', () => {
     fixture = await createAutomationTestApp();
     await connectLine(fixture);
     seedContact(fixture, { id: 'contact-1', name: '田中', destination: 'U1' });
-    const token = await issueToken(fixture, { contactIds: ['contact-1'] });
+    const token = await issueToken(fixture);
 
     const listed = await app.fetch(fixture.request('/api/organizations/organization-1/access-tokens'), fixture.environment);
 
@@ -277,7 +221,7 @@ describe('MCP Server endpoint', () => {
 
   it('connects a stateless client: it discovers the revisions, then lists tools in the one it chose', async () => {
     fixture = await createAutomationTestApp();
-    const token = await issueToken(fixture, { contactIds: [], tools: ['query_contacts'] });
+    const token = await issueToken(fixture, { tools: ['query_contacts'] });
     const meta = { 'io.modelcontextprotocol/protocolVersion': '2026-07-28', 'io.modelcontextprotocol/clientCapabilities': {} };
     const stateless = (method: string) => new Request(`https://orangeagent.example${MCP_PATH}`, {
       method: 'POST',
@@ -297,7 +241,7 @@ describe('MCP Server endpoint', () => {
 
   it('completes an older client’s handshake in the revision it asked for, and accepts its notification with 202', async () => {
     fixture = await createAutomationTestApp();
-    const token = await issueToken(fixture, { contactIds: [] });
+    const token = await issueToken(fixture);
 
     const initialized = await app.fetch(rpc(fixture, token, { jsonrpc: '2.0', id: 0, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'cli', version: '1' } } }), fixture.environment);
     const notified = await app.fetch(rpc(fixture, token, { jsonrpc: '2.0', method: 'notifications/initialized' }), fixture.environment);

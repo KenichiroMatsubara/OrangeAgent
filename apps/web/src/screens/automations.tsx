@@ -6,13 +6,14 @@ import { AUTOMATION_TOOLS, type Automation, type Preset, type Skill, type Tool }
 
 import { api } from '../api';
 import { accountIdOf, useAccount } from '../dashboard';
-import { automationSwitch, executionMode, named, runStatus, tool, word } from '../labels';
+import { automationSwitch, executionMode, named, runStatus } from '../labels';
 import { pendingKey, usePendingOperations } from '../pending';
 import { momentLabel } from '../time';
 import { Button } from '../ui/button';
 import { Segmented } from '../ui/choice';
 import { Deferred, later } from '../ui/deferred';
-import { Check, CheckGroup, Field } from '../ui/field';
+import { Check, Field } from '../ui/field';
+import { toolEffect, ToolChecks } from '../grant';
 import { List, Row } from '../ui/list';
 import { Banner, Chip, Chips, Empty } from '../ui/notice';
 import { Card, Note, Page, Section } from '../ui/page';
@@ -21,28 +22,12 @@ import { SkeletonRows } from '../ui/skeleton';
 import { SkillChecks } from './skills';
 import styles from './automations.module.css';
 
-const toolEffect = (entry: Tool): string => entry.acts ? 'サイトをその場で操作します（無人実行のときだけ使えます）' : entry.reachesContacts ? '外に送ります' : entry.writes ? '記録を変えます' : '読むだけです';
+/** What a call does in an Automation, where a browser is operated only by a run nobody approves. */
+const automationEffect = (entry: Tool): string => entry.acts ? 'サイトをその場で操作します（無人実行のときだけ使えます）' : toolEffect(entry);
 
 /** The tools an Automation may use. */
-export const ToolChecks = ({ tools, value, onChange, disabled = false, showLegend = true }: {
-  tools: readonly Tool[];
-  value: readonly string[];
-  onChange: (tools: string[]) => void;
-  disabled?: boolean;
-  /** Off where a section heading already says it. */
-  showLegend?: boolean;
-}) => <CheckGroup legend="使ってよいこと" showLegend={showLegend}>
-  {tools.map((entry) => <Check
-    key={entry.name}
-    label={word(tool, entry.name)}
-    sub={toolEffect(entry)}
-    checked={value.includes(entry.name)}
-    disabled={disabled}
-    onChange={(checked) => onChange(checked
-      ? tools.map(({ name }) => name).filter((name) => name === entry.name || value.includes(name))
-      : value.filter((name) => name !== entry.name))}
-  />)}
-</CheckGroup>;
+export const AutomationTools = ({ value, onChange, disabled = false }: { value: readonly string[]; onChange: (tools: string[]) => void; disabled?: boolean }) =>
+  <ToolChecks tools={AUTOMATION_TOOLS} value={value} effect={automationEffect} disabled={disabled} onChange={onChange} />;
 
 export const WEEKDAYS = [['mon', '月'], ['tue', '火'], ['wed', '水'], ['thu', '木'], ['fri', '金'], ['sat', '土'], ['sun', '日']] as const;
 

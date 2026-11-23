@@ -6,7 +6,7 @@ import { ACCESS_TOKEN_TOOLS } from '@mail/domain';
 
 import { api } from '../api';
 import { fakeApi } from '../fake';
-import { ACCOUNT_ID, automationStatus, connections as connectionsView, contactList } from './fixtures';
+import { ACCOUNT_ID, automationStatus, connections as connectionsView } from './fixtures';
 import { renderScreen } from './render';
 import * as connections from './connections';
 
@@ -17,7 +17,6 @@ describe('Connections screen', () => {
     vi.resetAllMocks();
     vi.mocked(api.connections).mockResolvedValue(connectionsView({ ai: { apiKeyConfigured: false, model: '', models: [], provider: null } }));
     vi.mocked(api.currentAutomation).mockResolvedValue(automationStatus());
-    vi.mocked(api.contactLists).mockResolvedValue([contactList()]);
     vi.mocked(api.accessTokens).mockResolvedValue([]);
     vi.mocked(api.operatorTokens).mockResolvedValue([]);
     vi.mocked(api.mcpEndpoint).mockResolvedValue({ url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' });
@@ -250,18 +249,23 @@ describe('Connections screen', () => {
     expect(screen.getByText('taro@example.com ・ PDF を Word と同じ見た目で作ります')).toBeTruthy();
   });
 
-  it('issues a key for an outside agent that may do all Operator Chat does, bounded to one Contact List, and shows it once', async () => {
+  it('issues a key for an outside agent with its name and the tools it may call, grouped by what they work on, and shows it once', async () => {
     vi.mocked(api.issueAccessToken).mockResolvedValue({ id: 'token-1', name: 'cowork', tools: ['query_contacts'], token: 'secret-token', url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' });
     const user = userEvent.setup();
     renderScreen('connections', connections);
 
     await user.click(await screen.findByRole('button', { name: '鍵を発行' }));
     const sheet = await screen.findByRole('dialog', { name: '外部エージェント用の鍵を発行' });
+    expect(within(sheet).queryByRole('combobox')).toBeNull();
+    const mail = within(sheet).getByRole('group', { name: 'メール' });
+    expect(within(mail).getByRole('checkbox', { name: /メールを送る.*相手に届きます/u })).toHaveProperty('checked', true);
+    expect(within(within(sheet).getByRole('group', { name: 'ウェブとブラウザ' })).getByRole('checkbox', { name: /ブラウザでクリックする.*サイトをその場で操作します/u })).toBeTruthy();
     await user.type(within(sheet).getByRole('textbox', { name: '名前' }), 'cowork');
+    await user.click(within(mail).getByRole('checkbox', { name: /メールを送る/u }));
     await user.click(within(sheet).getByRole('button', { name: '発行する' }));
 
     await waitFor(() => expect(api.issueAccessToken).toHaveBeenCalledWith(ACCOUNT_ID, {
-      name: 'cowork', contactListId: 'list-1', tools: ACCESS_TOKEN_TOOLS.map((tool) => tool.name), suppressionWindow: 'day',
+      name: 'cowork', tools: ACCESS_TOKEN_TOOLS.map((tool) => tool.name).filter((name) => name !== 'mail.send'),
     }));
     expect(await within(sheet).findByDisplayValue('secret-token')).toBeTruthy();
   });

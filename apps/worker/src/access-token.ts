@@ -1,8 +1,8 @@
 /**
  * The credential an outside agent presents to the MCP Server.
  *
- * A Token is bounded by its Tool Grant, its Contact List, and its
- * Suppression Window; nothing counts its calls or its writes.
+ * A Token is bounded by its Tool Grant alone: it reaches whom Operator Chat
+ * reaches, and nothing counts or holds back its calls or its writes.
  */
 
 export const generateAccessToken = (): string => {

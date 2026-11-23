@@ -18,17 +18,11 @@ const ports = () => ({
   sendToDestination: vi.fn<ChannelPorts['sendToDestination']>(async () => ({ delivered: true, channel: 'line' })),
 });
 
-const suppression = (held: Set<string> = new Set()) => ({
-  held,
-  check: async (key: string) => held.has(key),
-  record: async (key: string) => { held.add(key); },
-});
-
 const call = (method: string, params?: Record<string, unknown>) => ({ jsonrpc: '2.0' as const, id: 1, method, ...(params ? { params } : {}) });
 
 const at = new Date('2026-08-18T09:00:00.000Z');
 
-/** An Account holding one Contact in the Token's list and one outside it. */
+/** An Account holding two Contacts, both of whom a key reaches as Operator Chat does. */
 const account = (): TestD1Database => {
   const database = createMigratedTestD1('organization');
   openDatabases.push(database);
@@ -53,7 +47,7 @@ const SERVER_INFO = {
   ],
 };
 
-const base = (overrides: { request?: ReturnType<typeof call>; grant?: string[]; prompts?: McpServerPrompt[]; held?: Set<string> } = {}) => {
+const base = (overrides: { request?: ReturnType<typeof call>; grant?: string[]; prompts?: McpServerPrompt[] } = {}) => {
   const sending = ports();
   const database = account();
   return {
@@ -66,9 +60,8 @@ const base = (overrides: { request?: ReturnType<typeof call>; grant?: string[]; 
       prompts: overrides.prompts ?? [],
       handlers: toolHandlers({
         database: database.binding, accountId: 'organization-1', mail: { kind: 'none' },
-        reach: { kind: 'contact_list', holder: 'this Access Token', contactIds: ['contact-1'], emails: [], roster: 'list' },
         ports: sending, origin: { automationId: null, sourceMessageId: null }, at: () => at,
-      }, { ...suppression(overrides.held), scope: 'token-1', window: 'day', holder: 'this Access Token' }),
+      }),
     },
   };
 };
@@ -117,60 +110,26 @@ describe('OrangeAgent as an MCP Server', () => {
     expect(sending.sendToContact).not.toHaveBeenCalled();
   });
 
-  it('refuses to reach a Contact outside the bound Contact List', async () => {
-    const { input, sending } = base({ request: call('tools/call', { name: 'channel.send', arguments: { contactId: 'contact-9', channel: 'line', text: 'hi' } }) });
-
-    const response = await handleMcpServerRequest(input);
-
-    expect((response.result as { isError: boolean }).isError).toBe(true);
-    expect(text(response.result)).toContain('contact-9');
-    expect(text(response.result)).toContain('this Access Token');
-    expect(sending.sendToContact).not.toHaveBeenCalled();
-  });
-
-  it('sends once and holds the repeat for the declared window', async () => {
-    const held = new Set<string>();
+  it('sends the same message again when asked, as Operator Chat does', async () => {
     const request = call('tools/call', { name: 'channel.send', arguments: { contactId: 'contact-1', channel: 'line', text: 'hi' } });
-    const first = base({ held, request });
+    const first = base({ request });
     await handleMcpServerRequest(first.input);
-    const second = base({ held, request });
+    const second = base({ request });
 
     const response = await handleMcpServerRequest(second.input);
 
-    expect(first.sending.sendToContact).toHaveBeenCalledTimes(1);
-    expect(second.sending.sendToContact).not.toHaveBeenCalled();
-    expect(text(response.result)).toContain('suppressed');
-    expect(text(response.result)).not.toContain('"delivered":true');
-  });
-
-  it('does not suppress a different message to the same Contact', async () => {
-    const held = new Set<string>();
-    await handleMcpServerRequest(base({ held, request: call('tools/call', { name: 'channel.send', arguments: { contactId: 'contact-1', channel: 'line', text: 'first' } }) }).input);
-    const second = base({ held, request: call('tools/call', { name: 'channel.send', arguments: { contactId: 'contact-1', channel: 'line', text: 'second' } }) });
-
-    await handleMcpServerRequest(second.input);
-
     expect(second.sending.sendToContact).toHaveBeenCalledTimes(1);
+    expect(text(response.result)).not.toContain('suppressed');
   });
 
-  it('never suppresses a read, and reads only the bound Contact List', async () => {
-    const held = new Set<string>();
-    const request = call('tools/call', { name: 'query_contacts', arguments: {} });
-    await handleMcpServerRequest(base({ held, request }).input);
+  it('reaches every Contact of the Account, as Operator Chat does', async () => {
+    const { input, sending } = base({ request: call('tools/call', { name: 'channel.send', arguments: { contactId: 'contact-9', channel: 'line', text: 'hi' } }) });
+    await handleMcpServerRequest(input);
+    const roster = await handleMcpServerRequest(base({ request: call('tools/call', { name: 'query_contacts', arguments: {} }) }).input);
 
-    const response = await handleMcpServerRequest(base({ held, request }).input);
-
-    expect(text(response.result)).toContain('田中');
-    expect(text(response.result)).not.toContain('佐藤');
-  });
-
-  it('refuses to reach a Channel destination directly instead of a Contact of its list', async () => {
-    const { input, sending } = base({ request: call('tools/call', { name: 'channel.send', arguments: { destination: 'line-group-1', channel: 'line', text: 'hi' } }) });
-
-    const response = await handleMcpServerRequest(input);
-
-    expect((response.result as { isError: boolean }).isError).toBe(true);
-    expect(sending.sendToDestination).not.toHaveBeenCalled();
+    expect(sending.sendToContact).toHaveBeenCalledTimes(1);
+    expect(text(roster.result)).toContain('田中');
+    expect(text(roster.result)).toContain('佐藤');
   });
 
   it('schedules a reminder rather than sending it now', async () => {

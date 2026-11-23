@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Link, useLoaderData, useNavigate, useRevalidator, type LoaderFunctionArgs } from 'react-router-dom';
 
 import {
-  AUTOMATION_TOOLS,
   modelLabel,
   type Automation,
   type AutomationUpdate,
@@ -29,7 +28,7 @@ import { Banner, Chip } from '../ui/notice';
 import { Card, Note, Page, Section, Toolbar } from '../ui/page';
 import { Sheet } from '../ui/sheet';
 import { SkeletonRows } from '../ui/skeleton';
-import { ScheduleFields, scheduleLabel, scheduleParts, scheduleText, ToolChecks, type ScheduleParts } from './automations';
+import { AutomationTools, ScheduleFields, scheduleLabel, scheduleParts, scheduleText, type ScheduleParts } from './automations';
 import { SkillChecks } from './skills';
 import styles from './automation.module.css';
 
@@ -169,7 +168,7 @@ const AutomationScreen = () => {
     </Section>
     <Section title="使ってよいこと" lead="書き込む道具は、計画として残り、下の「実行のしかた」に沿って書き込みます。外に送る道具は、スキルに書かれた相手に送ります。">
       <Card>
-        <ToolChecks tools={AUTOMATION_TOOLS} value={automation.tools} disabled={saving} showLegend={false} onChange={(tools) => update({ tools })} />
+        <AutomationTools value={automation.tools} disabled={saving} onChange={(tools) => update({ tools })} />
         {data.connections.ai.apiKeyConfigured && data.connections.ai.provider !== 'anthropic' && automation.tools.includes('web.search') &&
           <Note>「ウェブを調べる」は、AI 接続が Claude（Anthropic）のときだけ使えます。いまの AI 接続では、この自動化はウェブを調べません。</Note>}
       </Card>

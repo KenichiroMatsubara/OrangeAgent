@@ -241,7 +241,7 @@ export const answerThread = async (input: {
 
     // A subagent the answer starts reads with the same handlers and plans its writes (`subagent.ts`).
     const handlers: ToolHandlers = held.watch(toolHandlers({
-          database, accountId, reach: { kind: 'anyone' }, mail: { kind: 'mailbox' },
+          database, accountId, mail: { kind: 'mailbox' },
           google: { provider: providers.google, session: inbox }, ports: channelPorts({ database, credentials }),
           origin: { automationId: null, sourceMessageId: null }, skills: skillStore, at: () => new Date(),
           agent: (arguments_: Record<string, unknown>) => runSubagent({

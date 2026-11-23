@@ -1,6 +1,6 @@
 /**
  * Binds OrangeAgent's MCP Server to one Account's database: which Token called,
- * what it was granted, whom it may reach, and how its writes actually happen.
+ * what it was granted, and how its writes actually happen.
  */
 
 import { asc, eq } from 'drizzle-orm';
@@ -12,7 +12,6 @@ import { accountDatabase as drizzleAccountDatabase } from './storage/database';
 import {
   accessTokens,
   accessTokenTools,
-  contactListMembers,
   skills,
   suppressions,
 } from './storage/account-schema';
@@ -22,8 +21,6 @@ export interface AuthenticatedAccessToken {
   id: string;
   name: string;
   grant: string[];
-  contactIds: string[];
-  suppressionWindow: SuppressionWindow;
 }
 
 /** Resolves the presented credential, or null when it is not this Account's. */
@@ -35,18 +32,8 @@ export const authenticateAccessToken = async (input: {
   const hash = await accessTokenHash(input.presented);
   const row = await db.select().from(accessTokens).where(eq(accessTokens.tokenHash, hash)).get();
   if (!row) return null;
-  const [grantRows, listRows] = await Promise.all([
-    db.select({ tool: accessTokenTools.tool }).from(accessTokenTools).where(eq(accessTokenTools.tokenId, row.id)).all(),
-    db.select({ contactId: contactListMembers.contactId }).from(contactListMembers)
-      .where(eq(contactListMembers.listId, row.contactListId)).all(),
-  ]);
-  return {
-    id: row.id,
-    name: row.name,
-    grant: grantRows.map(({ tool }) => tool),
-    contactIds: listRows.map(({ contactId }) => contactId),
-    suppressionWindow: row.suppressionWindow,
-  };
+  const grantRows = await db.select({ tool: accessTokenTools.tool }).from(accessTokenTools).where(eq(accessTokenTools.tokenId, row.id)).all();
+  return { id: row.id, name: row.name, grant: grantRows.map(({ tool }) => tool) };
 };
 
 /** Records when a Token was last used; every call it makes is admitted. */
