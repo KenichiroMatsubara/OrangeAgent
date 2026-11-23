@@ -7,9 +7,14 @@
  * the Account saved put back, and is closed when the run ends, when what the
  * sites renewed of each sign-in is written back. Each call acts at once and
  * answers what the page shows after it.
+ *
+ * A key's calls through the MCP Server each arrive as their own request, so
+ * its browser is kept between them: a Browser Keeper names the session and
+ * the page, each request reconnects to them, and ending the request writes the
+ * sign-ins back and lets go of the browser without closing it.
  */
 
-import { acquireBrowser, connectBrowser, type BrowserBinding, type Cdp } from './cdp';
+import { MAX_KEEP_ALIVE_MS, acquireBrowser, connectBrowser, type BrowserBinding, type Cdp } from './cdp';
 import {
   KEY_NAMES,
   browserCookies,
@@ -35,6 +40,18 @@ import { FileAnswer, type ToolHandler } from './turns';
 /** How long the browser waits for a run's next call: as long as a model may think between two. */
 const RUN_KEEP_ALIVE_MS = 10 * 60 * 1000;
 
+/** The browser a key keeps between its calls: its Browser Run session and the page it operates. */
+export interface KeptBrowser {
+  sessionId: string;
+  targetId: string;
+}
+
+/** Where a key's browser is named between its calls. */
+export interface BrowserKeeper {
+  load(): Promise<KeptBrowser | null>;
+  save(kept: KeptBrowser): Promise<void>;
+}
+
 /** A saved sign-in as the run's browser holds it. */
 export interface RunLogin {
   id: string;
@@ -54,6 +71,7 @@ export interface RunBrowser {
   /**
    * Writes back the sign-ins and closes the browser, if the run started one,
    * and answers how many milliseconds the run held it: 0 when it started none.
+   * A kept browser is let go of instead, still open for the key's next call.
    */
   close(): Promise<number>;
 }
@@ -91,7 +109,7 @@ const openUrl = (value: unknown): URL | string => {
  * session are written to the Worker's log with how long they took, under
  * `trace` (`logging.ts`); `clock` answers milliseconds.
  */
-export const runBrowser = (input: { binding: BrowserBinding; logins: LoginStore; timeZone: string; trace?: Readonly<Record<string, string>>; clock?: () => number }): RunBrowser => {
+export const runBrowser = (input: { binding: BrowserBinding; logins: LoginStore; timeZone: string; keeper?: BrowserKeeper; trace?: Readonly<Record<string, string>>; clock?: () => number }): RunBrowser => {
   const clock = input.clock ?? Date.now;
   let opening: Promise<Open> | undefined;
   let closed = false;
@@ -99,14 +117,32 @@ export const runBrowser = (input: { binding: BrowserBinding; logins: LoginStore;
   // Each picture is named by its number in the run, so file.hand can name any one of them.
   let pictures = 0;
 
+  /** Reconnects to the page a key kept, already signed in as it was left. */
+  const reopen = async (kept: KeptBrowser, logins: RunLogin[]): Promise<Open> => {
+    const cdp = await connectBrowser(input.binding, kept.sessionId);
+    try {
+      const { sessionId } = await cdp.send<{ sessionId: string }>('Target.attachToTarget', { targetId: kept.targetId, flatten: true });
+      await cdp.send('Page.enable', {}, sessionId);
+      return { cdp, page: { targetId: kept.targetId, sessionId }, logins, storage: {}, hosts: new Set(), acquiredAt: clock() };
+    } catch (error) {
+      cdp.close();
+      throw error;
+    }
+  };
+
   const start = async (): Promise<Open> => {
     const logins = await input.logins.saved();
-    const sessionId = await acquireBrowser(input.binding, RUN_KEEP_ALIVE_MS);
+    const kept = input.keeper ? await input.keeper.load() : null;
+    // A browser that outlived its keep-alive is gone; the key starts a new one.
+    const reopened = kept ? await reopen(kept, logins).catch(() => null) : null;
+    if (reopened) return reopened;
+    const sessionId = await acquireBrowser(input.binding, input.keeper ? MAX_KEEP_ALIVE_MS : RUN_KEEP_ALIVE_MS);
     const acquiredAt = clock();
     const cdp = await connectBrowser(input.binding, sessionId);
     try {
       const page = await openPage(cdp, input.timeZone);
       await restoreLogins(cdp, page, logins.map((login) => login.state));
+      await input.keeper?.save({ sessionId, targetId: page.targetId });
       return { cdp, page, logins, storage: {}, hosts: new Set(), acquiredAt };
     } catch (error) {
       await cdp.send('Browser.close').catch(() => undefined);
@@ -228,7 +264,8 @@ export const runBrowser = (input: { binding: BrowserBinding; logins: LoginStore;
       } catch {
         // A browser that ended on its own leaves each sign-in as it was saved.
       } finally {
-        await open.cdp.send('Browser.close').catch(() => undefined);
+        // A kept browser stays open for the key's next call.
+        if (!input.keeper) await open.cdp.send('Browser.close').catch(() => undefined);
         open.cdp.close();
       }
       const ms = clock() - open.acquiredAt;

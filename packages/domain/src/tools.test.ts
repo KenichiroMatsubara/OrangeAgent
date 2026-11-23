@@ -106,7 +106,7 @@ describe('the one list of tools', () => {
     expect(names(OPERATOR_TOKEN_RUN)).toContain('web.search');
   });
 
-  it('operates a browser in every unattended run the Account starts, chat or Automation alike, unless the Account turned it off', () => {
+  it('operates a browser in every unattended run, chat, Automation, or a key alike, unless the Account turned it off', () => {
     const browserIn = (run: ToolRun): string[] => names(run).filter((name) => name.startsWith('browser.'));
     expect(BROWSER_TOOLS).toEqual(['browser.open', 'browser.read', 'browser.click', 'browser.type', 'browser.select', 'browser.press']);
     expect(browserIn(chat)).toEqual(BROWSER_TOOLS);
@@ -118,9 +118,10 @@ describe('the one list of tools', () => {
     expect(browserIn(withoutBrowser(chat))).toEqual([]);
     expect(browserIn(withoutBrowser(timed))).toEqual([]);
     expect(browserIn({ ...timed, grant: ['browser.open', 'browser.read'] })).toEqual(['browser.open', 'browser.read']);
-    // Neither an outside agent nor a member's own CLI is a run OrangeAgent keeps a browser open for.
-    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name).filter((name) => name.startsWith('browser.'))).toEqual([]);
-    expect(browserIn(OPERATOR_TOKEN_RUN)).toEqual([]);
+    // An outside agent and a member's own CLI operate the Account's browser too, kept open between their calls.
+    expect(ACCESS_TOKEN_TOOLS.map((tool) => tool.name).filter((name) => name.startsWith('browser.'))).toEqual(BROWSER_TOOLS);
+    expect(browserIn(OPERATOR_TOKEN_RUN)).toEqual(BROWSER_TOOLS);
+    expect(browserIn(withoutBrowser(OPERATOR_TOKEN_RUN))).toEqual([]);
     expect(TOOLS.filter((tool) => tool.acts).every((tool) => !tool.writes)).toBe(true);
   });
 

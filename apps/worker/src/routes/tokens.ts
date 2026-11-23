@@ -1,5 +1,5 @@
 import { asc, eq, inArray } from 'drizzle-orm';
-import { OPERATOR_TOKEN_RUN, withoutMailbox, type AccessToken, type IssuedAccessToken, type IssuedLoginCode, type McpEndpoint, type OperatorToken, type OperatorTokenGrant } from '@mail/domain';
+import { OPERATOR_TOKEN_RUN, withoutBrowser, withoutMailbox, type AccessToken, type IssuedAccessToken, type IssuedLoginCode, type McpEndpoint, type OperatorToken, type OperatorTokenGrant } from '@mail/domain';
 
 import { accessTokenHash, generateAccessToken, presentedToken } from '../access-token';
 import { bearerChallenge, mcpUrl } from '../authorization';
@@ -24,6 +24,7 @@ import {
   recordOperatorTokenUse,
   revokeOperatorToken,
 } from '../operator';
+import { keyBrowser } from '../logins';
 import { memoryStoreOf } from '../memory/store';
 import type { Providers } from '../providers';
 import { gone, invalid, noAccess, notFound } from '../refusal';
@@ -204,6 +205,8 @@ export const tokenRoutes = (providers: Providers) => {
       };
       const skills: SkillStore = { db, bucket: env.RECOVERY_RECEIPTS, accountId };
       const mailbox = await hasAutomationInbox(database);
+      // The Account's browser, kept open between this key's calls; null when the Account has not turned it on.
+      const browser = await keyBrowser({ binding: env.BROWSER, database, key: accountKey, accountId, keyId: token ? token.id : operator?.id ?? '' });
       // What a memory is kept under, so 記憶 shows which key or whose CLI wrote it.
       const author = { kind: 'cli' as const, name: token ? token.name : await memberName({ control: env.CONTROL_DB, identityId: operator?.identityId ?? '' }) };
       // Both keys reach what Operator Chat reaches; an Access Token is narrowed by its grant and its Contact List.
@@ -212,9 +215,11 @@ export const tokenRoutes = (providers: Providers) => {
         google: { provider: providers.google, session: inbox }, ports,
         origin: { automationId: null, sourceMessageId: null }, skills, at: () => at,
         memory: { store: memoryStoreOf(env, db, accountId), author },
+        ...(browser ? { browser } : {}),
       };
       const reached = token ? accessTokenRun(token.grant) : OPERATOR_TOKEN_RUN;
-      const run = mailbox ? reached : withoutMailbox(reached);
+      const held = mailbox ? reached : withoutMailbox(reached);
+      const run = browser ? held : withoutBrowser(held);
       const handlers = token
         ? toolHandlers({ ...shared, reach: { kind: 'contact_list', holder: 'this Access Token', contactIds: token.contactIds, emails: [], roster: 'list' } }, {
           ...suppressionPort({ database, scope: token.id, window: token.suppressionWindow, at }),
@@ -223,16 +228,21 @@ export const tokenRoutes = (providers: Providers) => {
           holder: 'this Access Token',
         })
         : toolHandlers({ ...shared, reach: { kind: 'anyone' } });
-      return send(await serveMcpServerRequest({ request, headers: context.req.raw.headers, answer: (era) => handleMcpServerRequest({
-        request,
-        era,
-        origin: env.WEB_ORIGIN || env.APP_URL,
-        run,
-        prompts,
-        // Every outside caller is told what Operator Chat is told, with the same Skills listed.
-        instructions: async () => guidance((await runSkills(skills, [])).instructions),
-        handlers,
-      }) }));
+      try {
+        return send(await serveMcpServerRequest({ request, headers: context.req.raw.headers, answer: (era) => handleMcpServerRequest({
+          request,
+          era,
+          origin: env.WEB_ORIGIN || env.APP_URL,
+          run,
+          prompts,
+          // Every outside caller is told what Operator Chat is told, with the same Skills listed.
+          instructions: async () => guidance((await runSkills(skills, [])).instructions),
+          handlers,
+        }) }));
+      } finally {
+        // Writes the sign-ins back and lets go of the browser, which stays open for the key's next call.
+        await browser?.close();
+      }
     } catch (error) {
       return rpcError(-32603, error instanceof Error ? error.message : 'The MCP Server failed.', 503);
     }

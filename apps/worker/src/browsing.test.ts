@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { LoginState } from './browser';
 import { renewedLogin, loginCovers } from './browser';
-import { runBrowser, type LoginStore, type RunLogin } from './browsing';
+import { runBrowser, type BrowserKeeper, type KeptBrowser, type LoginStore, type RunLogin } from './browsing';
 import { cdpOver, type CdpSocket } from './cdp';
 import { FileAnswer } from './turns';
 import { fakeBrowser, pageAnswers } from '../test/browser';
@@ -121,6 +121,54 @@ describe('the browser a run operates', () => {
     const next = await run.handlers['browser.read']({ screenshot: true });
     expect((next as FileAnswer).files.map((file) => file.filename)).toEqual(['screenshot-2.jpg']);
     await run.close();
+  });
+});
+
+/** Remembers a key's browser between its calls, as `key_browsers` does. */
+const keeper = (initial: KeptBrowser | null = null) => {
+  const held: { kept: KeptBrowser | null } = { kept: initial };
+  const port: BrowserKeeper = {
+    load: async () => held.kept,
+    save: async (kept) => {
+      held.kept = kept;
+    },
+  };
+  return { port, held };
+};
+
+describe('the browser a key keeps between its MCP calls', () => {
+  it('starts one on the first call, names it, and reconnects the next call to the same page without closing or starting another', async () => {
+    const browser = fakeBrowser(pageAnswers({ url: 'https://www.example.com/orders', title: '注文', text: '注文履歴' }));
+    const kept = keeper();
+    const logins = store([{ id: 'login-1', site: 'www.example.com', state: signedIn }]);
+
+    const first = runBrowser({ binding: browser.binding, timeZone: 'Asia/Tokyo', logins: logins.port, keeper: kept.port });
+    await first.handlers['browser.open']({ url: 'https://www.example.com/orders' });
+    await first.close();
+    const second = runBrowser({ binding: browser.binding, timeZone: 'Asia/Tokyo', logins: logins.port, keeper: kept.port });
+    const reading = await second.handlers['browser.read']({});
+    await second.close();
+
+    expect(reading).toMatchObject({ url: 'https://www.example.com/orders', title: '注文' });
+    expect(browser.acquired).toEqual(['session-1?keep_alive=1200000']);
+    expect(kept.held.kept).toEqual({ sessionId: 'session-1', targetId: 'target-1' });
+    expect(browser.connected).toEqual(['session-1', 'session-1']);
+    expect(browser.methods().filter((method) => method === 'Target.createTarget')).toHaveLength(1);
+    expect(browser.methods()).not.toContain('Browser.close');
+    expect(logins.renewed.map(({ id, used }) => ({ id, used }))).toEqual([{ id: 'login-1', used: true }, { id: 'login-1', used: true }]);
+  });
+
+  it('starts a new browser and names it when the kept one outlived its keep-alive', async () => {
+    const page = pageAnswers({ url: 'https://www.example.com/' });
+    const browser = fakeBrowser((command) => command.method === 'Target.attachToTarget' && command.params.targetId === 'target-gone' ? new Error('No target with given id found') : page(command));
+    const kept = keeper({ sessionId: 'session-gone', targetId: 'target-gone' });
+
+    const run = runBrowser({ binding: browser.binding, timeZone: 'Asia/Tokyo', logins: store([]).port, keeper: kept.port });
+    await run.handlers['browser.open']({ url: 'https://www.example.com/' });
+    await run.close();
+
+    expect(browser.acquired).toEqual(['session-1?keep_alive=1200000']);
+    expect(kept.held.kept).toEqual({ sessionId: 'session-1', targetId: 'target-1' });
   });
 });
 

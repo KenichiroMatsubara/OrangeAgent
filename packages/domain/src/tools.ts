@@ -271,13 +271,13 @@ export const AUTOMATION_TOOLS: readonly Tool[] = grantable(automationRun('unatte
  * What a run outside OrangeAgent is when it reaches the MCP Server, an outside
  * agent's Access Token or a member's own CLI with an Operator Token: Operator
  * Chat without what only a run thinking in OrangeAgent can be lent. The files
- * Claude writes in a conversation, a Run Token to answer, and a browser kept
- * open for the run's length all belong to a run OrangeAgent itself drives; an
- * outside caller writes its own files and thinks where it runs. It holds the
- * Automation Inbox's Google grant, the Skills, the Memory, and the web, as
+ * Claude writes in a conversation and a Run Token to answer belong to a run
+ * OrangeAgent itself drives; an outside caller writes its own files and thinks
+ * where it runs. It holds the Automation Inbox's Google grant, the Skills, the
+ * Memory, the web, and the Account's browser, kept open between its calls, as
  * Operator Chat does, so a tool added there reaches it too.
  */
-const OUTSIDE_RUN: Omit<ToolRun, 'grant'> = { ...OPERATOR_CHAT_RUN, holds: OPERATOR_CHAT_RUN.holds.filter((need) => need !== 'run_token' && need !== 'browser' && need !== 'generated_files') };
+const OUTSIDE_RUN: Omit<ToolRun, 'grant'> = { ...OPERATOR_CHAT_RUN, holds: OPERATOR_CHAT_RUN.holds.filter((need) => need !== 'run_token' && need !== 'generated_files') };
 
 /**
  * What an outside agent's Access Token is: a run outside OrangeAgent, narrowed

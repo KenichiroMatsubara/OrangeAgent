@@ -187,6 +187,7 @@ describe('Account database resolver', () => {
       { name: '0063_chat_runs_abandoned.sql' },
       { name: '0064_agent_skills_names.sql' },
       { name: '0065_runs_browser_time.sql' },
+      { name: '0066_key_browsers.sql' },
     ]);
   });
 
