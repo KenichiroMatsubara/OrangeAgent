@@ -59,8 +59,8 @@ describe('a turn through Pi', () => {
     await completeTurn({ ...OPENROUTER, tools: [MAIL_SEARCH, CODE_RUN], messages });
 
     const tool = (body: Record<string, unknown> | undefined) => (body?.messages as Array<{ role: string; content: string; tool_call_id?: string }>).find((message) => message.role === 'tool');
-    expect(tool(sent.bodies()[0])).toEqual({ role: 'tool', tool_call_id: 'call-1', content: '{"subject":"名簿"}\n案内.pdf (application/pdf) cannot be opened here, because this Worker lends no environment to run code in. Say so rather than guessing its contents.\nmemo.txt:\n19:00 開始' });
-    expect(tool(sent.bodies()[1])?.content).toContain('You hold 案内.pdf (application/pdf). Open it with code.run, naming 案内.pdf in files');
+    expect(tool(sent.bodies()[0])).toEqual({ role: 'tool', tool_call_id: 'call-1', content: '{"subject":"名簿"}\n[OrangeAgent: 案内.pdf (application/pdf) cannot be opened here, because this Worker lends no environment to run code in. Say so rather than guessing its contents.]\nmemo.txt:\n19:00 開始' });
+    expect(tool(sent.bodies()[1])?.content).toContain('[OrangeAgent: you hold 案内.pdf (application/pdf). Open it with code.run, naming 案内.pdf in files');
     // A turn kept before Pi is sent as its words and calls, under the names the provider takes.
     expect((sent.bodies()[0]?.messages as Array<{ role: string; tool_calls?: Array<{ function: { name: string } }> }>).find((message) => message.role === 'assistant')?.tool_calls?.[0]?.function.name).toBe('mail_read');
   });

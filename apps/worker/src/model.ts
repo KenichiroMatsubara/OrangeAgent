@@ -122,13 +122,15 @@ const TEXT_TYPES = /^(text\/|application\/(json|xml|csv))/u;
  * A file as the model is handed it: a picture as itself, text as its words,
  * and any other kind as a note that the run holds it, which its code opens
  * with code.run (ADR 0203); without code.run, as a note that it cannot be
- * opened here.
+ * opened here. The note is OrangeAgent's, in its brackets: unbracketed, it
+ * ends a member's message as an order in English, and Haiku answers that
+ * order in English rather than the member in their own language.
  */
 const fileContent = (file: TurnFile, code: boolean): TextContent | ImageContent => {
   if (file.mediaType.startsWith('image/')) return { type: 'image', data: toBase64(file.bytes), mimeType: file.mediaType };
   if (TEXT_TYPES.test(file.mediaType)) return { type: 'text', text: `${file.filename}:\n${new TextDecoder().decode(file.bytes)}` };
-  if (code) return { type: 'text', text: `You hold ${file.filename} (${file.mediaType || 'unknown type'}). Open it with code.run, naming ${file.filename} in files, rather than guessing its contents.` };
-  return { type: 'text', text: `${file.filename} (${file.mediaType || 'unknown type'}) cannot be opened here, because this Worker lends no environment to run code in. Say so rather than guessing its contents.` };
+  if (code) return { type: 'text', text: `[OrangeAgent: you hold ${file.filename} (${file.mediaType || 'unknown type'}). Open it with code.run, naming ${file.filename} in files, rather than guessing its contents.]` };
+  return { type: 'text', text: `[OrangeAgent: ${file.filename} (${file.mediaType || 'unknown type'}) cannot be opened here, because this Worker lends no environment to run code in. Say so rather than guessing its contents.]` };
 };
 
 /** Whether a tool's answer is a refusal, as `{ isError: true }`. */
