@@ -4,7 +4,7 @@
  * it belongs to. Each object starts its container for one job, with no
  * network, runs the job, and destroys the container whatever happened.
  *
- * A job lent the run's Run Token reaches one host, `flarechat.internal`: its
+ * A job lent the run's Run Token reaches one host, `orangeagent.internal`: its
  * requests are handed to this Worker's own MCP Server, which puts each call
  * to the run that issued the token (ADR 0199, 0203). Nothing else gets out.
  *
@@ -16,7 +16,7 @@
 import { Files } from '@cloudflare/sandbox';
 import { DurableObject } from 'cloudflare:workers';
 
-import { BRIDGE_HOST, ready, runInContainer } from './container';
+import { BRIDGE_HOST, FORMER_BRIDGE_HOST, ready, runInContainer } from './container';
 import type { CodeJob, CodeResult } from './environment';
 import type { Bindings } from './types';
 
@@ -29,6 +29,7 @@ class Workbench extends DurableObject<Bindings> {
       const own = (this.ctx.exports as { default?: Fetcher }).default;
       if (!own) throw new Error('This Worker cannot reach its own MCP Server from a container.');
       await container.interceptOutboundHttp(BRIDGE_HOST, own);
+      await container.interceptOutboundHttp(FORMER_BRIDGE_HOST, own);
     }
     if (!container.running) container.start({ enableInternet: false });
     try {

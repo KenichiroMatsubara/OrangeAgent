@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { OUTPUT_DIR, placedName, ready, runInContainer, WORKDIR, type Workspace } from './container';
+import { BRIDGE_HOST, FORMER_BRIDGE_HOST, OUTPUT_DIR, placedName, prelude, ready, runInContainer, WORKDIR, type Workspace } from './container';
 
-interface Call { cmd: string[]; cwd?: string }
+interface Call { cmd: string[]; cwd?: string; env?: Record<string, string> }
 
 /**
  * A container whose files are kept as the Sandbox SDK's `Files` keeps them,
@@ -45,7 +45,7 @@ const fakeContainer = (answer: { exitCode: number; stdout?: string; stderr?: str
     resize: () => undefined,
   });
   const exec = async (cmd: string[], options?: ContainerExecOptions): Promise<ExecProcess> => {
-    calls.push({ cmd, ...(options?.cwd ? { cwd: options.cwd } : {}) });
+    calls.push({ cmd, ...(options?.cwd ? { cwd: options.cwd } : {}), ...(options?.env && Object.keys(options.env).length > 0 ? { env: options.env as Record<string, string> } : {}) });
     return cmd[0] === 'timeout' ? result(answer.exitCode, answer.stdout, answer.stderr) : result(0);
   };
   return { container: { exec }, files, calls, written };
@@ -65,6 +65,20 @@ describe('a job in a container', () => {
     expect(result.stdout).toBe('done');
     expect(result.files.map((file) => [file.filename, new TextDecoder().decode(file.bytes)])).toEqual([['report.csv', 'a,b\n1,2\n']]);
     expect(result.outOfMemory).toBe(false);
+  });
+
+  it('hands code lent tools its MCP Server under OrangeAgent\'s names, and under FlareChat\'s for a Skill written before the rename', async () => {
+    const { container, files, calls } = fakeContainer({ exitCode: 0 });
+    await runInContainer(container, files, { language: 'shell', code: 'echo', files: [], bridge: { path: '/mcp/run-1', token: 'run-token' } });
+
+    const url = `http://${BRIDGE_HOST}/mcp/run-1`;
+    expect(BRIDGE_HOST).toBe('orangeagent.internal');
+    expect(FORMER_BRIDGE_HOST).toBe('flarechat.internal');
+    expect(calls.find((call) => call.cmd[0] === 'timeout')?.env).toEqual({
+      ORANGEAGENT_MCP_URL: url, ORANGEAGENT_RUN_TOKEN: 'run-token',
+      FLARECHAT_MCP_URL: url, FLARECHAT_RUN_TOKEN: 'run-token',
+    });
+    expect(prelude([])).toContain('process.env.ORANGEAGENT_MCP_URL');
   });
 
   it('tells a kill for want of memory and a time limit apart', async () => {

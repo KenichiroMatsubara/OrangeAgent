@@ -20,7 +20,9 @@ import { LENT, lentOf } from './lent';
 export const WORKDIR = '/workspace';
 
 /** The host a container reaches the run's MCP Server at, its only way out (ADR 0203). */
-export const BRIDGE_HOST = 'flarechat.internal';
+export const BRIDGE_HOST = 'orangeagent.internal';
+/** The same host under the name the product had before the rename, for a Skill that names it (CONTEXT.md, 改名). */
+export const FORMER_BRIDGE_HOST = 'flarechat.internal';
 export const OUTPUT_DIR = `${WORKDIR}/out`;
 
 /** How long the code may run, in seconds. `timeout` ends it with status 124. */
@@ -50,7 +52,7 @@ const SCRIPT: Readonly<Record<CodeLanguage, { file: string; command: string[] }>
  * What JavaScript finds in a container as it does in a Dynamic Worker
  * (`isolate.ts`): `files` and `output(name, data)`, a Skill's directory at
  * `./skills/<name>/`, `tools`, which calls the run's tools through its MCP
- * Server at `flarechat.internal`, and each library it imports that OrangeAgent
+ * Server at `orangeagent.internal`, and each library it imports that OrangeAgent
  * lends (`lent.ts`), as a package in `/node_modules`, which node finds from
  * the working directory and from `/skills` alike.
  */
@@ -60,7 +62,7 @@ export const prelude = (names: readonly string[]): string => [
   `globalThis.files = Object.fromEntries(names.map((name) => [name, new Uint8Array(readFileSync(name))]));`,
   `globalThis.output = (name, data) => writeFileSync('out/' + String(name).split('/').at(-1), typeof data === 'string' ? data : new Uint8Array(data));`,
   `if (existsSync('/skills') && !existsSync('skills')) symlinkSync('/skills', 'skills');`,
-  `const url = process.env.FLARECHAT_MCP_URL; const token = process.env.FLARECHAT_RUN_TOKEN; let id = 0;`,
+  `const url = process.env.ORANGEAGENT_MCP_URL; const token = process.env.ORANGEAGENT_RUN_TOKEN; let id = 0;`,
   `const answer = (text) => { try { return JSON.parse(text); } catch { return text; } };`,
   `const rpc = async (method, params) => {`,
   `  id += 1;`,
@@ -135,6 +137,18 @@ export const ready = async (container: Exec, attempts = 40, wait = (ms: number) 
   throw new Error(`The container did not start: ${last instanceof Error ? last.message : 'it took no command'}`);
 };
 
+/**
+ * The run's MCP Server and its Run Token, under OrangeAgent's names and under
+ * FlareChat's, which a Skill's Python or shell written before the rename may
+ * still read (CONTEXT.md, 改名).
+ */
+const bridgeEnv = (url: string, token: string): Record<string, string> => ({
+  ORANGEAGENT_MCP_URL: url,
+  ORANGEAGENT_RUN_TOKEN: token,
+  FLARECHAT_MCP_URL: url,
+  FLARECHAT_RUN_TOKEN: token,
+});
+
 /** A lent library as the package node imports it by its name: its source as the package's one module. */
 export const lentPackage = (name: string): Array<{ path: string; bytes: Uint8Array }> => {
   const encoder = new TextEncoder();
@@ -162,9 +176,7 @@ export const runInContainer = async (container: Exec, files: Workspace, job: Cod
     }
   }
   await writeFile(files, made, `${WORKDIR}/${script.file}`, new TextEncoder().encode(job.code));
-  const env: Record<string, string> = job.bridge
-    ? { FLARECHAT_MCP_URL: `http://${BRIDGE_HOST}${job.bridge.path}`, FLARECHAT_RUN_TOKEN: job.bridge.token }
-    : {};
+  const env = job.bridge ? bridgeEnv(`http://${BRIDGE_HOST}${job.bridge.path}`, job.bridge.token) : {};
   const process = await container.exec(['timeout', String(CONTAINER_SECONDS), ...script.command, script.file], { cwd: WORKDIR, env });
   const { exitCode, stdout, stderr } = await process.output();
   const errors = decoder.decode(stderr);

@@ -124,7 +124,7 @@ export const CODE_RUN_DESCRIPTION = [
   'JavaScript is an ES module (top-level await and import, no require()): files maps each placed file\'s name to its bytes (Uint8Array), output(name, data) hands a file back, console.log is stdout.',
   `JavaScript imports, with no install: ${LENT_NAMES.join(', ')}. For an Office file or a PDF follow the Skill office-files: make one with exceljs, docx, pptxgenjs, or pdf-lib; fill a form or template by unzipping it with fflate, editing its XML with @xmldom/xmldom, and zipping it back, never by reopening and resaving it with a library, which may drop its drawings.`,
   'Skills you name are placed whole: at ./skills/<name>/ in JavaScript, where its .mjs scripts are imported as modules (import { Tasks } from \'./skills/task-management/scripts/tasks.mjs\'), and at /skills/<name>/ in Python or the shell.',
-  'With tools true, JavaScript calls your tools with await tools.call(name, arguments); Python or the shell reach your MCP Server at FLARECHAT_MCP_URL with FLARECHAT_RUN_TOKEN. Each such call is yours.',
+  'With tools true, JavaScript calls your tools with await tools.call(name, arguments); Python or the shell reach your MCP Server at ORANGEAGENT_MCP_URL with ORANGEAGENT_RUN_TOKEN. Each such call is yours.',
   'In Python or the shell, placed files are in the working directory; write each file to hand back at the top of out/ (out/report.xlsx).',
   'Each call starts empty. Python and the shell stop after 300 seconds; JavaScript after 30 seconds of CPU, then it runs again in a container. Memory is sized for you and raised once if it runs out.',
 ].join(' ');

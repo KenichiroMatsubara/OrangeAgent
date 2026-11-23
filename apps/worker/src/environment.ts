@@ -14,7 +14,7 @@
  * none. Their one way out is OrangeAgent itself, when the run lends its code
  * its tools: a Dynamic Worker calls them through `env.TOOLS`, an RPC stub that
  * holds the run's Run Token, and a container through a request to
- * `flarechat.internal`, which reaches the run's MCP Server; every call made
+ * `orangeagent.internal`, which reaches the run's MCP Server; every call made
  * either way is the run's own (ADR 0199, 0203). Files go in by name and come
  * back as files; a Skill's directory goes in whole, at `./skills/<name>/` in
  * a Dynamic Worker and `/skills/<name>/` in a container.
@@ -130,7 +130,7 @@ export interface CodeJob {
   files: ReadonlyArray<{ filename: string; bytes: Uint8Array }>;
   /** Files placed at their own absolute paths, as every file of a Skill is under `/skills/<name>/`; a Dynamic Worker holds them as modules at `skills/<name>/`. */
   placed?: ReadonlyArray<{ path: string; bytes: Uint8Array }>;
-  /** The run's MCP Server and its Run Token, its code's only way out: `env.TOOLS` in a Dynamic Worker, `flarechat.internal` in a container. */
+  /** The run's MCP Server and its Run Token, its code's only way out: `env.TOOLS` in a Dynamic Worker, `orangeagent.internal` in a container. */
   bridge?: { path: string; token: string };
 }
 

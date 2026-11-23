@@ -232,7 +232,7 @@ export function ComposerControlsBar(props: {
         })}
         {/* OrangeAgent: its own controls, beside the approval mode. */}
         {props.extraControls ? (
-          <div data-flarechat-controls className="flex w-max min-w-max shrink-0 items-center gap-1">
+          <div data-orangeagent-controls className="flex w-max min-w-max shrink-0 items-center gap-1">
             {props.extraControls}
           </div>
         ) : null}

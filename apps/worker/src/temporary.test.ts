@@ -23,6 +23,6 @@ describe('temporary failures', () => {
 
   it('names the same call by the same RFC 4122 version 5 UUID every time', async () => {
     // As Python's uuid.uuid5(uuid.NAMESPACE_URL, name) computes it.
-    await expect(repeatUuid('https://flarechat.example/planned-write')).resolves.toBe('8d630e5a-efb8-5ff8-80d1-a59bf6bc087c');
+    await expect(repeatUuid('https://orangeagent.example/planned-write')).resolves.toBe('d41d35ba-8d30-5228-8b9e-ae28e412e99e');
   });
 });
