@@ -49,10 +49,10 @@ const event = (type: 'run.created' | 'run.updated' | 'turn-item.updated' | 'runt
   ({ id: ids.event(crypto.randomUUID()), threadId: ids.thread(THREAD_ID), occurredAt: utc(AT), type, payload } as DomainEvent);
 
 const item = { threadId: ids.thread(THREAD_ID), runId: ids.run('run-1'), nodeId: null, providerThreadId: null, providerTurnId: null, nativeItemRef: null, parentItemId: null, title: null, startedAt: utc(AT), completedAt: utc(AT + 2_000), updatedAt: utc(AT + 2_000) };
-const run = (status: 'running' | 'interrupted' | 'waiting' | 'completed'): Run => ({
+const run = (status: 'running' | 'interrupted' | 'waiting' | 'completed' | 'failed'): Run => ({
   id: ids.run('run-1'), threadId: ids.thread(THREAD_ID), ordinal: 1, providerInstanceId: ids.provider('orangeagent'),
   modelSelection: { instanceId: ids.provider('orangeagent'), model: 'orangeagent' }, providerThreadId: null, userMessageId: ids.message('message-1'),
-  rootNodeId: null, activeAttemptId: null, status, requestedAt: utc(AT), startedAt: utc(AT), completedAt: status === 'interrupted' || status === 'completed' ? utc(AT + 2_000) : null,
+  rootNodeId: null, activeAttemptId: null, status, requestedAt: utc(AT), startedAt: utc(AT), completedAt: status === 'interrupted' || status === 'completed' || status === 'failed' ? utc(AT + 2_000) : null,
   checkpointId: null, contextHandoffId: null,
 });
 
@@ -637,16 +637,34 @@ describe('what the chat shows', () => {
     const { container } = render(<ChatSurface threadId={THREAD_ID} transport={transportOf(failing)} />);
 
     await waitFor(() => expect(container.querySelector('[data-work-entry-id="tool-1"]') ?? container.querySelector('[data-timeline-row-kind="thinking"]')).not.toBeNull(), { timeout: 10_000 });
-    // The tool's own name is the detail's alone; the row names it in words.
+    // The tool's own name is the detail's alone; the row says in words what the call did.
     expect(document.body.textContent).not.toContain('mail.search');
     const row = await openCall(user, container, 'tool-1');
-    expect(row.textContent).toContain('メールを検索する');
+    expect(row.textContent).toContain('メールを検索できませんでした');
 
     const failure = await screen.findByRole('alert');
     expect(failure.textContent).toBe('エラーGmail の読み取り権限が失効しています（401）。');
     expect(failure.className).toContain('text-destructive');
     expect(container.textContent).toContain('from:billing@example.co.jp');
     expect(container.querySelector('[data-tool-name="true"]')?.textContent).toBe('ツール名 mail.search');
+  }, 30_000);
+
+  it('folds the calls of an answer that failed into one line, as it does those of any answer, and says the failure apart', async () => {
+    const reads = ['tool-1', 'tool-2', 'tool-3', 'tool-4'];
+    const failed: DomainEvent[] = [
+      event('run.created', run('running')),
+      event('turn-item.updated', { ...item, id: ids.item('message-1'), ordinal: 0, status: 'completed', createdBy: 'user', creationSource: 'web', type: 'user_message', messageId: ids.message('message-1'), inputIntent: 'turn_start', text: '予定を調べて', attachments: [] } as TurnItem),
+      ...reads.map((id, index) => event('turn-item.updated', toolItem(id, index + 1, { toolName: 'browser.read', input: {}, output: 'ページ' }))),
+      event('turn-item.updated', { ...item, id: ids.item('run-1:error'), ordinal: 9, status: 'failed', type: 'error', failure: { class: 'provider_error', message: '答えを書き終える前に処理が止まりました。', code: null, retryable: null } } as TurnItem),
+      event('run.updated', run('failed')),
+    ];
+    restore = shortRows();
+    const { container } = render(<ChatSurface threadId={THREAD_ID} transport={transportOf(failed)} />);
+
+    await screen.findByText('答えを書き終える前に処理が止まりました。', { exact: false }, { timeout: 10_000 });
+    expect(reads.filter((id) => container.querySelector(`[data-work-entry-id="${id}"]`) !== null)).toEqual([]);
+    expect(container.textContent?.match(/ブラウザの画面を読みました/gu) ?? []).toEqual([]);
+    expect(container.textContent).toContain('ブラウザーを 4 回使用しました');
   }, 30_000);
 
   it('opens a failed call whose arguments were never kept, as a copied conversation holds it, to why it failed', async () => {
@@ -659,7 +677,7 @@ describe('what the chat shows', () => {
     const { container } = render(<ChatSurface threadId={THREAD_ID} transport={transportOf(copied)} />);
 
     const opened = await openCall(user, container, 'tool-1');
-    expect(opened.textContent).toContain('カレンダーの予定を変える');
+    expect(opened.textContent).toContain('カレンダーの予定を変えられませんでした');
     expect((await screen.findByRole('alert')).textContent).toContain('Scheduled Event event-1 is not in this Account.');
   }, 30_000);
 

@@ -1,4 +1,6 @@
 import * as DateTime from "effect/DateTime";
+import { TOOL_LABELS } from "@mail/domain";
+import { orangeAgentToolSentence } from "@t3tools/client-runtime/work-log/orangeagent.ts";
 import { msg } from "gt-react";
 import { worktreeSetupAgentStarted } from "@t3tools/client-runtime/worktreeSetup.ts";
 import { resolveUserMessagePresentation } from "@t3tools/client-runtime/userMessage.ts";
@@ -104,12 +106,25 @@ function workEntryIsActiveTurnActivity(entry: WorkLogEntry): boolean {
   );
 }
 
+/** OrangeAgent: a call of the product's own tool, said as what it is doing or did; null for any other. */
+function productToolSentence(entry: WorkLogEntry, fallbackStatus?: "completed"): string | null {
+  const item = entry.structuredPayload;
+  if (item?.type !== "dynamic_tool" || !item.toolName) return null;
+  return orangeAgentToolSentence(
+    TOOL_LABELS[item.toolName],
+    entry.toolLifecycleStatus ?? fallbackStatus,
+    item.output,
+  );
+}
+
 function singleToolCallLabel(entry: WorkLogEntry, resolve: MessageResolver): string {
   if (entry.itemType === "reasoning") {
     return entry.detail?.trim().replace(/\s+/g, " ") || resolve(msg("Thought"));
   }
   const toolPresentation = resolveWorkEntryToolPresentation(entry, "completed", resolve);
   if (toolPresentation) return toolPresentation.displayName;
+  const sentence = productToolSentence(entry, "completed");
+  if (sentence) return sentence;
   const item = entry.structuredPayload;
   const title =
     item?.type === "dynamic_tool"
@@ -179,6 +194,8 @@ export function workEntryDisplayLabel(
   }
   const providerRetry =
     entry.projectedItem?.item.type === "error" && entry.projectedItem.item.retry !== undefined;
+  const sentence = productToolSentence(entry);
+  if (sentence) return sentence;
   const item = entry.structuredPayload;
   const title =
     item?.type === "dynamic_tool"
@@ -1052,24 +1069,6 @@ function failedTimelineRunIds(
   return failed;
 }
 
-/** Usage-limit pauses keep their tool groups; any other failure itemizes the run's work. */
-function itemizedFailedRunIds(
-  entries: ReadonlyArray<TimelineEntry>,
-  failedRunIds: ReadonlySet<RunId>,
-) {
-  const usageLimited = new Set<RunId>();
-  const otherFailures = new Set<RunId>();
-  for (const entry of entries) {
-    const item = timelineEntryFailedItem(entry);
-    if (item?.runId) {
-      (item.failure.class === "usage_limit" ? usageLimited : otherFailures).add(item.runId);
-    }
-  }
-  return new Set(
-    [...failedRunIds].filter((runId) => !usageLimited.has(runId) || otherFailures.has(runId)),
-  );
-}
-
 function deriveTurnFolds(input: {
   timelineEntries: ReadonlyArray<TimelineEntry>;
   terminalAssistantMessageIds: ReadonlySet<string>;
@@ -1663,7 +1662,6 @@ export function deriveMessagesTimelineRows(
   const nextRows: MessagesTimelineRow[] = [];
   const terminalAssistantMessageIds = deriveTerminalAssistantMessageIds(timelineEntries);
   const failedRunIds = failedTimelineRunIds(timelineEntries, input.latestRun ?? null);
-  const itemizedRunIds = itemizedFailedRunIds(timelineEntries, failedRunIds);
   const liveSubagentEntryIds = liveSubagentCardEntryIds(timelineEntries);
   const retainedAssistantReplyIds = retainedAssistantReplyEntryIds(timelineEntries);
   const supersededFoldsByAnchorEntryId = deriveSupersededAttemptFolds(
@@ -2054,7 +2052,6 @@ export function deriveMessagesTimelineRows(
     if (timelineEntry.kind === "work") {
       if (
         isPendingApproval(timelineEntry.entry) ||
-        (timelineEntry.entry.runId != null && itemizedRunIds.has(timelineEntry.entry.runId)) ||
         (timelineEntry.entry.itemType === "error" &&
           timelineEntry.entry.toolLifecycleStatus === "failed") ||
         timelineEntry.entry.tone === "error" ||
