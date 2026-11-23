@@ -219,7 +219,7 @@ OrangeAgent は MCP サーバーとして呼べます。
 
 ## 改名
 
-このアプリは FlareChat という名前でした。本番の URL は `orangeagent.<subdomain>.workers.dev` に変わり、旧 URL の `flarechat.<subdomain>.workers.dev` には転送用の Worker（`redirect/`）を置いています。ブラウザで開いたページは新しい URL に転送し、webhook や MCP などの呼び出しはそのまま新しい Worker に渡します。
+このアプリは FlareChat という名前でした。本番の URL は `orangeagent.<subdomain>.workers.dev` に変わり、旧 URL の `flarechat.<subdomain>.workers.dev` には転送用の Worker（`redirect/`）を置いています。ブラウザで開いたページは新しい URL に転送し、webhook や MCP などの呼び出しはそのまま新しい Worker に渡します。旧 URL でホーム画面に追加したアプリは Service Worker がページを答えるため転送が届きません。そこで旧 URL の `/sw.js` は、自分を外して開いている画面を新しい URL の同じページへ移す Service Worker を返します。
 
 次の名前は、本番のデータや外の仕組みに残っているので、旧名のままにしています：D1（`flarechat-control-apac`、`flarechat-organization-*`）、R2（`flarechat-recovery-receipts`）、Vectorize（`flarechat-memory`）、Workflow（`flarechat-transcriber`）、Drive のファイルに付ける `flarechatPutAwayFrom`、コンテナに渡す `flarechat.internal`・`FLARECHAT_MCP_URL`・`FLARECHAT_RUN_TOKEN`、会話のイベントに書く provider の ID（`flarechat`）。
 
