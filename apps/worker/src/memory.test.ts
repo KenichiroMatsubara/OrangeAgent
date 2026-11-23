@@ -331,7 +331,7 @@ describe('the Memory over the MCP Server and in Operator Chat', () => {
     expect(system.split('\n').filter((line) => !entrance.some((start) => line.startsWith(start))).join('\n')).toBe(instructions);
     // The time goes with the member's message, so the instructions stay the same from one message to the next,
     // and after the member's words, so the first words the model reads in it are theirs and it answers in their language.
-    expect(asked).toMatch(/^こんにちは\n\n\[FlareChat: it is now .+ in Asia\/Tokyo\.\]$/u);
+    expect(asked).toMatch(/^こんにちは\n\n\[OrangeAgent: it is now .+ in Asia\/Tokyo\.\]$/u);
   });
 
   it('keeps what Operator Chat’s AI keeps as its own, naming no conversation', async () => {

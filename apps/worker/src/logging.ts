@@ -82,7 +82,7 @@ export const logBrowserSession = (input: { ms: number; calls: number; trace?: Re
 /**
  * Writes one end of a Browser Login's sign-in to the Worker's log: `started`
  * when its browser is acquired, and `ended` with how it ended (`how`) when
- * FlareChat closes it. The two lines of one sign-in share its `loginId`, and
+ * OrangeAgent closes it. The two lines of one sign-in share its `loginId`, and
  * the time between them is what Browser Run bills; a sign-in nobody saved or
  * stopped ends when Browser Run's twenty minutes run out, with no `ended`.
  */

@@ -40,7 +40,7 @@ export const deployment = (values: { appUrl: string | undefined; accountId: stri
   if (!controlDatabaseId) throw new Error('CONTROL_DATABASE_ID is missing: bind CONTROL_DB on the Worker or set it in the deploy environment.');
   const origin = URL.canParse(appUrl) ? new URL(appUrl) : null;
   if (!origin || origin.protocol !== 'https:' || origin.origin !== appUrl.replace(/\/$/u, '')) {
-    throw new Error(`APP_URL must be an https origin with no path, such as https://flarechat.example.workers.dev; got ${appUrl}.`);
+    throw new Error(`APP_URL must be an https origin with no path, such as https://orangeagent.example.workers.dev; got ${appUrl}.`);
   }
   if (!UUID.test(controlDatabaseId)) throw new Error(`CONTROL_DATABASE_ID must be the Control D1 database's UUID; got ${controlDatabaseId}.`);
   return { appUrl: origin.origin, accountId, controlDatabaseId };

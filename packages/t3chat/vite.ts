@@ -20,7 +20,7 @@ const target = (specifier: string): string | null => {
 };
 
 const aliases = (): Plugin => ({
-  name: 'flarechat-t3chat-aliases',
+  name: 'orangeagent-t3chat-aliases',
   enforce: 'pre',
   // Web workers are bundled apart from the page, with their own plugins.
   config: () => ({ worker: { format: 'es', plugins: () => [aliases()] } }),
@@ -161,7 +161,7 @@ const translations = path.join(source, 'web', 'i18n', 'translations');
 const catalog = (): Plugin => {
   let trimmed: string | null = null;
   return {
-    name: 'flarechat-t3chat-catalog',
+    name: 'orangeagent-t3chat-catalog',
     // Before Vite's JSON plugin, which reads the text this returns.
     enforce: 'pre',
     transform(code, id) {

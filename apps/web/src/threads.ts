@@ -111,7 +111,7 @@ class FileUrls extends Map<string, string> {
 }
 
 /** Where this browser remembers the model last chosen for an Account's messages. */
-const modelKey = (accountId: string): string => `flarechat:chat-model:${accountId}`;
+const modelKey = (accountId: string): string => `orangeagent:chat-model:${accountId}`;
 
 /** The model this browser last chose for the Account; a browser that keeps nothing remembers none. */
 export const rememberedModel = (accountId: string): string | null => {
@@ -131,7 +131,7 @@ export const rememberModel = (accountId: string, model: string): void => {
 };
 
 /** Where this browser remembers the level of effort last chosen for an Account's messages. */
-const effortKey = (accountId: string): string => `flarechat:chat-effort:${accountId}`;
+const effortKey = (accountId: string): string => `orangeagent:chat-effort:${accountId}`;
 
 /** The level of effort this browser last chose for the Account; a browser that keeps nothing, or keeps no level, remembers none. */
 export const rememberedEffort = (accountId: string): ModelEffort | null => {

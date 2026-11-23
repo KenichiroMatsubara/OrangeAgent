@@ -1,5 +1,5 @@
 /**
- * How the GUI says when something happens. FlareChat counts its days in
+ * How the GUI says when something happens. OrangeAgent counts its days in
  * Asia/Tokyo, so every instant is read on that calendar whatever
  * zone the browser is in, and a nearby day is named rather than dated.
  */

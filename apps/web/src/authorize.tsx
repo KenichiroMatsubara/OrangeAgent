@@ -63,7 +63,7 @@ export const AuthorizeRoute = () => {
   if (!signedIn) {
     return <Card>
       <p className="eyebrow">GOOGLE</p><h1>アプリの接続</h1>
-      <p className="setup-copy">アプリが FlareChat への接続を求めています。許可するかどうかを決める前に、Google でログインしてください。</p>
+      <p className="setup-copy">アプリが OrangeAgent への接続を求めています。許可するかどうかを決める前に、Google でログインしてください。</p>
       {error && <p className="setup-error">{error}</p>}
       <button className="primary google-login entry-login" onClick={() => void signIn()} disabled={busy}><ShieldCheck size={18} />{busy ? 'Googleへ接続中…' : 'Google でログイン'}</button>
     </Card>;

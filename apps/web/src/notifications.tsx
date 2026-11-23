@@ -43,17 +43,17 @@ const CHIPS: Readonly<Record<Exclude<Standing['kind'], 'reading'>, { tone: Tone;
 
 /** What follows from where the browser stands, in a sentence or two. */
 const Explanation = ({ standing, label }: { standing: Standing; label: string }) => {
-  if (standing.kind === 'unavailable') return <Note>この FlareChat には、通知を送るための鍵がまだ設定されていません。設定されるまでは通知は届かないので、承認待ちや答えは会話を開いて確かめてください。</Note>;
+  if (standing.kind === 'unavailable') return <Note>この OrangeAgent には、通知を送るための鍵がまだ設定されていません。設定されるまでは通知は届かないので、承認待ちや答えは会話を開いて確かめてください。</Note>;
   if (standing.kind === 'install') return <>
-    <Note>iPhone や iPad で通知を受け取るには、まず FlareChat をホーム画面に追加して、ホーム画面のアイコンから開き直してください。そこでこの画面を開くと、通知をオンにできます。</Note>
+    <Note>iPhone や iPad で通知を受け取るには、まず OrangeAgent をホーム画面に追加して、ホーム画面のアイコンから開き直してください。そこでこの画面を開くと、通知をオンにできます。</Note>
     <ol className={styles.steps}>
       <li>Safari の下（iPad では上）にある共有ボタン（四角から矢印が出ているボタン）を押す</li>
       <li>「ホーム画面に追加」を選ぶ</li>
-      <li>ホーム画面の FlareChat を開き、AI に聞く の「通知」で「この端末で受け取る」を押す</li>
+      <li>ホーム画面の OrangeAgent を開き、AI に聞く の「通知」で「この端末で受け取る」を押す</li>
     </ol>
   </>;
   if (standing.kind === 'unsupported') return <Note>このブラウザは通知を受け取れません。Chrome、Edge、Firefox、Mac の Safari、またはホーム画面に追加した iPhone・iPad で開くとオンにできます。それまでは、承認待ちや答えは会話を開いて確かめてください。</Note>;
-  if (standing.kind === 'blocked') return <Note>この端末では FlareChat の通知がブロックされています。ブラウザ（iPhone・iPad では「設定」アプリの「通知」）で FlareChat の通知を許可してから、この画面を開き直してください。</Note>;
+  if (standing.kind === 'blocked') return <Note>この端末では OrangeAgent の通知がブロックされています。ブラウザ（iPhone・iPad では「設定」アプリの「通知」）で OrangeAgent の通知を許可してから、この画面を開き直してください。</Note>;
   if (standing.kind === 'on') return <Note>この端末（{label}）に届きます。オフにすると、この端末には届かなくなります。</Note>;
   if (standing.kind === 'off') return <Note>この端末（{label}）には届きません。オンにするとブラウザが通知の許可を求めるので、「許可」を選んでください。</Note>;
   return <Note>この端末の状態を確かめています…</Note>;
@@ -61,7 +61,7 @@ const Explanation = ({ standing, label }: { standing: Standing; label: string })
 
 /**
  * The one place a member turns Operator Chat's notifications on and off
- * for the browser they are using: whether this FlareChat and this browser can
+ * for the browser they are using: whether this OrangeAgent and this browser can
  * notify at all and what to do when they cannot, whether this browser is
  * notified, and the button that changes it.
  */

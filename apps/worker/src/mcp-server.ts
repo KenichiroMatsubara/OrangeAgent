@@ -1,5 +1,5 @@
 /**
- * FlareChat as an MCP Server.
+ * OrangeAgent as an MCP Server.
  *
  * The third entrance to the engine, beside Operator Chat and the Trigger. An
  * outside agent presents an Access Token carrying one Tool Grant and one bound
@@ -26,12 +26,12 @@ export const SERVER_PROTOCOL_VERSIONS = ['2026-07-28', '2025-11-25', '2025-06-18
 const STATELESS_VERSIONS: readonly string[] = ['2026-07-28'];
 const HANDSHAKE_VERSIONS: readonly string[] = SERVER_PROTOCOL_VERSIONS.filter((version) => !STATELESS_VERSIONS.includes(version));
 
-/** Who answers: FlareChat, with the icon its GUI is served with, so a client can show the server as the product it is. */
+/** Who answers: OrangeAgent, with the icon its GUI is served with, so a client can show the server as the product it is. */
 const serverInfo = (origin: string) => {
   const base = origin.replace(/\/$/u, '');
   return {
-    name: 'flarechat',
-    title: 'FlareChat',
+    name: 'orangeagent',
+    title: 'OrangeAgent',
     version: '1',
     icons: [
       { src: `${base}/icon.svg`, mimeType: 'image/svg+xml', sizes: ['any'] },
@@ -95,7 +95,7 @@ const textContent = (value: unknown) => ({ type: 'text', text: typeof value === 
 /** A file a tool read, such as a mail's attachment, handed over as itself: an image as an image, text as its words, anything else as its bytes. */
 const fileContent = (file: TurnFile) => {
   if (file.mediaType.startsWith('image/')) return { type: 'image', data: toBase64(file.bytes), mimeType: file.mediaType };
-  const uri = `flarechat://files/${encodeURIComponent(file.filename)}`;
+  const uri = `orangeagent://files/${encodeURIComponent(file.filename)}`;
   return file.mediaType.startsWith('text/')
     ? { type: 'resource', resource: { uri, mimeType: file.mediaType, text: decodeText(file.bytes) } }
     : { type: 'resource', resource: { uri, mimeType: file.mediaType, blob: toBase64(file.bytes) } };
@@ -171,7 +171,7 @@ export const handleMcpServerRequest = async (input: {
           // Each file is an embedded resource: text as its words, any other kind as its bytes.
           ...opened.files.map((file) => ({
             role: 'user',
-            content: { type: 'resource', resource: { uri: `flarechat://skills/${encodeURIComponent(prompt.name)}/${file.path.split('/').map(encodeURIComponent).join('/')}`, mimeType: file.mediaType, ...('text' in file ? { text: file.text } : { blob: file.blob }) } },
+            content: { type: 'resource', resource: { uri: `orangeagent://skills/${encodeURIComponent(prompt.name)}/${file.path.split('/').map(encodeURIComponent).join('/')}`, mimeType: file.mediaType, ...('text' in file ? { text: file.text } : { blob: file.blob }) } },
           })),
         ],
       });

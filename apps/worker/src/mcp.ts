@@ -16,7 +16,7 @@ export type McpFetch = (url: string, init: RequestInit) => Promise<Response>;
 export const MCP_REVISIONS = ['2026-07-28', '2025-06-18'] as const;
 export type McpRevision = (typeof MCP_REVISIONS)[number];
 
-const CLIENT_INFO = { name: 'flarechat', version: '1' } as const;
+const CLIENT_INFO = { name: 'orangeagent', version: '1' } as const;
 
 export interface McpConnection {
   url: string;

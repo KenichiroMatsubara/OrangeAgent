@@ -24,7 +24,7 @@ const serving = (calls: string[]): RunServing => ({
     calls.push(name);
     if (name === 'query_contacts') return [{ id: 'c1', name: '山田 太郎', state: 'active', channels: ['line'] }];
     return {
-      lists: [{ id: 'L1', name: 'FlareChat' }],
+      lists: [{ id: 'L1', name: 'OrangeAgent' }],
       tasks: [
         { id: 't1', listId: 'L1', title: '登録料の振込', notes: '熱田RACの口座へ\n\n担当: 山田 太郎', due: '2026-11-13', status: 'completed', completedAt: '2026-11-20T13:30:00.000Z' },
         { id: 't2', listId: 'L1', title: '会場の予約', notes: '担当: 山田 太郎', due: '2026-11-25', status: 'open', completedAt: null },
@@ -41,7 +41,7 @@ const skill = [
 describe('a Dynamic Worker running a run\'s JavaScript', () => {
   it('imports a Skill\'s script and calls the run\'s tools through the stub it is lent, reaching no network', async () => {
     const calls: string[] = [];
-    const access = await rendezvous({ namespace: env.RUN_CALLS!, accountId: ACCOUNT, url: `https://flarechat.example/api/public/organizations/${ACCOUNT}/mcp` }).open(serving(calls));
+    const access = await rendezvous({ namespace: env.RUN_CALLS!, accountId: ACCOUNT, url: `https://orangeagent.example/api/public/organizations/${ACCOUNT}/mcp` }).open(serving(calls));
     const job: CodeJob = {
       language: 'javascript',
       code: [

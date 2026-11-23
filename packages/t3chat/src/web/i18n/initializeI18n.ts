@@ -1,11 +1,11 @@
 import { initializeGTSPA } from "gt-react";
 
-import { DEFAULT_LOCALE, FLARECHAT_LOCALE, SUPPORTED_LOCALES } from "./locales";
+import { DEFAULT_LOCALE, ORANGEAGENT_LOCALE, SUPPORTED_LOCALES } from "./locales";
 
-// English is the source text, so it never loads a chunk. FlareChat: Japanese is the only
+// English is the source text, so it never loads a chunk. OrangeAgent: Japanese is the only
 // translation, imported by name so no other catalog is built (the build cuts it, ../../../vite.ts).
 async function loadTranslations(locale: string): Promise<unknown> {
-  if (locale !== FLARECHAT_LOCALE) return {};
+  if (locale !== ORANGEAGENT_LOCALE) return {};
   const module: { default: unknown } = await import("./translations/ja.json");
   return module.default;
 }

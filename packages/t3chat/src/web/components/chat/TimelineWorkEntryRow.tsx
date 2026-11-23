@@ -341,7 +341,7 @@ function WorkEntryLogRow(props: WorkEntryRowProps) {
     const resetAt = failureItem.failure.resetAt;
     // The reset time is the viewer's local time; naming the zone keeps it
     // unambiguous. Both read the zone now, since the device's can change.
-    // FlareChat: limits reset on Tokyo time, whatever zone the browser is in.
+    // OrangeAgent: limits reset on Tokyo time, whatever zone the browser is in.
     const timeZone = "Asia/Tokyo";
     const resetTime = resetAt
       ? `${formatUpcomingTimestamp(resetAt, timestampFormat, undefined, timeZone, m)} (${timeZone})`

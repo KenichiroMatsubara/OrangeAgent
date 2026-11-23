@@ -32,7 +32,7 @@ const connectDiscord = async (app_: TestApp, publicKey: string): Promise<Respons
   ), app_.environment);
 
 const interaction = (app_: TestApp, input: { body: string; signature: string; timestamp: string }): Request =>
-  new Request('https://flarechat.example/api/public/organizations/organization-1/discord/interactions', {
+  new Request('https://orangeagent.example/api/public/organizations/organization-1/discord/interactions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -177,7 +177,7 @@ describe('an answer as t3code turn items', () => {
       { message: { role: 'user', content: '予定は？' }, files: [] },
       { message: { role: 'assistant', content: '2件です。\n\n以上です。' }, files: [] },
       { message: { role: 'user', content: '詳しく' }, files: [] },
-      { message: { role: 'assistant', content: expect.stringMatching(/^書きか\n\n\[FlareChat: the administrator stopped/u) }, files: [] },
+      { message: { role: 'assistant', content: expect.stringMatching(/^書きか\n\n\[OrangeAgent: the administrator stopped/u) }, files: [] },
     ]);
   });
 

@@ -23,7 +23,7 @@ import type { Release } from './src/cache';
 
 
 /** What the worker's source names in place of its release, defined once the bundle is known. */
-const RELEASE_PLACEHOLDER = '__FLARECHAT_RELEASE__';
+const RELEASE_PLACEHOLDER = '__ORANGEAGENT_RELEASE__';
 
 /** The worker's source, and the file it is served as. */
 const WORKER_SOURCE = 'src/sw.ts';
@@ -95,7 +95,7 @@ const workerOf = async (root: string, release: Release): Promise<string> => {
       emptyOutDir: false,
       minify: true,
       target: 'es2022',
-      lib: { entry: path.join(root, WORKER_SOURCE), formats: ['iife'], name: 'flarechat', fileName: () => WORKER_FILE },
+      lib: { entry: path.join(root, WORKER_SOURCE), formats: ['iife'], name: 'orangeagent', fileName: () => WORKER_FILE },
       rollupOptions: { output: { inlineDynamicImports: true } },
     },
   }) as RollupOutput | RollupOutput[];
@@ -108,7 +108,7 @@ const workerOf = async (root: string, release: Release): Promise<string> => {
 export const precache = (): Plugin => {
   let config: ResolvedConfig | null = null;
   return {
-    name: 'flarechat-precache',
+    name: 'orangeagent-precache',
     apply: 'build',
     enforce: 'post',
     configResolved: (resolved) => {

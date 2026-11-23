@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { isOpenMessage, noticeOf, openingOf, shownOptions } from './notify';
 
-const ORIGIN = 'https://flarechat.example';
+const ORIGIN = 'https://orangeagent.example';
 const window = (path: string, focused = false, visible = false) => ({ url: `${ORIGIN}${path}`, focused, visible });
 
 describe('what a push shows', () => {
@@ -13,10 +13,10 @@ describe('what a push shows', () => {
     expect(shownOptions(notice)).toMatchObject({ body: '請求書の確認', tag: 'chat-thread-1', renotify: true, icon: '/icon-192.png', data: { url: '/chat/thread-1' } });
   });
 
-  it('shows FlareChat\'s plain notification for a push that does not say what it is, and never opens another site', () => {
-    expect(noticeOf(null)).toMatchObject({ title: 'FlareChat', url: '/chat' });
-    expect(noticeOf('not json')).toMatchObject({ title: 'FlareChat' });
-    expect(noticeOf('[]')).toMatchObject({ title: 'FlareChat' });
+  it('shows OrangeAgent\'s plain notification for a push that does not say what it is, and never opens another site', () => {
+    expect(noticeOf(null)).toMatchObject({ title: 'OrangeAgent', url: '/chat' });
+    expect(noticeOf('not json')).toMatchObject({ title: 'OrangeAgent' });
+    expect(noticeOf('[]')).toMatchObject({ title: 'OrangeAgent' });
     expect(noticeOf(JSON.stringify({ title: '完了', url: 'https://evil.example/' })).url).toBe('/chat');
     expect(noticeOf(JSON.stringify({ title: '完了', url: '//evil.example/' })).url).toBe('/chat');
     expect(noticeOf(JSON.stringify({ title: 'x'.repeat(500) })).title).toHaveLength(200);

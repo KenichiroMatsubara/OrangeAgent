@@ -10,7 +10,7 @@ import {
   ShieldOffIcon,
 } from "lucide-react";
 
-// FlareChat's four approval modes on t3code's four runtime modes (chat/modes.ts), read-only first.
+// OrangeAgent's four approval modes on t3code's four runtime modes (chat/modes.ts), read-only first.
 export const runtimeModeConfig: Record<
   RuntimeMode,
   { label: string; description: string; icon: LucideIcon }

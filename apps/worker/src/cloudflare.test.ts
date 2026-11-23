@@ -11,7 +11,7 @@ import type { Bindings } from './types';
 const environment = {
   CLOUDFLARE_ACCOUNT_ID: 'account-1',
   CLOUDFLARE_API_TOKEN: 'token-1',
-  CLOUDFLARE_WORKER_NAME: 'flarechat',
+  CLOUDFLARE_WORKER_NAME: 'orangeagent',
 } as Bindings;
 
 const cloudflareResponse = (result: unknown): Response =>
@@ -63,7 +63,7 @@ describe('Cloudflare control plane', () => {
     };
 
     // A deployment's origin and account are filled in by scripts/deploy-config.ts, never committed.
-    expect(config.vars).toEqual({ CLOUDFLARE_WORKER_NAME: 'flarechat' });
+    expect(config.vars).toEqual({ CLOUDFLARE_WORKER_NAME: 'orangeagent' });
     expect(config.keep_vars).toBe(true);
     expect(config.triggers?.crons).toEqual(['*/30 * * * *']);
     expect(config.unsafe?.metadata?.keep_bindings).toEqual(expect.arrayContaining([

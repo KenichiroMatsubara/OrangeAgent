@@ -130,7 +130,7 @@ const mimeBase64 = (bytes: Uint8Array): string => toBase64(bytes).replace(/.{76}
  * as it is rather than base64url inside JSON.
  */
 export const gmailMessageWithFiles = (input: { destination: string; subject: string; body: string; files: readonly MailFile[] }): string => {
-  const boundary = `flarechat-${crypto.randomUUID()}`;
+  const boundary = `orangeagent-${crypto.randomUUID()}`;
   return [
     `To: ${input.destination}`,
     `Subject: ${encodedWord(input.subject)}`,
@@ -168,11 +168,11 @@ const createFolder = async (token: string, input: { name: string; parentId: stri
 };
 
 /**
- * Resolves one level of a folder path FlareChat keeps, such as the subfolder a
+ * Resolves one level of a folder path OrangeAgent keeps, such as the subfolder a
  * run names for a mail's files, reusing the folder this application created
  * there before. A folder the Account made by hand is passed over though the
  * grant lists it, and a same-named folder is created beside it, so a path
- * keeps resolving to the folders FlareChat made.
+ * keeps resolving to the folders OrangeAgent made.
  */
 const ensureFolder = async (token: string, input: { name: string; parentId: string }): Promise<string> => {
   const query = [
@@ -381,7 +381,7 @@ export const googleApi = (): GoogleProvider => ({
       const url = `${DRIVE_FILES}?q=${encodeURIComponent(query)}&fields=${encodeURIComponent('files(id,webViewLink,isAppAuthorized)')}&pageSize=10`;
       try {
         const body = await request<{ files?: Array<{ id?: string; webViewLink?: string; isAppAuthorized?: boolean }> }>(token, url);
-        // Only a file FlareChat published is linked again; one the Account put in the folder by hand is not public.
+        // Only a file OrangeAgent published is linked again; one the Account put in the folder by hand is not public.
         const found = (body.files ?? []).find((file) => file.id && file.webViewLink && file.isAppAuthorized === true);
         return found?.id && found.webViewLink ? { driveFileId: found.id, publicUrl: found.webViewLink } : null;
       } catch (error) {
@@ -391,7 +391,7 @@ export const googleApi = (): GoogleProvider => ({
       }
     },
     uploadFile: async (token, input) => {
-      const boundary = `flarechat-${crypto.randomUUID()}`;
+      const boundary = `orangeagent-${crypto.randomUUID()}`;
       const metadata = JSON.stringify({ name: input.filename, mimeType: input.mimeType, parents: [input.parentFolderId] });
       const uploaded = await request<{ id?: string; webViewLink?: string }>(
         token,
@@ -423,7 +423,7 @@ export const googleApi = (): GoogleProvider => ({
       ? `${DRIVE_FILES}/${encodeURIComponent(input.fileId)}/export?mimeType=${encodeURIComponent(input.exportAs)}`
       : `${DRIVE_FILES}/${encodeURIComponent(input.fileId)}?alt=media&supportsAllDrives=true`),
     renderPdf: async (token, input) => {
-      const boundary = `flarechat-${crypto.randomUUID()}`;
+      const boundary = `orangeagent-${crypto.randomUUID()}`;
       const metadata = JSON.stringify({ name: input.filename, mimeType: input.convertTo });
       const copy = await request<{ id?: string }>(token, `${DRIVE_UPLOAD}?uploadType=multipart&fields=id`, {
         method: 'POST',
@@ -434,7 +434,7 @@ export const googleApi = (): GoogleProvider => ({
       try {
         return await bytesRequest(token, `${DRIVE_FILES}/${encodeURIComponent(copy.id)}/export?mimeType=${encodeURIComponent('application/pdf')}`);
       } finally {
-        // The copy is FlareChat's own, made for this one export, so nothing the Account keeps is touched.
+        // The copy is OrangeAgent's own, made for this one export, so nothing the Account keeps is touched.
         await fetch(`${DRIVE_FILES}/${encodeURIComponent(copy.id)}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).catch(() => undefined);
       }
     },
@@ -489,6 +489,7 @@ export const googleApi = (): GoogleProvider => ({
   tasks: {
     listLists: (token) => tasksList<TaskListResource>(token, 'users/@me/lists'),
     createList: (token, title) => request<TaskListResource>(token, `${TASKS}/users/@me/lists`, { method: 'POST', body: JSON.stringify({ title }) }),
+    renameList: (token, listId, title) => request<TaskListResource>(token, `${TASKS}/users/@me/lists/${encodeURIComponent(listId)}`, { method: 'PATCH', body: JSON.stringify({ title }) }),
     // A task completed in Google's own apps is hidden as well as completed, so both are asked for together.
     listTasks: (token, input) => tasksList<TaskResource>(token, taskPath(input.listId), {
       showCompleted: String(input.completed),

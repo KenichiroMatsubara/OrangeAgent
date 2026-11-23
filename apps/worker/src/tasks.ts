@@ -1,13 +1,13 @@
 /**
  * Tasks as every run reaches them: the Google Tasks of the Automation Inbox's
- * Google account, read and written through its grant. FlareChat keeps no copy
+ * Google account, read and written through its grant. OrangeAgent keeps no copy
  * (ADR 0198). A Task is a title, notes, a due day, and whether it is done,
  * which is all Google Tasks holds; who it was given to, what event it belongs
  * to, and that it was cancelled rather than done are written in its notes the
  * way the Account's Skills say, and read back from them by the run.
  *
  * `moveTasksToGoogle` is the one thing here that still reads the `tasks`
- * table: it copies the Tasks an Account kept in FlareChat before into Google
+ * table: it copies the Tasks an Account kept in OrangeAgent before into Google
  * Tasks, once each.
  */
 
@@ -29,8 +29,8 @@ export interface TaskSession {
   accessToken: string;
 }
 
-/** The task list FlareChat makes and puts a new Task in unless a run names another. */
-export const TASK_LIST_NAME = 'FlareChat';
+/** The task list OrangeAgent makes and puts a new Task in unless a run names another. */
+export const TASK_LIST_NAME = 'OrangeAgent';
 
 /** How far back a search reaches for completed Tasks when it names no range and no phrase. */
 export const TASK_WINDOW_DAYS = 60;
@@ -267,11 +267,23 @@ export const taskWriteCall = (name: 'tasks.create' | 'tasks.update', input: Reco
   return call;
 };
 
-/** The list named FlareChat, made the first time a Task is put in it. */
+/** The name the list had while the product was called FlareChat. */
+export const FORMER_TASK_LIST_NAME = 'FlareChat';
+
+/**
+ * The list named OrangeAgent, made the first time a Task is put in it. A list
+ * still named FlareChat, from before the rename, is renamed and kept, so the
+ * Tasks already in it stay in the product's own list.
+ */
 const ownList = async (session: TaskSession): Promise<string> => {
   const lists: TaskListResource[] = await session.google.tasks.listLists(session.accessToken);
   const own = lists.find((list) => list.title === TASK_LIST_NAME && list.id);
   if (own?.id) return own.id;
+  const former = lists.find((list) => list.title === FORMER_TASK_LIST_NAME && list.id);
+  if (former?.id) {
+    await session.google.tasks.renameList(session.accessToken, former.id, TASK_LIST_NAME);
+    return former.id;
+  }
   const made = await session.google.tasks.createList(session.accessToken, TASK_LIST_NAME);
   if (!made.id) throw new Error('Google Tasks did not return a task list id.');
   return made.id;
@@ -311,13 +323,13 @@ export const updateTask = async (session: TaskSession, call: Record<string, unkn
   }
 };
 
-/** What an Account's Task read as before anybody was named, in the table FlareChat kept. */
+/** What an Account's Task read as before anybody was named, in the table OrangeAgent kept. */
 const UNASSIGNED = '未割り当て';
 
 type LegacyTask = typeof legacyTasks.$inferSelect;
 
 /**
- * The notes a Task kept in FlareChat takes to Google Tasks: its details, then
+ * The notes a Task kept in OrangeAgent takes to Google Tasks: its details, then
  * a line for each thing Google Tasks has no field for, in the form the
  * Account's Skills are told a Task's notes carry.
  */
@@ -334,20 +346,20 @@ export const movedNotes = (task: LegacyTask): string => {
   return [details, lines].filter(Boolean).join('\n\n');
 };
 
-/** What makes two Tasks the same copy: a Task FlareChat already copied reads exactly as it would be copied again. */
+/** What makes two Tasks the same copy: a Task OrangeAgent already copied reads exactly as it would be copied again. */
 const copyKey = (task: { title?: unknown; notes?: unknown; due?: unknown }): string =>
   JSON.stringify([task.title ?? '', task.notes ?? '', typeof task.due === 'string' ? task.due.slice(0, 10) : null]);
 
 /** How many Tasks one call copies, so that every Account's share of one tick stays small. */
 export const TASK_MOVE_BATCH = 25;
 
-/** Whether an Account still holds Tasks FlareChat kept that Google Tasks does not hold yet. */
+/** Whether an Account still holds Tasks OrangeAgent kept that Google Tasks does not hold yet. */
 export const hasTasksToMove = async (database: D1Database): Promise<boolean> =>
   (await accountDatabase(database).select({ id: legacyTasks.id }).from(legacyTasks).where(isNull(legacyTasks.googleTaskId)).limit(1).get()) !== undefined;
 
 /**
- * Copies the Tasks an Account kept in FlareChat into the Google Tasks list
- * named FlareChat, oldest first and at most `TASK_MOVE_BATCH` a call, each
+ * Copies the Tasks an Account kept in OrangeAgent into the Google Tasks list
+ * named OrangeAgent, oldest first and at most `TASK_MOVE_BATCH` a call, each
  * once: a row records the Google task it became. A completed Task is copied
  * completed, and a cancelled one completed with a line saying it was
  * cancelled, since Google Tasks has no third state.

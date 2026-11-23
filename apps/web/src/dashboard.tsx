@@ -133,7 +133,7 @@ export const Dashboard = () => {
   const shell: AccountShell = { state, person, account, logout, logoutEveryone, reauthenticate, switchPerson, addPerson, leaving, reauthenticating };
   return <AccountContext.Provider value={shell}><div className={styles.shell}>
     <aside className={styles.sidebar}>
-      <div className={styles.brand}><BrandMark className={styles.brandMark} size={34} />FlareChat</div>
+      <div className={styles.brand}><BrandMark className={styles.brandMark} size={34} />OrangeAgent</div>
       <nav className={styles.nav} aria-label="メインナビゲーション">
         <div className={styles.group}>
           <span className={styles.groupTitle}>毎日</span>

@@ -221,7 +221,7 @@ export const threadRoutes = (providers: Providers) => {
   routes.put('/organizations/:accountId/chat-threads/:threadId/mode', accountRoute<Partial<ChatThreadMode>>(async (request): Promise<ChatThreadDispatch> => {
     const { mode } = request.body;
     if (!isChatMode(mode)) throw invalid('承認のしかたを選んでください。');
-    if (!offeredModes(decides(request.env)).includes(mode)) throw invalid(`${CHAT_MODE_LABELS[mode]}は選べません。この FlareChat には、自動で判定するための OpenRouter の鍵が設定されていません。`);
+    if (!offeredModes(decides(request.env)).includes(mode)) throw invalid(`${CHAT_MODE_LABELS[mode]}は選べません。この OrangeAgent には、自動で判定するための OpenRouter の鍵が設定されていません。`);
     const object = await threadObject(request);
     const answered = await object.fetch('/mode', { method: 'POST', body: JSON.stringify({ mode, by: actorOf(request) }) });
     if (!answered.ok) throw invalid(await answered.text());
@@ -399,7 +399,7 @@ export const threadRoutes = (providers: Providers) => {
 
   /**
    * Saves a file of the conversation to the Automation Inbox's Drive: in the
-   * folder the member chose with Google Picker, or, without one, in FlareChat's
+   * folder the member chose with Google Picker, or, without one, in OrangeAgent's
    * AI に聞く folder at the top of My Drive.
    */
   routes.post('/organizations/:accountId/chat-threads/:threadId/files/:fileId/drive', accountRoute<Partial<ChatDriveSave>>(async (request): Promise<ChatDriveSaved> => {

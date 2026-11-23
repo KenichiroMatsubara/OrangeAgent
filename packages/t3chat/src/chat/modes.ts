@@ -1,9 +1,9 @@
 /**
- * FlareChat's approval modes on t3code's runtime-mode control. A conversation's mode is kept on
+ * OrangeAgent's approval modes on t3code's runtime-mode control. A conversation's mode is kept on
  * its thread as one of t3code's four RuntimeMode literals, so the copied composer shows and
- * changes it; each stands for one of FlareChat's four. Three are named alike (approval-required
+ * changes it; each stands for one of OrangeAgent's four. Three are named alike (approval-required
  * asks, auto lets a judge decide, full-access never asks); t3code's auto-accept-edits, which
- * FlareChat has no use for, stands for read-only, and the composer lists read-only first.
+ * OrangeAgent has no use for, stands for read-only, and the composer lists read-only first.
  */
 import type { RuntimeMode } from '@t3tools/contracts/providerPolicy.ts';
 

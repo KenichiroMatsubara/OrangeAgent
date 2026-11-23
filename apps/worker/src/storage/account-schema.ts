@@ -288,7 +288,7 @@ export const events = sqliteTable('events', {
   /** The Calendar Revision last observed for this event, held as an optimistic lock on the next merge. */
   calendarEtag: text('calendar_etag'),
   /**
-   * The rendered description FlareChat last wrote to Google Calendar. It
+   * The rendered description OrangeAgent last wrote to Google Calendar. It
    * differs from `description`, which holds the extracted Event Summary; the
    * difference between this and the live Calendar value is what identifies a
    * Manual Override.
@@ -432,7 +432,7 @@ export const automationWarnings = sqliteTable('automation_warnings', {
 ]);
 
 /**
- * The Tasks an Account kept in FlareChat before they moved to Google Tasks
+ * The Tasks an Account kept in OrangeAgent before they moved to Google Tasks
  * (ADR 0198). Nothing writes a Task here any more; a row is read once, to be
  * copied into Google Tasks, and the table goes when every Account's are.
  */

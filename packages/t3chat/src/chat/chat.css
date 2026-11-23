@@ -1,7 +1,7 @@
 /*
   The chat's styles. Tailwind is split so that its preflight comes from preflight.css, scoped to
   `.t3chat`; theme variables and utilities are only those the chat's sources use — the scan below
-  reads the copied web app and FlareChat's own chat files, the only ones that draw anything, and
+  reads the copied web app and OrangeAgent's own chat files, the only ones that draw anything, and
   none of their tests; and web/index.css, t3code's stylesheet, is scoped to `.t3chat` as well.
 */
 @layer theme, base, components, utilities;
@@ -14,7 +14,7 @@
 @source not "../**/*.test.tsx";
 @import "../web/index.css";
 
-/* FlareChat's own type, since the chat speaks Japanese. */
+/* OrangeAgent's own type, since the chat speaks Japanese. */
 .t3chat {
   --font-sans: var(--fc-font);
 }

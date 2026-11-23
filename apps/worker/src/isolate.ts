@@ -1,5 +1,5 @@
 /**
- * The lightest environment FlareChat lends a run's code: a Dynamic Worker, a
+ * The lightest environment OrangeAgent lends a run's code: a Dynamic Worker, a
  * V8 isolate the Worker Loader starts for one run of JavaScript and drops
  * after it (ADR 0202). It reaches no network and holds no filesystem; it is
  * given the files it was handed as bytes by name, the Skills it was handed as
@@ -10,7 +10,7 @@
  * file back as text or bytes; what it logs is its stdout and stderr. A Skill
  * named in `skills` is at `./skills/<name>/<path>`: its `.mjs` and `.js` files
  * are modules the code imports, and every other file a module of its bytes.
- * A library FlareChat lends (`lent.ts`) is imported by its npm name.
+ * A library OrangeAgent lends (`lent.ts`) is imported by its npm name.
  * With `tools`, `env.TOOLS` and the global `tools` call the run's tools
  * (`toolbox.ts`); that stub is the isolate's only way out.
  */
@@ -70,7 +70,7 @@ const harness = (names: readonly string[]): string => [
 ].join('\n');
 
 /** What the run's code is wrapped in, which the harness calls. */
-const BODY = '__flarechatRun';
+const BODY = '__orangeagentRun';
 
 /**
  * The run's code as a module whose body is a function the harness calls.

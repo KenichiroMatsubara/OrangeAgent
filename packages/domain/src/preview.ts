@@ -12,7 +12,7 @@ const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'] as const;
 /** How much of a mail's body the preview shows. */
 export const PREVIEW_BODY_CHARACTERS = 400;
 
-/** An event as FlareChat recorded it, before a change or cancellation. */
+/** An event as OrangeAgent recorded it, before a change or cancellation. */
 export interface PreviewEvent {
   title: string;
   startsAt: string;
@@ -127,7 +127,7 @@ const updatePreview = (args: Readonly<Record<string, unknown>>, before: PreviewE
   const location = typeof args.location === 'string' ? args.location.trim() : null;
   const summary = typeof args.description === 'string' ? ['案内文：書き換えます'] : [];
   if (before === null) {
-    // The event is not one FlareChat recorded: only what changes can be told.
+    // The event is not one OrangeAgent recorded: only what changes can be told.
     return [
       `予定：${text(args.eventId) || '（不明）'}（変更前は分かりません）`,
       ...(title === null ? [] : [`新しい予定名：${title}`]),
@@ -149,7 +149,7 @@ const updatePreview = (args: Readonly<Record<string, unknown>>, before: PreviewE
 };
 
 const cancelPreview = (args: Readonly<Record<string, unknown>>, before: PreviewEvent | null): string => before === null
-  ? `予定：${text(args.eventId) || '（不明）'}（FlareChat に記録がありません）`
+  ? `予定：${text(args.eventId) || '（不明）'}（OrangeAgent に記録がありません）`
   : [
     `予定名：${before.title || '（なし）'}`,
     `日時：${eventTimeText(before.startsAt, before.endsAt)}`,
@@ -157,13 +157,13 @@ const cancelPreview = (args: Readonly<Record<string, unknown>>, before: PreviewE
     'Google カレンダーから消し、誰にもメールは送りません',
   ].join('\n');
 
-/** The tools whose calls a preview shows, and those of them that name an event FlareChat recorded. */
+/** The tools whose calls a preview shows, and those of them that name an event OrangeAgent recorded. */
 export const PREVIEWED_TOOLS: readonly string[] = ['mail.send', 'mail.draft', 'create_scheduled_event', 'update_scheduled_event', 'cancel_scheduled_event'];
 export const EVENT_TOOLS: readonly string[] = ['update_scheduled_event', 'cancel_scheduled_event'];
 
 /**
  * What a call will do, in lines a person reads, or null for a tool without a
- * preview. `before` is the event a change or cancellation names, as FlareChat
+ * preview. `before` is the event a change or cancellation names, as OrangeAgent
  * recorded it, or null when it is not known.
  */
 export const callPreview = (name: string, args: Readonly<Record<string, unknown>>, before: PreviewEvent | null = null): string | null => {

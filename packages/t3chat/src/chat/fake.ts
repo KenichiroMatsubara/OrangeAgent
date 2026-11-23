@@ -235,7 +235,7 @@ const T2_ASSISTANT: AssistantItem = {
     { type: 'file', id: ChatAttachmentId.make('att-invoices'), name: '10月請求一覧.pdf', mimeType: 'application/pdf', sizeBytes: 61_877 },
   ],
 };
-/** The event the change names, as FlareChat recorded it. */
+/** The event the change names, as OrangeAgent recorded it. */
 const WEEKLY: PreviewEvent = { title: '週次定例', startsAt: '2026-11-27T10:00:00+09:00', endsAt: '2026-11-27T10:30:00+09:00', location: '第2会議室' };
 const T2_UPDATE = tool('t2-update-event', RUN_2, TURN_2 + 51, null, 'waiting', 'update_scheduled_event', { eventId: 'event-teirei-1127', startsAt: '2026-11-26T15:00:00+09:00', endsAt: '2026-11-26T15:30:00+09:00' });
 const T2_SEND = tool('t2-mail-send', RUN_2, TURN_2 + 52, null, 'waiting', 'mail.send', {
@@ -558,7 +558,7 @@ export const createFakeTransport = (options: FakeTransportOptions = {}): ChatTra
   const modes = async (): Promise<ReadonlyArray<ChatMode>> => OFFERED_MODES;
 
   const setMode = async (mode: ChatMode): Promise<void> => {
-    if (!OFFERED_MODES.includes(mode)) throw new Error('自動は選べません。この FlareChat には、自動で判定するための OpenRouter の鍵が設定されていません。');
+    if (!OFFERED_MODES.includes(mode)) throw new Error('自動は選べません。この OrangeAgent には、自動で判定するための OpenRouter の鍵が設定されていません。');
     const event: OrchestrationV2DomainEvent = { ...next(), type: 'thread.metadata-updated', payload: { ...snapshot([]).thread, runtimeMode: runtimeModeOf(mode), updatedAt: now() } };
     emit(event);
   };

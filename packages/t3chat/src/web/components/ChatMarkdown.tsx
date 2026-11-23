@@ -735,7 +735,7 @@ function useChatMarkdownState({
   const openDeferredMarkdownLink = useOpenLink(threadRef);
   // Subscribe so hydrated settings apply before the anchor synchronously decides whether to intercept _blank.
   const linkTargetPreference = useClientSettings((settings) => settings.browserLinkTarget);
-  // FlareChat: math is not rendered; $ and \\( stay text.
+  // OrangeAgent: math is not rendered; $ and \\( stay text.
   const mathEnabled = false;
   // Keyed by the file links found, not the text, so streamed text that adds none keeps the
   // renderer context, and every block reading it, unchanged.

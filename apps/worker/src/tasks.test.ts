@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { TASK_LIST_NAME, createTask, hasTasksToMove, moveTasksToGoogle, searchTasks, taskWriteCall, updateTask } from './tasks';
+import { FORMER_TASK_LIST_NAME, TASK_LIST_NAME, createTask, hasTasksToMove, moveTasksToGoogle, searchTasks, taskWriteCall, updateTask } from './tasks';
 import { createMigratedTestD1, type TestD1Database } from '../test/d1';
 import { memoryGoogle, type MemoryGoogle } from '../test/providers';
 import { TemporaryFailure } from './temporary';
@@ -19,7 +19,7 @@ afterEach(() => database.close());
 
 const CREATED_AT = '2026-07-01T00:00:00.000Z';
 
-/** One Task as FlareChat kept it before Tasks moved to Google Tasks. */
+/** One Task as OrangeAgent kept it before Tasks moved to Google Tasks. */
 const keep = (task: {
   id: string;
   title: string;
@@ -42,8 +42,8 @@ const keep = (task: {
 
 const moved = () => database.rows<{ id: string; google_task_id: string | null }>('SELECT id, google_task_id FROM tasks ORDER BY id');
 
-describe('moving the Tasks FlareChat kept into Google Tasks', () => {
-  it('copies each Task into the list named FlareChat with what Google Tasks has no field for written in its notes, and records the task it became', async () => {
+describe('moving the Tasks OrangeAgent kept into Google Tasks', () => {
+  it('copies each Task into the list named OrangeAgent with what Google Tasks has no field for written in its notes, and records the task it became', async () => {
     keep({
       id: 'task-1', title: '参加費を振り込む', deadline: '2026-08-20', description: '指定口座へ 3,000 円。17時まで。', assigneeName: '山田 太郎',
       remarks: '明日振り込みます', sourceMessageSubject: '総会のご案内', scheduledEventTitle: '秋季総会',
@@ -91,6 +91,17 @@ describe('moving the Tasks FlareChat kept into Google Tasks', () => {
     await expect(moveTasksToGoogle({ database: database.binding, session: session(), batch: 2 })).resolves.toEqual({ moved: 0 });
     expect(google.tasks.held.map(({ title }) => title)).toEqual(['仕事 1', '仕事 2', '仕事 3']);
     expect(google.tasks.lists.filter(({ title }) => title === TASK_LIST_NAME)).toHaveLength(1);
+  });
+
+  it('renames the list still called FlareChat and keeps putting Tasks in it, rather than making another', async () => {
+    google.tasks.lists.push({ id: 'list-former', title: FORMER_TASK_LIST_NAME });
+    keep({ id: 'task-1', title: '名簿を整える' });
+
+    await expect(moveTasksToGoogle({ database: database.binding, session: session() })).resolves.toEqual({ moved: 1 });
+
+    expect(google.tasks.lists.find(({ id }) => id === 'list-former')?.title).toBe(TASK_LIST_NAME);
+    expect(google.tasks.lists.filter(({ title }) => title === TASK_LIST_NAME)).toHaveLength(1);
+    expect(google.tasks.held.map(({ listId }) => listId)).toEqual(['list-former']);
   });
 
   it('takes the copy already in Google Tasks rather than making a second, when the copy was made but never recorded', async () => {

@@ -18,7 +18,7 @@
  */
 
 /** What every release cache is named after. */
-export const CACHE_PREFIX = 'flarechat-';
+export const CACHE_PREFIX = 'orangeagent-';
 
 /** The release a worker serves: its version, and the files it fetches when installed. */
 export interface Release {

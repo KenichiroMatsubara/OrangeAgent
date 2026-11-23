@@ -2,7 +2,7 @@
  * A call waiting for approval, as the Worker describes it (apps/worker/src/approval.ts
  * `describeCall`): what its tool does on the first line, then what it will do — the mail's
  * recipient, subject, and body, the event's name, time, and place, a change as before → after —
- * or, for a tool without such a preview, each argument on a line. FlareChat's own file: t3code
+ * or, for a tool without such a preview, each argument on a line. OrangeAgent's own file: t3code
  * shows a command to approve as code, which reads badly for a mail.
  */
 import type { ReactElement } from 'react';

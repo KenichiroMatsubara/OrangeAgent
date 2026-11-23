@@ -4,7 +4,7 @@
  * This is the client side of the RFCs ADR 0196's authorization server serves:
  * the server's 401 or its well-known document names its authorization server
  * (RFC 9728), whose metadata names its endpoints (RFC 8414, or OpenID
- * discovery), FlareChat registers itself there (RFC 7591), and the person is
+ * discovery), OrangeAgent registers itself there (RFC 7591), and the person is
  * sent to sign in with PKCE S256, the token naming the server as its
  * resource (RFC 8707).
  *
@@ -37,7 +37,7 @@ const grantContext = (accountId: string, serverId: string): string => `mcp-serve
 
 type ClientAuthentication = 'none' | 'client_secret_post' | 'client_secret_basic';
 
-/** The client FlareChat registered with a server's authorization server, and where it trades codes and refresh tokens. */
+/** The client OrangeAgent registered with a server's authorization server, and where it trades codes and refresh tokens. */
 interface McpClient {
   issuer: string;
   tokenEndpoint: string;
@@ -71,7 +71,7 @@ interface TokenResponse {
   error_description?: string;
 }
 
-/** The server cannot be signed in to by OAuth as FlareChat signs in: the message says why, in the screen's words. */
+/** The server cannot be signed in to by OAuth as OrangeAgent signs in: the message says why, in the screen's words. */
 export class McpSignInUnavailable extends Error {}
 
 /** The authorization server refused the stored grant itself, so only signing in again restores it. */
@@ -140,7 +140,7 @@ const discoverResource = async (fetch: McpFetch, url: URL): Promise<Discovered> 
     const probe = await fetch(url.toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', 'MCP-Protocol-Version': '2025-06-18' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'flarechat', version: '1' } } }),
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'orangeagent', version: '1' } } }),
     });
     if (probe.status === 401) challenge = probe.headers.get('WWW-Authenticate');
   } catch {
@@ -183,7 +183,7 @@ const discoverAuthorizationServer = async (fetch: McpFetch, issuer: URL): Promis
   };
 };
 
-/** Registers FlareChat as a client of the authorization server (RFC 7591), a public one unless the server hands it a secret. */
+/** Registers OrangeAgent as a client of the authorization server (RFC 7591), a public one unless the server hands it a secret. */
 const registerClient = async (fetch: McpFetch, input: { env: Bindings; server: AuthorizationServer; resource: string; scope: string | null }): Promise<McpClient> => {
   if (!input.server.registrationEndpoint) {
     throw new McpSignInUnavailable('この MCP Server はクライアントの自動登録に対応していないため、サインインできません。トークンを発行できるサーバーなら、トークンで登録してください。');
@@ -192,7 +192,7 @@ const registerClient = async (fetch: McpFetch, input: { env: Bindings; server: A
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify({
-      client_name: 'FlareChat',
+      client_name: 'OrangeAgent',
       client_uri: input.env.APP_URL,
       redirect_uris: [mcpRedirectUri(input.env)],
       grant_types: ['authorization_code', 'refresh_token'],
@@ -203,7 +203,7 @@ const registerClient = async (fetch: McpFetch, input: { env: Bindings; server: A
   });
   const body = await response.json().catch(() => ({})) as { client_id?: unknown; client_secret?: unknown; token_endpoint_auth_method?: unknown; error_description?: unknown };
   if (!response.ok || typeof body.client_id !== 'string' || !body.client_id) {
-    throw new McpSignInUnavailable(`この MCP Server の認可サーバーに FlareChat を登録できませんでした（HTTP ${response.status}${typeof body.error_description === 'string' ? `: ${body.error_description}` : ''}）。`);
+    throw new McpSignInUnavailable(`この MCP Server の認可サーバーに OrangeAgent を登録できませんでした（HTTP ${response.status}${typeof body.error_description === 'string' ? `: ${body.error_description}` : ''}）。`);
   }
   const secret = typeof body.client_secret === 'string' && body.client_secret ? body.client_secret : null;
   const method = body.token_endpoint_auth_method;

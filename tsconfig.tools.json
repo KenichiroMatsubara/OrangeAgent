@@ -32,6 +32,7 @@
   "include": [
     "*.config.ts",
     "scripts",
+    "redirect",
     "test",
     "apps/web/*.test.ts",
     "apps/worker/test/d1.test.ts",

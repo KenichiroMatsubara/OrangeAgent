@@ -53,7 +53,7 @@ export const serverRoutes = (providers: Providers) => {
       throw invalid('MCP Server 名は英小文字・数字・ハイフン・アンダースコアで入力してください。');
     }
     if (RESERVED_TOOL_NAMESPACES.includes(name)) {
-      throw invalid(`「${name}」は FlareChat 自身の機能の名前なので、MCP Server 名には使えません。別の名前にしてください。`);
+      throw invalid(`「${name}」は OrangeAgent 自身の機能の名前なので、MCP Server 名には使えません。別の名前にしてください。`);
     }
     if (!/^https:\/\//u.test(url)) throw invalid('MCP Server の URL は https で始まる必要があります。');
     const revision = request.body.revision ?? null;

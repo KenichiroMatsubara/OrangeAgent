@@ -1,6 +1,6 @@
 /**
  * The Skill every Account is given for Office files and PDFs: how a run's
- * JavaScript makes, reads, and fills them with the libraries FlareChat lends
+ * JavaScript makes, reads, and fills them with the libraries OrangeAgent lends
  * it (`lent.ts`). It does in JavaScript what the docx, xlsx, pptx, and pdf
  * Skills of Anthropic's collection, which Pi's documentation points to, do in
  * Python and the shell, and says what an isolate without LibreOffice cannot.
@@ -23,7 +23,7 @@ export const OFFICE_SKILL_NAME = 'office-files';
 export const OFFICE_SKILL_TITLE = 'Officeファイル';
 
 /** When the Office Skill applies. */
-export const OFFICE_SKILL_DESCRIPTION = 'Word（docx）・Excel（xlsx）・PowerPoint（pptx）・PDF を作る・読む・届いた用紙や雛形に書き込むとき。JavaScript で、FlareChat が貸すライブラリを使います。';
+export const OFFICE_SKILL_DESCRIPTION = 'Word（docx）・Excel（xlsx）・PowerPoint（pptx）・PDF を作る・読む・届いた用紙や雛形に書き込むとき。JavaScript で、OrangeAgent が貸すライブラリを使います。';
 
 /** How a run makes, reads, and fills Office files and PDFs in JavaScript. */
 export const OFFICE_SKILL = `Office のファイル（docx・xlsx・pptx）と PDF は、code.run の JavaScript で扱います。Python では書きません。

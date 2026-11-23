@@ -33,7 +33,7 @@ export interface Hold {
   label: string;
   /** The held call as the person reads it: its tool, its arguments, and its preview. */
   description: string;
-  /** What the call will change, where FlareChat can show it; null until a tool has one. */
+  /** What the call will change, where OrangeAgent can show it; null until a tool has one. */
   preview: string | null;
   spent: Spent;
 }

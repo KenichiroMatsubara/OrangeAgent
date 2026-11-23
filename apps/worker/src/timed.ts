@@ -9,7 +9,7 @@
  * cannot be picked up a second time while it is still going. Each tick also
  * keeps the Account's runs moving: it expires approvals left too long and
  * resumes writes an interrupted run left unfinished. And it copies a share of
- * the Tasks the Account kept in FlareChat into Google Tasks, until none is left
+ * the Tasks the Account kept in OrangeAgent into Google Tasks, until none is left
  * (ADR 0198).
  */
 
@@ -52,7 +52,7 @@ const advance = async (database: D1Database, automationId: string, at: Date): Pr
 };
 
 /**
- * Copies the next share of the Tasks an Account kept in FlareChat into Google
+ * Copies the next share of the Tasks an Account kept in OrangeAgent into Google
  * Tasks, once its Automation Inbox's grant reaches Google Tasks. An Account
  * with no mailbox, or one connected before the grant asked for Google Tasks,
  * keeps its rows as they are until it connects one. A failure is logged and

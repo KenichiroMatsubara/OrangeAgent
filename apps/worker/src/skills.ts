@@ -696,7 +696,7 @@ export const publishedSkill = async (store: SkillStore, skillId: string): Promis
   const others = await Promise.all(files.filter((file) => file.path !== SKILL_INSTRUCTIONS_FILE).map(async (file): Promise<PublishedFile> => {
     const bytes = await bytesAt(store, prefix, file.path) ?? new Uint8Array();
     const text = skillFileText(bytes);
-    // MCP's protocol embeds a resource that is not text as base64; it is the protocol's, not FlareChat's, encoding.
+    // MCP's protocol embeds a resource that is not text as base64; it is the protocol's, not OrangeAgent's, encoding.
     return text === null ? { path: file.path, mediaType: file.mediaType, blob: toBase64(bytes) } : { path: file.path, mediaType: file.mediaType, text };
   }));
   return { instructions: await instructionsAt(store, prefix), files: others };

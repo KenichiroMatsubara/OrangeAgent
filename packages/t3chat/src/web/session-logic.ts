@@ -473,14 +473,14 @@ function projectedWorkEntry(
       };
     }
     case "dynamic_tool": {
-      // FlareChat: every tool has words a person reads it by (domain toolLabel); the Worker
+      // OrangeAgent: every tool has words a person reads it by (domain toolLabel); the Worker
       // writes them as the item's title, and an item kept without one is named the same way.
-      const flarechatTitle = title ?? (item.toolName ? toolLabel(item.toolName) : null);
-      if (flarechatTitle !== null) {
+      const orangeagentTitle = title ?? (item.toolName ? toolLabel(item.toolName) : null);
+      if (orangeagentTitle !== null) {
         return {
           ...common,
-          label: flarechatTitle,
-          toolTitle: flarechatTitle,
+          label: orangeagentTitle,
+          toolTitle: orangeagentTitle,
           toolData: { input: item.input, output: item.output },
         };
       }
@@ -1127,7 +1127,7 @@ export function deriveRevertTurnCountByUserMessageId(input: {
   const targetByRunId = new Map<RunId, number | undefined>();
   const byUserMessageId = new Map<ChatMessage["id"], number>();
   let previousRunId: RunId | null = null;
-  // FlareChat: a conversation with no checkpoints at all (no workspace to restore) rewinds to any
+  // OrangeAgent: a conversation with no checkpoints at all (no workspace to restore) rewinds to any
   // message, its turn count being how many answers came before it.
   const withoutCheckpoints = input.checkpoints.length === 0 && input.threadStartCheckpointAvailable;
   let runsBefore = 0;

@@ -8,8 +8,8 @@ describe('Login Code', () => {
   const issued = {
     code: 'K7QF-2M9X',
     expiresAt: '2026-10-25T01:10:00.000Z',
-    exchangeUrl: 'https://flarechat.example.workers.dev/api/public/organizations/org-1/operator-tokens',
-    serverUrl: 'https://flarechat.example.workers.dev/api/public/organizations/org-1/mcp',
+    exchangeUrl: 'https://orangeagent.example.workers.dev/api/public/organizations/org-1/operator-tokens',
+    serverUrl: 'https://orangeagent.example.workers.dev/api/public/organizations/org-1/mcp',
   };
 
   it('shows the code and until when it lasts, in Asia/Tokyo', () => {
@@ -30,7 +30,7 @@ describe('Login Code', () => {
 
     expect(command).toContain(exchangeCommand(issued));
     expect(command).toContain(`sed -nE 's/.*"token":"([^"]+)".*/\\1/p'`);
-    expect(command).toContain('[ -n "$TOKEN" ] && claude mcp add --transport http flarechat');
+    expect(command).toContain('[ -n "$TOKEN" ] && claude mcp add --transport http orangeagent');
     expect(command).toContain(`${issued.serverUrl} --header "Authorization: Bearer $TOKEN"`);
   });
 });

@@ -55,7 +55,7 @@ export const ensureMemoryIndex = async (input: {
     headers,
     body: JSON.stringify({
       name: input.name,
-      description: 'FlareChat Memory: one namespace per Account',
+      description: 'OrangeAgent Memory: one namespace per Account',
       config: { dimensions: MEMORY_DIMENSIONS, metric: MEMORY_METRIC },
     }),
   });

@@ -1,5 +1,5 @@
 /**
- * The Durable Objects that start FlareChat's containers (ADR 0202), one class
+ * The Durable Objects that start OrangeAgent's containers (ADR 0202), one class
  * per size, because Cloudflare fixes a container's instance type by the class
  * it belongs to. Each object starts its container for one job, with no
  * network, runs the job, and destroys the container whatever happened.

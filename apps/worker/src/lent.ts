@@ -1,5 +1,5 @@
 /**
- * The libraries FlareChat lends a run's JavaScript, as a container's image
+ * The libraries OrangeAgent lends a run's JavaScript, as a container's image
  * holds Python's: the code imports each by its npm name — `import ExcelJS
  * from 'exceljs'` — wherever it runs. They read and write Office files and
  * PDFs (ExcelJS, docx, PptxGenJS, pdf-lib) and the ZIP and XML an Office

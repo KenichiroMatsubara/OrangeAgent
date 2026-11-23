@@ -52,7 +52,7 @@ describe('a transcript, speaker by speaker', () => {
   it('joins Japanese words with nothing between them, and other words with a space', () => {
     expect(joinedWords(['今日', 'は', '総会', 'です', '。'])).toBe('今日は総会です。');
     expect(joinedWords(['Hello', ',', 'world', '.', 'Next', 'item'])).toBe('Hello, world. Next item');
-    expect(joinedWords(['議題', 'は', 'FlareChat', 'の', '導入'])).toBe('議題はFlareChatの導入');
+    expect(joinedWords(['議題', 'は', 'OrangeAgent', 'の', '導入'])).toBe('議題はOrangeAgentの導入');
   });
 
   it('makes one line per change of speaker from words labelled by index, naming them in the order they first speak', () => {

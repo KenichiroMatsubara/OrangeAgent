@@ -1,0 +1,10 @@
+{
+  // Serves the URL the product had while it was called FlareChat (CONTEXT.md, 改名).
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "flarechat",
+  "main": "redirect.ts",
+  "compatibility_date": "2026-07-24",
+  "workers_dev": true,
+  "vars": { "TARGET_ORIGIN": "https://orangeagent.pinara.workers.dev" },
+  "services": [{ "binding": "TARGET", "service": "orangeagent" }]
+}

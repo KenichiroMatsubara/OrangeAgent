@@ -172,7 +172,7 @@ Account が「ブラウザ」画面でオンにすると、チャットと定期
 ### Drive
 
 - 読めるのは25 MB までのファイルです。Google ドキュメントは Word、スプレッドシートは Excel、スライドは PDF として渡します。
-- Drive のファイルは削除しません。捨てるときは、マイドライブの先頭の「FlareChat のゴミ箱」フォルダに移します。
+- Drive のファイルは削除しません。捨てるときは、マイドライブの先頭の「OrangeAgent のゴミ箱」フォルダに移します。このフォルダは ID で覚えているので、改名前に作られた「FlareChat のゴミ箱」も、名前はそのままで使い続けます。
 - 「設定」画面で Drive Folders を決めると、エージェントが触れる範囲をそのフォルダの下に限れます。
 - メールの添付をどのフォルダに置くかはエージェントが選びます。決めたい場合は Skill に書きます。
 
@@ -188,6 +188,7 @@ Automation Inbox が開いた会議と参加した会議の、文字起こしを
 - 同じ鍵（メールの ID とタイトルから作る）のタスクがあれば、新しく作らず、そのタスクを変えます。
 - 取りやめは、Google Tasks では完了にして「取りやめ」の行を書きます。
 - タスクを消すことはありません。開き直せるのは人だけです。
+- タスクは「OrangeAgent」という名前のリストに入れます。改名前の「FlareChat」という名前のリストが残っていれば、名前を「OrangeAgent」に変えて、そのまま使います。
 
 ## 連絡先と届け先
 
@@ -215,6 +216,12 @@ OrangeAgent は MCP サーバーとして呼べます。
 
 - **Operator Token**：メンバー本人の CLI（Claude Code など）やアプリ（Claude など）が、そのメンバーとして使う鍵です。90日もちます。CLI はログインコードで、アプリは OAuth で受け取ります。チャットと同じことができます。
 - **Access Token**：外部のエージェントに渡す鍵です。使えるツールは Tool Grant で決め、送ってよい相手は1つの連絡先リストに限ります。Google のツールと Skill は使えません。
+
+## 改名
+
+このアプリは FlareChat という名前でした。本番の URL は `orangeagent.<subdomain>.workers.dev` に変わり、旧 URL の `flarechat.<subdomain>.workers.dev` には転送用の Worker（`redirect/`）を置いています。ブラウザで開いたページは新しい URL に転送し、webhook や MCP などの呼び出しはそのまま新しい Worker に渡します。
+
+次の名前は、本番のデータや外の仕組みに残っているので、旧名のままにしています：D1（`flarechat-control-apac`、`flarechat-organization-*`）、R2（`flarechat-recovery-receipts`）、Vectorize（`flarechat-memory`）、Workflow（`flarechat-transcriber`）、Drive のファイルに付ける `flarechatPutAwayFrom`、コンテナに渡す `flarechat.internal`・`FLARECHAT_MCP_URL`・`FLARECHAT_RUN_TOKEN`、会話のイベントに書く provider の ID（`flarechat`）。
 
 ## アカウントとデータ
 

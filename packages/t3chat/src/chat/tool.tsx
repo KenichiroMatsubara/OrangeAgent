@@ -1,5 +1,5 @@
 /**
- * What an opened tool call shows besides t3code's arguments and answer (FlareChat's own file):
+ * What an opened tool call shows besides t3code's arguments and answer (OrangeAgent's own file):
  * why a call failed, as an error rather than as an answer, and the tool's own name, which the row
  * itself shows in words (domain `toolLabel`).
  */

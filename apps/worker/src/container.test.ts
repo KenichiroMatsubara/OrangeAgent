@@ -87,7 +87,7 @@ describe('a job in a container', () => {
 
     expect(written.get('/skills/office-files/scripts/fill.mjs')).toBe('export {};');
     expect(written.has('/node_modules/fflate/index.mjs')).toBe(true);
-    expect(written.get(`${WORKDIR}/.flarechat.mjs`)).toContain('globalThis.tools');
+    expect(written.get(`${WORKDIR}/.orangeagent.mjs`)).toContain('globalThis.tools');
   });
 
   it('hands back the smallest files of out/ first, at most 20', async () => {

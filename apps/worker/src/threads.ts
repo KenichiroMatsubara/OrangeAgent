@@ -24,10 +24,10 @@ export interface ThreadTarget {
   threadId: string;
 }
 
-export const THREAD_ACCOUNT_HEADER = 'X-FlareChat-Account';
-export const THREAD_HEADER = 'X-FlareChat-Thread';
+export const THREAD_ACCOUNT_HEADER = 'X-OrangeAgent-Account';
+export const THREAD_HEADER = 'X-OrangeAgent-Thread';
 /** The member whose screen opens a conversation's socket, as the route that checked them names them. */
-export const THREAD_MEMBER_HEADER = 'X-FlareChat-Member';
+export const THREAD_MEMBER_HEADER = 'X-OrangeAgent-Member';
 
 /** The name a conversation's Durable Object is reached by. */
 export const threadObjectName = (target: ThreadTarget): string => `${target.accountId}:${target.threadId}`;

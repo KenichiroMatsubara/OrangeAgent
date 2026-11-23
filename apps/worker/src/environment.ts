@@ -4,14 +4,14 @@
  * An AI Connection whose API runs code itself lends the model that API's own
  * environment — Anthropic's sandbox, OpenAI's code interpreter, Gemini's code
  * execution — and the model runs code there inside its own request. Every
- * other API, OpenRouter's among them, runs none, so FlareChat lends the model
+ * other API, OpenRouter's among them, runs none, so OrangeAgent lends the model
  * one of its own (ADR 0202): `code.run`, which the Worker answers on the
  * lightest environment the work fits — a Dynamic Worker, then a Cloudflare
  * container of 256 MiB, 1 GiB, 4 GiB, or 12 GiB — chosen by the rules below
  * before the code runs, and one size larger, once, when it ran out of memory.
  *
- * Nothing here reaches the network: the environments FlareChat starts reach
- * none. Their one way out is FlareChat itself, when the run lends its code
+ * Nothing here reaches the network: the environments OrangeAgent starts reach
+ * none. Their one way out is OrangeAgent itself, when the run lends its code
  * its tools: a Dynamic Worker calls them through `env.TOOLS`, an RPC stub that
  * holds the run's Run Token, and a container through a request to
  * `flarechat.internal`, which reaches the run's MCP Server; every call made
@@ -36,7 +36,7 @@ export type CodeLanguage = 'javascript' | 'python' | 'shell';
 
 export const CODE_LANGUAGES: readonly CodeLanguage[] = ['javascript', 'python', 'shell'];
 
-/** One size of environment FlareChat lends, the lightest first. */
+/** One size of environment OrangeAgent lends, the lightest first. */
 export interface Tier {
   name: 'isolate' | 'lite' | 'basic' | 'standard-1' | 'standard-4';
   /** The memory the code may use. */
@@ -189,7 +189,7 @@ export const runCode = async (job: CodeJob, run: CodeRunner): Promise<CodeAnswer
   const estimate = estimateMiB(work);
   const first = tierFor(work);
   if (!first) {
-    return { refused: `The work is estimated to need ${estimate} MiB, more than the largest environment FlareChat lends (${TIERS.at(-1)?.memoryMiB ?? 0} MiB). Hand it fewer or smaller files.` };
+    return { refused: `The work is estimated to need ${estimate} MiB, more than the largest environment OrangeAgent lends (${TIERS.at(-1)?.memoryMiB ?? 0} MiB). Hand it fewer or smaller files.` };
   }
   const answer = (tier: Tier, result: CodeResult, retriedFrom?: Tier): CodeAnswer => ({
     environment: tier.label,

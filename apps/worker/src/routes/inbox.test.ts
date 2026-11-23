@@ -47,7 +47,7 @@ describe('Account Automation routes', () => {
     });
   });
 
-  it('says whether the Inbox grant lets FlareChat save drafts', async () => {
+  it('says whether the Inbox grant lets OrangeAgent save drafts', async () => {
     fixture = createTestApp();
     fixture.account.execute(
       "UPDATE google_connections SET granted_scopes = '[\"openid\",\"https://www.googleapis.com/auth/gmail.send\"]' WHERE kind = 'automation_inbox'",
@@ -62,7 +62,7 @@ describe('Account Automation routes', () => {
     await expect(after.json()).resolves.toMatchObject({ data: { draftsGranted: true } });
   });
 
-  it('says whether the Inbox grant lets FlareChat read the Drive', async () => {
+  it('says whether the Inbox grant lets OrangeAgent read the Drive', async () => {
     fixture = createTestApp();
     fixture.account.execute(
       "UPDATE google_connections SET granted_scopes = '[\"https://www.googleapis.com/auth/drive.file\"]' WHERE kind = 'automation_inbox'",

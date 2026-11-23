@@ -16,7 +16,7 @@ export interface Bindings {
   CLOUDFLARE_ACCOUNT_ID: string;
   CLOUDFLARE_API_TOKEN: string;
   CLOUDFLARE_WORKER_NAME: string;
-  /** The Microsoft Entra app FlareChat connects a Microsoft account through; without both, PDFs are rendered by Google alone. */
+  /** The Microsoft Entra app OrangeAgent connects a Microsoft account through; without both, PDFs are rendered by Google alone. */
   MICROSOFT_CLIENT_ID?: string;
   MICROSOFT_CLIENT_SECRET?: string;
   /** Google Picker's browser API key; with the app id, Operator Chat attaches a file from Drive and saves one in a folder a member chooses. */
@@ -48,11 +48,11 @@ export interface Bindings {
   BROWSER?: BrowserBinding;
   /**
    * The Worker Loader that starts a Dynamic Worker for one run of JavaScript,
-   * the lightest environment FlareChat lends a model whose API runs no code
+   * the lightest environment OrangeAgent lends a model whose API runs no code
    * (ADR 0202); unbound in local development, where no run is offered one.
    */
   LOADER?: WorkerLoader;
-  /** The containers FlareChat lends a run's code, one class per size (ADR 0202); unbound in local development. */
+  /** The containers OrangeAgent lends a run's code, one class per size (ADR 0202); unbound in local development. */
   WORKBENCH_LITE?: DurableObjectNamespace<WorkbenchLite>;
   WORKBENCH_BASIC?: DurableObjectNamespace<WorkbenchBasic>;
   WORKBENCH_STANDARD_1?: DurableObjectNamespace<WorkbenchStandard1>;

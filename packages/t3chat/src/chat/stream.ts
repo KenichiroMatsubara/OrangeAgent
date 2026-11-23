@@ -33,7 +33,7 @@ const threadKey = (environmentId: string, threadId: string): string => `${enviro
 const family = Atom.family((key: string) =>
   Atom.make<ThreadStateResult>(AsyncResult.success(EMPTY_ENVIRONMENT_THREAD_STATE)).pipe(
     Atom.keepAlive,
-    Atom.withLabel(`flarechat-thread-state:${key}`),
+    Atom.withLabel(`orangeagent-thread-state:${key}`),
   ),
 );
 

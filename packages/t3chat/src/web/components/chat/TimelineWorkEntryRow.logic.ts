@@ -233,7 +233,7 @@ export function remarkThoughtPreview(fallback: string) {
     };
     const visit = (node: Root | RootContent) => {
       if (remaining === 0 || node.type === "html" || node.type === "definition") return;
-      // FlareChat: math is not parsed, so there are no math nodes to keep.
+      // OrangeAgent: math is not parsed, so there are no math nodes to keep.
       if ("alt" in node) append(node.alt ?? "");
       else if ("value" in node) append(node.value);
       else if ("children" in node) {

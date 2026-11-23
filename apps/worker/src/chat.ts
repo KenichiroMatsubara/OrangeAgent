@@ -37,7 +37,7 @@ export const runChatTurn = async (input: {
   instructions: string;
   request: string;
   /**
-   * What FlareChat writes after the member's words in their message, such as
+   * What OrangeAgent writes after the member's words in their message, such as
    * the time it is now. It follows them, so the first words the model reads
    * in the message are the member's own and it answers in their language.
    */

@@ -53,7 +53,7 @@ export const TimelinePendingApprovalRow = memo(function TimelinePendingApprovalR
   return (
     <WorkLogRow
       role="group"
-      // FlareChat: named by what the waiting call does, the first line the Worker describes it with.
+      // OrangeAgent: named by what the waiting call does, the first line the Worker describes it with.
       aria-label={approval.detail?.split("\n")[0]?.trim() || m(presentation.label)}
       data-v2-item-type="approval_request"
       wrapLabel

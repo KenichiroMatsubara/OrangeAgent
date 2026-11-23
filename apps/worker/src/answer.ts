@@ -47,13 +47,13 @@ const tokyoNow = (): string => new Intl.DateTimeFormat('ja-JP', {
 }).format(new Date());
 
 /**
- * What FlareChat writes after the member's words: the time it is now. It
- * follows the words, so a model reads the member's language before FlareChat's
+ * What OrangeAgent writes after the member's words: the time it is now. It
+ * follows the words, so a model reads the member's language before OrangeAgent's
  * English note. It goes with the message rather than the instructions, so the instructions
  * stay the same from one message to the next and every provider serves them,
  * and the conversation before the message, from its prompt cache.
  */
-const timeNote = (): string => `[FlareChat: it is now ${tokyoNow()} in Asia/Tokyo.]`;
+const timeNote = (): string => `[OrangeAgent: it is now ${tokyoNow()} in Asia/Tokyo.]`;
 
 /** What every model is told of the files it writes and holds, and how they reach the member. */
 const FILE_INSTRUCTIONS = [
@@ -72,7 +72,7 @@ const FILE_INSTRUCTIONS = [
  * and, when the Worker lends one, the environment it runs code in.
  */
 const operatorInstructions = (skills: string, code: boolean, browser: boolean): string => guidance(skills, [
-  'Markdown is rendered. FlareChat ends the member\'s latest message with the time it is now in Asia/Tokyo, as a note in brackets; those words are FlareChat\'s, not the member\'s, and never decide the language you answer in.',
+  'Markdown is rendered. OrangeAgent ends the member\'s latest message with the time it is now in Asia/Tokyo, as a note in brackets; those words are OrangeAgent\'s, not the member\'s, and never decide the language you answer in.',
   ...(browser ? ['Every picture browser.read takes is shown to the member below your answer the moment it is taken, as a thumbnail they open and can download, so they see what you saw: never say you cannot show or give one, and do not hand it again.'] : []),
   ...(code ? FILE_INSTRUCTIONS : FILE_INSTRUCTIONS.slice(3)),
 ]);
@@ -173,7 +173,7 @@ export const answerThread = async (input: {
     const skillStore: SkillStore = { db: accountDatabase(database), bucket: env.RECOVERY_RECEIPTS, accountId };
     const connection = withModel(await requiredAiConnection(env, accountId, database), input.answer.model || undefined);
     model = connection.model;
-    // Every model runs code in the environment FlareChat lends it, when this Worker binds one (ADR 0203).
+    // Every model runs code in the environment OrangeAgent lends it, when this Worker binds one (ADR 0203).
     const runner = codeRunner(env);
     const [servers, credentials, skills, earlierFiles] = await Promise.all([
       listChatServers({ database, accountKey, accountId, fetch: providers.fetch }),
@@ -352,7 +352,7 @@ const writtenFiles = async (database: D1Database, bucket: R2Bucket, accountKey: 
 };
 
 /** What the model is told of a call its answer's object went away while making. */
-const UNKNOWN_RESULT = 'FlareChat restarted while this call was being made, so whether it took effect is unknown. Check before making it again.';
+const UNKNOWN_RESULT = 'OrangeAgent restarted while this call was being made, so whether it took effect is unknown. Check before making it again.';
 
 /**
  * The messages of an answer taken up again: every call of its latest message

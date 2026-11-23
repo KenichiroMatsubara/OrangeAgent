@@ -5,7 +5,7 @@ import type { MessageResolver } from "~/i18n/messages";
 import { formatContextWindowTokens } from "./contextWindow";
 
 /**
- * FlareChat: what one Operator Chat answer read and wrote, from its run's `usage`, and how much of
+ * OrangeAgent: what one Operator Chat answer read and wrote, from its run's `usage`, and how much of
  * the conversation its model now holds, and what the answer and the whole chat cost. Runs written
  * before usage was recorded carry none, and nothing is shown for them; a run whose model no price
  * is known for carries no cost.

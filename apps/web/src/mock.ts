@@ -176,8 +176,8 @@ const authorizationPreview = (): AuthorizationPreview => ({
 const loginCode = (): IssuedLoginCode => ({
   code: 'K7QF-2M9X',
   expiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
-  exchangeUrl: 'https://flarechat.example.workers.dev/api/public/organizations/organization-1/operator-tokens',
-  serverUrl: 'https://flarechat.example.workers.dev/api/public/organizations/organization-1/mcp',
+  exchangeUrl: 'https://orangeagent.example.workers.dev/api/public/organizations/organization-1/operator-tokens',
+  serverUrl: 'https://orangeagent.example.workers.dev/api/public/organizations/organization-1/mcp',
 });
 
 /** Operator Chat's conversations (ADR 0201); each opens the sample conversation the page plays. */
@@ -466,10 +466,10 @@ const accountReads: ReadonlyArray<readonly [RegExp, (path: string) => unknown]> 
   // The mocked chat plays its own conversation (thread.tsx), whose transport says what it offers; this is what the Worker would.
   [/^\/chat-capabilities$/u, () => ({ models: ['standard-model', 'fast-model', 'reasoning-model'], efforts: { 'standard-model': { levels: ['low', 'medium', 'high', 'xhigh', 'max'], default: 'high' }, 'reasoning-model': { levels: ['none', 'low', 'medium', 'high', 'xhigh'], default: null } }, drivePicker: true })],
   // The mock can notify; whether this browser can is the device's, which the mock plays (screens/chat.tsx).
-  [/^\/push$/u, () => ({ publicKey: 'BMockPublicKeyOfTheMockedFlareChatForItsNotificationsOnly' })],
+  [/^\/push$/u, () => ({ publicKey: 'BMockPublicKeyOfTheMockedOrangeAgentForItsNotificationsOnly' })],
   [/^\/access-tokens$/u, () => accessTokens],
   [/^\/operator-tokens$/u, () => operatorTokens],
-  [/^\/mcp-endpoint$/u, () => ({ url: 'https://flarechat.example.workers.dev/api/public/organizations/organization-1/mcp' })],
+  [/^\/mcp-endpoint$/u, () => ({ url: 'https://orangeagent.example.workers.dev/api/public/organizations/organization-1/mcp' })],
   [/^\/automations$/u, () => automations],
   [/^\/automations\/[^/?]+$/u, (path) => automations.find((entry) => path === `/automations/${entry.id}`) ?? automations[0]],
 ];

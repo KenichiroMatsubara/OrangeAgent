@@ -176,15 +176,15 @@ export const deleteChatServer = async (input: { database: D1Database; id: string
   await drizzleAccountDatabase(input.database).delete(mcpServers).where(eq(mcpServers.id, input.id)).run();
 };
 
-/** What FlareChat adds to an answer it replays that the administrator stopped, so Claude knows it was left unfinished. */
-export const STOPPED_NOTE = '\n\n[FlareChat: the administrator stopped this answer before it was finished.]';
+/** What OrangeAgent adds to an answer it replays that the administrator stopped, so Claude knows it was left unfinished. */
+export const STOPPED_NOTE = '\n\n[OrangeAgent: the administrator stopped this answer before it was finished.]';
 
 /**
- * The note FlareChat adds to an answer it replays, naming the files Claude
+ * The note OrangeAgent adds to an answer it replays, naming the files Claude
  * wrote for it. Only the answer's words are replayed, never the code that
  * wrote a file, so without the note Claude reads its own "I made it" with no
  * sign that it did, and takes the answer back.
  */
 export const writtenNote = (files: readonly Pick<ChatGeneratedFile, 'filename' | 'size' | 'drive'>[]): string => files.length
-  ? `\n\n[FlareChat: this answer wrote ${files.map((file) => `${file.filename} (${file.size} bytes${file.drive ? `, saved to Google Drive at ${file.drive.url}` : ''})`).join(', ')}, offered to the administrator for download below it.]`
+  ? `\n\n[OrangeAgent: this answer wrote ${files.map((file) => `${file.filename} (${file.size} bytes${file.drive ? `, saved to Google Drive at ${file.drive.url}` : ''})`).join(', ')}, offered to the administrator for download below it.]`
   : '';

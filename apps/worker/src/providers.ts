@@ -220,7 +220,7 @@ export interface GoogleProvider {
     patchEvent(token: string, eventId: string, event: Record<string, unknown>, options?: { etag?: string | null }): Promise<CalendarEventResource>;
   };
   drive: {
-    /** The folder at this path beneath the parent, the top of My Drive unless named: each level a folder FlareChat made there before, or made now. */
+    /** The folder at this path beneath the parent, the top of My Drive unless named: each level a folder OrangeAgent made there before, or made now. */
     ensureFolderPath(token: string, segments: readonly string[], parentId?: string): Promise<string>;
     createFolder(token: string, input: { name: string; parentId: string }): Promise<string>;
     findPublishedAttachment(token: string, input: { filename: string; folderId: string }): Promise<ReusableDriveAttachment | null>;
@@ -248,6 +248,7 @@ export interface GoogleProvider {
     /** Every task list of the Google account. */
     listLists(token: string): Promise<TaskListResource[]>;
     createList(token: string, title: string): Promise<TaskListResource>;
+    renameList(token: string, listId: string, title: string): Promise<TaskListResource>;
     /**
      * Every task of one list that is not deleted, read page after page: the
      * open ones, and with `completed` the completed ones too, those completed

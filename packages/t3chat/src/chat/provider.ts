@@ -1,21 +1,22 @@
 /**
- * The one provider the copied composer offers: FlareChat itself. t3code's composer sends nothing
+ * The one provider the copied composer offers: OrangeAgent itself. t3code's composer sends nothing
  * unless a ready provider instance answers the thread's model selection, and every conversation
- * the Worker writes names the instance `flarechat` (apps/worker/src/timeline.ts). Which model
+ * the Worker writes names the instance `orangeagent` (apps/worker/src/timeline.ts). Which model
  * answers is the Account's AI Connection's concern, chosen on the Worker.
  */
 import { DEFAULT_UNIFIED_SETTINGS, ProviderDriverKind, ProviderInstanceId, type RuntimeMode, type ServerProvider } from '@t3tools/contracts';
 import type { UnifiedSettings } from '@t3tools/contracts/settings.ts';
 
-export const FLARECHAT_INSTANCE = 'flarechat';
+// The id every conversation's events were written with; kept as it was before the product was renamed, because they are stored.
+export const ORANGEAGENT_INSTANCE = 'flarechat';
 
-const instanceId = ProviderInstanceId.make(FLARECHAT_INSTANCE);
-const driver = ProviderDriverKind.make(FLARECHAT_INSTANCE);
+const instanceId = ProviderInstanceId.make(ORANGEAGENT_INSTANCE);
+const driver = ProviderDriverKind.make(ORANGEAGENT_INSTANCE);
 
-const FLARECHAT_PROVIDER: ServerProvider = {
+const ORANGEAGENT_PROVIDER: ServerProvider = {
   instanceId,
   driver,
-  displayName: 'FlareChat',
+  displayName: 'OrangeAgent',
   showInteractionModeToggle: false,
   supportsConversationRollback: false,
   enabled: true,
@@ -24,16 +25,16 @@ const FLARECHAT_PROVIDER: ServerProvider = {
   status: 'ready',
   auth: { status: 'authenticated' },
   checkedAt: '1970-01-01T00:00:00.000Z',
-  models: [{ slug: FLARECHAT_INSTANCE, name: 'FlareChat', isCustom: false, isDefault: true, capabilities: null }],
+  models: [{ slug: ORANGEAGENT_INSTANCE, name: 'OrangeAgent', isCustom: false, isDefault: true, capabilities: null }],
   slashCommands: [],
   skills: [],
 };
 
 /** The provider offering exactly `modes`, which the composer lists as its approval modes. */
-export const flarechatProvider = (modes: ReadonlyArray<RuntimeMode>): ServerProvider => ({ ...FLARECHAT_PROVIDER, supportedRuntimeModes: [...modes] });
+export const orangeagentProvider = (modes: ReadonlyArray<RuntimeMode>): ServerProvider => ({ ...ORANGEAGENT_PROVIDER, supportedRuntimeModes: [...modes] });
 
-/** t3code's defaults, with the FlareChat instance turned on: an instance no setting names is off unless it is one of t3code's own. */
-export const FLARECHAT_SETTINGS: UnifiedSettings = {
+/** t3code's defaults, with the OrangeAgent instance turned on: an instance no setting names is off unless it is one of t3code's own. */
+export const ORANGEAGENT_SETTINGS: UnifiedSettings = {
   ...DEFAULT_UNIFIED_SETTINGS,
   providerInstances: { ...DEFAULT_UNIFIED_SETTINGS.providerInstances, [instanceId]: { driver, enabled: true } },
 };

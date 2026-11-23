@@ -582,7 +582,7 @@ function UserMessageReviewCommentCard({ comment }: { comment: ReviewCommentConte
   const m = useMessages();
   const ctx = use(TimelineRowCtx);
   const fenceLanguage = comment.fenceLanguage ?? "diff";
-  // FlareChat: the diff viewer is cut; a diff is shown as its raw patch.
+  // OrangeAgent: the diff viewer is cut; a diff is shown as its raw patch.
   const renderablePatch =
     fenceLanguage === "diff" && comment.diff.trim().length > 0
       ? { kind: "raw" as const, text: buildReviewCommentRenderablePatch(comment) }

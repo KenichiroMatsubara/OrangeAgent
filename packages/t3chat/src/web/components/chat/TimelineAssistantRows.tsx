@@ -57,7 +57,7 @@ export function AssistantTimelineRow({ row }: { row: Extract<TimelineRow, { kind
     row.projectedItem?.item.id,
   );
   const text = liveText ?? row.message.text;
-  // FlareChat: an answer's files are its answer too, so words are not missing beside them.
+  // OrangeAgent: an answer's files are its answer too, so words are not missing beside them.
   const hasFiles = (row.message.attachments?.length ?? 0) > 0;
   const messageText =
     text ||
@@ -244,7 +244,7 @@ function AssistantMessageMeta({
 }) {
   const ctx = use(TimelineRowCtx);
   const m = useMessages();
-  // FlareChat: what the answer read and wrote; runs written before that was recorded have none.
+  // OrangeAgent: what the answer read and wrote; runs written before that was recorded have none.
   const usage = useRunUsage(ctx.threadRef, message.runId);
 
   return (
@@ -342,7 +342,7 @@ function AssistantReplyButton({ message, itemId }: { message: ChatMessage; itemI
   );
 }
 
-// FlareChat: the chat is Japanese only, so an item's status is shown in words, not as its identifier.
+// OrangeAgent: the chat is Japanese only, so an item's status is shown in words, not as its identifier.
 const STATUS_LABELS: Readonly<Record<string, string>> = {
   idle: "待機中",
   pending: "準備中",

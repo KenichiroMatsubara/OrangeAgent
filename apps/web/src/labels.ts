@@ -193,7 +193,7 @@ export const aiProviderEnvironment: Readonly<Record<AiProvider, string>> = {
   anthropic: 'Claude は Anthropic のサンドボックスでコードを動かし、ウェブも調べます。',
   openai: 'OpenAI のコードインタープリターでコードを動かします。メモリは作業から見積もって 1〜64 GB を借ります。',
   gemini: 'Gemini のコード実行でコードを動かします。書き出せるのはグラフなどの画像だけです。',
-  openrouter: 'OpenRouter のモデルは FlareChat が用意する実行環境でコードを動かします。軽い作業は Dynamic Worker、重い作業はメモリを見積もって 256 MiB〜12 GiB のコンテナです。',
+  openrouter: 'OpenRouter のモデルは OrangeAgent が用意する実行環境でコードを動かします。軽い作業は Dynamic Worker、重い作業はメモリを見積もって 256 MiB〜12 GiB のコンテナです。',
 };
 
 /** What the model field suggests typing, by provider. */

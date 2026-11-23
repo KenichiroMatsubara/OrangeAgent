@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { codeGroupLabel, codePlace, flareChatToolPresentation } from "./flarechat.ts";
+import { codeGroupLabel, codePlace, orangeAgentToolPresentation } from "./orangeagent.ts";
 import {
   resolveWorkEntryToolPresentation,
   summarizeToolGroup,
@@ -26,10 +26,10 @@ const call = (
   toolData: { toolName, input, output },
 });
 
-describe("flareChatToolPresentation", () => {
+describe("orangeAgentToolPresentation", () => {
   it("names a browser call by what it is doing, then by how it ended", () => {
     const name = (status: string, output: unknown = null) =>
-      flareChatToolPresentation("browser.open", status, { url: "https://example.com" }, output)
+      orangeAgentToolPresentation("browser.open", status, { url: "https://example.com" }, output)
         ?.displayName;
     expect(name("inProgress")).toBe("ブラウザでページを開いています");
     expect(name("completed")).toBe("ブラウザでページを開きました");
@@ -38,7 +38,7 @@ describe("flareChatToolPresentation", () => {
       "ブラウザでページを開く操作は拒否されました",
     );
     expect(name("stopped")).toBe("ブラウザでページを開く操作を中止しました");
-    expect(flareChatToolPresentation("browser.click", "completed", {}, null)).toEqual({
+    expect(orangeAgentToolPresentation("browser.click", "completed", {}, null)).toEqual({
       displayName: "ブラウザでクリックしました",
       icon: "browser",
       action: "browser",
@@ -59,14 +59,14 @@ describe("flareChatToolPresentation", () => {
     expect(codePlace({ language: "shell" }, null)).toBe("Cloudflare Container");
 
     expect(
-      flareChatToolPresentation("code.run", "inProgress", { language: "javascript" }, null),
+      orangeAgentToolPresentation("code.run", "inProgress", { language: "javascript" }, null),
     ).toEqual({
       displayName: "Dynamic Worker でコードを実行しています",
       icon: "code",
       action: "code",
     });
     const ran = (output: unknown) =>
-      flareChatToolPresentation("code.run", "completed", { language: "python" }, output)
+      orangeAgentToolPresentation("code.run", "completed", { language: "python" }, output)
         ?.displayName;
     expect(ran({ environment: "コンテナ lite (256 MiB)", exitCode: 0 })).toBe(
       "Cloudflare Container でコードを実行しました",
@@ -75,13 +75,13 @@ describe("flareChatToolPresentation", () => {
       "Cloudflare Container でコードを実行できませんでした",
     );
     expect(
-      flareChatToolPresentation("code_execution", "completed", {}, null)?.displayName,
+      orangeAgentToolPresentation("code_execution", "completed", {}, null)?.displayName,
     ).toBe("Anthropic のサンドボックスでコードを実行しました");
-    expect(flareChatToolPresentation("mail.search", "completed", {}, null)).toBeNull();
+    expect(orangeAgentToolPresentation("mail.search", "completed", {}, null)).toBeNull();
   });
 });
 
-describe("a row of FlareChat's browser and code calls", () => {
+describe("a row of OrangeAgent's browser and code calls", () => {
   it("shows each call by its own sentence and icon", () => {
     const entry = call("browser.read", {}, null, "inProgress");
     expect(resolveWorkEntryToolPresentation(entry)).toMatchObject({

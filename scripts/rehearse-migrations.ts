@@ -50,8 +50,8 @@ const ORGANIZATION_DATABASE_PREFIX = 'flarechat-organization-';
  * a placeholder id that only the deploy fills in, and Wrangler would export
  * that id instead.
  */
-const LOOKUP_CONFIG = join(mkdtempSync(join(tmpdir(), 'flarechat-rehearsal-config-')), 'wrangler.json');
-writeFileSync(LOOKUP_CONFIG, JSON.stringify({ name: 'flarechat-rehearsal', compatibility_date: '2026-07-24' }));
+const LOOKUP_CONFIG = join(mkdtempSync(join(tmpdir(), 'orangeagent-rehearsal-config-')), 'wrangler.json');
+writeFileSync(LOOKUP_CONFIG, JSON.stringify({ name: 'orangeagent-rehearsal', compatibility_date: '2026-07-24' }));
 
 const kindOf = (name: string): SchemaKind | null => {
   if (name === CONTROL_DATABASE_NAME) return 'control';
@@ -79,7 +79,7 @@ const exportProduction = (): Dump[] => {
   if (!owned.includes(CONTROL_DATABASE_NAME)) {
     throw new Error(`The Control database ${CONTROL_DATABASE_NAME} is not among the account's D1 databases.`);
   }
-  const directory = mkdtempSync(join(tmpdir(), 'flarechat-rehearsal-'));
+  const directory = mkdtempSync(join(tmpdir(), 'orangeagent-rehearsal-'));
   return owned.map((name) => {
     const output = join(directory, `${name}.sql`);
     wrangler(['d1', 'export', name, '--remote', '--output', output, '--skip-confirmation'], env);

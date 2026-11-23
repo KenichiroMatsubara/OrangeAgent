@@ -249,9 +249,9 @@ describe('migration 0061 copies the chat before ADR 0201 into the chat that repl
       ['user', '来週の予定を表にして', ['att-photo-2']],
       ['assistant', TABLE, []],
       ['user', 'メールも見て', []],
-      ['assistant', expect.stringContaining('2通ありました。表を作りました。\n\n[FlareChat: this answer wrote 予定.xlsx (5 bytes)'), []],
+      ['assistant', expect.stringContaining('2通ありました。表を作りました。\n\n[OrangeAgent: this answer wrote 予定.xlsx (5 bytes)'), []],
       ['user', '続けて', []],
-      ['assistant', '途中まで書きました\n\n[FlareChat: the administrator stopped this answer before it was finished.]', []],
+      ['assistant', '途中まで書きました\n\n[OrangeAgent: the administrator stopped this answer before it was finished.]', []],
     ]);
   });
 

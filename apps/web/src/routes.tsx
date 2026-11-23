@@ -79,7 +79,7 @@ export const SetupRoute = () => {
   };
   return <SetupCard>
     <SetupBrand caption="WELCOME" />
-    <p className="eyebrow">{state.identity.email}</p><h1>FlareChatをはじめる</h1>
+    <p className="eyebrow">{state.identity.email}</p><h1>OrangeAgentをはじめる</h1>
     <p className="setup-copy">このGoogleアカウントで使い始めます。Gmail・カレンダー・Drive は、使いたくなったときに「接続」画面からつなげます。</p>
     {error && <p className="setup-error">{error}</p>}
     <button className="primary" onClick={() => void start()} disabled={busy}>{busy ? '準備しています…' : 'はじめる'}</button>

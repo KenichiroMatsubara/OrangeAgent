@@ -1,8 +1,8 @@
 /**
- * Running one job in a Cloudflare container FlareChat started for it
+ * Running one job in a Cloudflare container OrangeAgent started for it
  * (ADR 0202): the files are written into its working directory, the code is
  * run there with a time limit, and every file it left at the top of `out/`
- * is read back. The container reaches no network but FlareChat itself, when
+ * is read back. The container reaches no network but OrangeAgent itself, when
  * the run lends it its Run Token, and its Durable Object
  * (`workbench.ts`) destroys it once the job ends, so nothing outlives it.
  *
@@ -38,7 +38,7 @@ export type Workspace = Pick<Files, 'mkdir' | 'writeFile' | 'readFile' | 'readDi
 const decoder = new TextDecoder();
 
 /** The module node imports before JavaScript's own, so the code finds what it finds in a Dynamic Worker. */
-const PRELUDE = '.flarechat.mjs';
+const PRELUDE = '.orangeagent.mjs';
 
 const SCRIPT: Readonly<Record<CodeLanguage, { file: string; command: string[] }>> = {
   javascript: { file: '.main.mjs', command: ['node', '--import', `./${PRELUDE}`] },
@@ -50,7 +50,7 @@ const SCRIPT: Readonly<Record<CodeLanguage, { file: string; command: string[] }>
  * What JavaScript finds in a container as it does in a Dynamic Worker
  * (`isolate.ts`): `files` and `output(name, data)`, a Skill's directory at
  * `./skills/<name>/`, `tools`, which calls the run's tools through its MCP
- * Server at `flarechat.internal`, and each library it imports that FlareChat
+ * Server at `flarechat.internal`, and each library it imports that OrangeAgent
  * lends (`lent.ts`), as a package in `/node_modules`, which node finds from
  * the working directory and from `/skills` alike.
  */
@@ -66,7 +66,7 @@ export const prelude = (names: readonly string[]): string => [
   `  id += 1;`,
   `  const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ jsonrpc: '2.0', id, method, params }) });`,
   `  const reply = await response.json().catch(() => null);`,
-  `  if (!response.ok || reply?.error) return { isError: true, message: reply?.error?.message ?? 'FlareChat refused with ' + response.status + '.' };`,
+  `  if (!response.ok || reply?.error) return { isError: true, message: reply?.error?.message ?? 'OrangeAgent refused with ' + response.status + '.' };`,
   `  return reply.result;`,
   `};`,
   `globalThis.tools = url && token ? {`,

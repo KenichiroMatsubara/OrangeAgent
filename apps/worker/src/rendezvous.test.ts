@@ -15,7 +15,7 @@ const capturing = () => {
   const rendezvous: Rendezvous = {
     open: async (serving): Promise<OpenRunAccess> => {
       held.serving = serving;
-      return { url: 'https://flarechat.example/mcp', token: 'run_secret', expiresAt: '2026-11-19T00:15:00.000Z', close: () => { held.closed += 1; } };
+      return { url: 'https://orangeagent.example/mcp', token: 'run_secret', expiresAt: '2026-11-19T00:15:00.000Z', close: () => { held.closed += 1; } };
     },
   };
   return { held, rendezvous };
@@ -57,7 +57,7 @@ describe('a Run Token', () => {
       rendezvous,
     });
 
-    expect(JSON.parse(thought.messages[2]?.content ?? '{}')).toEqual({ url: 'https://flarechat.example/mcp', token: 'run_secret', expiresAt: '2026-11-19T00:15:00.000Z' });
+    expect(JSON.parse(thought.messages[2]?.content ?? '{}')).toEqual({ url: 'https://orangeagent.example/mcp', token: 'run_secret', expiresAt: '2026-11-19T00:15:00.000Z' });
     expect(held.serving?.tools.map((tool) => tool.name)).toEqual(['tasks.search', 'tasks.create']);
     expect(performed).toEqual([{ name: 'tasks.create', arguments: { title: '資料' } }]);
     expect(programAnswers).toEqual([{ status: 'planned' }, { isError: true, message: 'A Run Token does not issue another.' }]);

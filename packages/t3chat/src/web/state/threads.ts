@@ -33,7 +33,7 @@ export const threadEnvironment = createThreadEnvironmentAtoms(
   connectionAtomRuntime,
   threadFamilies.snapshotAtom,
 );
-// FlareChat: a thread's state comes from ChatSurface's transport (src/chat/stream.ts), not from
+// OrangeAgent: a thread's state comes from ChatSurface's transport (src/chat/stream.ts), not from
 // t3code's Effect RPC subscription.
 const environmentThreads = { stateAtom: threadStateAtom };
 export const environmentThreadDetails = createEnvironmentThreadDetailAtoms(

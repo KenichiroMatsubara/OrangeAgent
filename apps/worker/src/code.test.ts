@@ -44,7 +44,7 @@ describe('code.run', () => {
 
   it('runs JavaScript lent the run\'s tools in a Dynamic Worker too, and Python lent them in a container', async () => {
     const lent = context();
-    const access = async () => ({ url: 'https://flarechat.example/api/public/organizations/organization-1/mcp', token: 'run_secret', expiresAt: '2026-11-22T08:00:00.000Z' });
+    const access = async () => ({ url: 'https://orangeagent.example/api/public/organizations/organization-1/mcp', token: 'run_secret', expiresAt: '2026-11-22T08:00:00.000Z' });
     await performCodeRun(lent, { language: 'javascript', code: 'await tools.call("tasks.search", {})', tools: true }, access);
     await performCodeRun(lent, { language: 'python', code: 'print(1)', tools: true }, access);
     expect(lent.jobs.map((entry) => [entry.tier, entry.job.bridge])).toEqual([

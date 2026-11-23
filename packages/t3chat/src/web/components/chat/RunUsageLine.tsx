@@ -11,7 +11,7 @@ import { cn } from "~/lib/utils";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 
 /**
- * FlareChat: the small line under an answer saying what it read and wrote, e.g.
+ * OrangeAgent: the small line under an answer saying what it read and wrote, e.g.
  * 入力 12k・キャッシュ 85%（前の会話 70%）・出力 1.2k・リクエスト 4回. Hovering or tapping it names
  * every figure in words. Each part keeps to one line, so a phone wraps the line between parts.
  */

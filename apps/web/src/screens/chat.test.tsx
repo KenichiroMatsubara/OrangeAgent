@@ -94,8 +94,8 @@ describe('AI に聞く screen', () => {
 
     await waitFor(() => expect(api.sendChatThreadMessage).toHaveBeenCalledWith(ACCOUNT_ID, 'thread-9', { text: '熱田の招待行事を調べて', model: 'claude-sonnet-5-5', effort: 'high' }, []));
     await waitFor(() => expect(router.state.location.pathname).toBe('/chat/thread-9'));
-    expect(window.localStorage.getItem(`flarechat:chat-model:${ACCOUNT_ID}`)).toBe('claude-sonnet-5-5');
-    expect(window.localStorage.getItem(`flarechat:chat-effort:${ACCOUNT_ID}`)).toBe('high');
+    expect(window.localStorage.getItem(`orangeagent:chat-model:${ACCOUNT_ID}`)).toBe('claude-sonnet-5-5');
+    expect(window.localStorage.getItem(`orangeagent:chat-effort:${ACCOUNT_ID}`)).toBe('high');
   });
 
   it('starts a conversation from files attached in the box, each removable before it is sent', async () => {
@@ -234,7 +234,7 @@ describe('AI に聞く screen\'s 通知', () => {
     expect(part.querySelector('button')).toBeNull();
   });
 
-  it('tells an iPhone opened in Safari to add FlareChat to the home screen first', async () => {
+  it('tells an iPhone opened in Safari to add OrangeAgent to the home screen first', async () => {
     browser.device = mockDevice('install');
     renderScreen('chat', chat, '/chat', ready, Browser);
 
@@ -284,7 +284,7 @@ describe('AI に聞く screen\'s 通知', () => {
 
   it('leaves this browser off, and says so, when the Worker does not take it', async () => {
     browser.device = mockDevice(null);
-    vi.mocked(api.savePushDevice).mockRejectedValue(new Error('この FlareChat には通知の鍵（VAPID）が設定されていないため、通知を送れません。'));
+    vi.mocked(api.savePushDevice).mockRejectedValue(new Error('この OrangeAgent には通知の鍵（VAPID）が設定されていないため、通知を送れません。'));
     const user = userEvent.setup();
     renderScreen('chat', chat, '/chat', ready, Browser);
 

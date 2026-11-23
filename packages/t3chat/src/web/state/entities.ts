@@ -197,7 +197,7 @@ export function useQuietThreadProjection(
 }
 
 /**
- * FlareChat: what one answer's run read and wrote, or null for a run written before usage was
+ * OrangeAgent: what one answer's run read and wrote, or null for a run written before usage was
  * recorded. Selected from the quiet thread, so the row re-renders only when that usage changes.
  */
 export function useRunUsage(

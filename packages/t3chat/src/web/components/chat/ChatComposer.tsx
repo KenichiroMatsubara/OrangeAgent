@@ -454,7 +454,7 @@ export interface ChatComposerProps {
     readonly url: string | null;
   }> | null;
   onRemoveEditingQueuedAttachment: (attachmentId: string) => void;
-  /** FlareChat: the attachments shown are those of an earlier message being rewritten, not of a queued one. */
+  /** OrangeAgent: the attachments shown are those of an earlier message being rewritten, not of a queued one. */
   rewindingMessage?: boolean;
 
   onCompactContext: () => void;
@@ -491,9 +491,9 @@ export interface ChatComposerProps {
   setThreadError: (threadId: ThreadId | null, error: string | null) => void;
   onExpandImage: (preview: ExpandedImagePreview) => void;
   onFileOpen: (attachment: ChatFileAttachment) => void;
-  /** FlareChat: more ways to attach beside the clip (a Drive file), each handed what attaches files as the clip does. */
+  /** OrangeAgent: more ways to attach beside the clip (a Drive file), each handed what attaches files as the clip does. */
   extraAttachActions?: ((attach: (files: File[]) => Promise<boolean>) => ReactNode) | undefined;
-  /** FlareChat: its own controls beside the approval mode (the model a message is answered by). */
+  /** OrangeAgent: its own controls beside the approval mode (the model a message is answered by). */
   extraControls?: ReactNode | undefined;
 }
 
@@ -1039,7 +1039,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
   const [isComposerModelPickerOpen, setIsComposerModelPickerOpen] = useState(false);
   const isMobileViewport = useMediaQuery("max-sm");
   const isSoftwareKeyboardOpen = useSoftwareKeyboardOpen();
-  // FlareChat: on a touch screen the send button sends and Enter starts a new line, whether or not
+  // OrangeAgent: on a touch screen the send button sends and Enter starts a new line, whether or not
   // the keyboard is seen to open; with `interactive-widget=resizes-content` it is not seen at all.
   const isTouchOnly = useMediaQuery("(hover: none) and (pointer: coarse)");
   const enterAddsLine = isSoftwareKeyboardOpen || isTouchOnly;
@@ -1874,7 +1874,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     projectId: activeProjectId,
     projectName,
     ownerKey: questionAttachmentTarget ?? composerDraftTargetKey,
-    // FlareChat: no voice input, so no shortcut starts it either.
+    // OrangeAgent: no voice input, so no shortcut starts it either.
     disabled: true,
     label: activeThread?.title ?? null,
     presented: !hiddenThread,
@@ -2210,7 +2210,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       submitAfterDictation(() => submitComposerRef.current(dispatchMode, submissionIntent));
       return false;
     }
-    // FlareChat: the Worker checks the member on every send, so the surface's canOperateThread is the grant.
+    // OrangeAgent: the Worker checks the member on every send, so the surface's canOperateThread is the grant.
     if (submissionBlocked || !canOperateThread) {
       event?.preventDefault();
       return false;
@@ -3571,7 +3571,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   ) : showProviderUnavailable ? (
                     gt("Enable a provider in Settings")
                   ) : (
-                    // FlareChat: the collapsed composer says what the open one does, the suggestion included.
+                    // OrangeAgent: the collapsed composer says what the open one does, the suggestion included.
                     (offeredPromptSuggestion ?? m(DEFAULT_COMPOSER_PLACEHOLDER))
                   )}
                 </button>
@@ -3748,7 +3748,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                     onPaste={onComposerPasteStable}
                     placeholder={
                       isComposerApprovalState
-                        ? // FlareChat: typing declines the waiting call, and the AI is told what was typed.
+                        ? // OrangeAgent: typing declines the waiting call, and the AI is told what was typed.
                           "拒否して、代わりに AI に伝えることを書いてください"
                         : activePendingProgress
                           ? isChoiceOnlyPendingQuestion
@@ -3781,7 +3781,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                             if (accepted !== null) applyPromptReplacementStable(0, 0, accepted);
                           }}
                         >
-                          {/* FlareChat: a touch screen has no Tab key, so the hint is tapped there. */}
+                          {/* OrangeAgent: a touch screen has no Tab key, so the hint is tapped there. */}
                           {isTouchOnly ? (
                             <Kbd variant="outline">入れる</Kbd>
                           ) : (
@@ -3920,7 +3920,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                     keepFullHistory={props.keepFullHistory}
                     onToggleKeepFullHistory={props.onToggleKeepFullHistory}
                   >
-                    {/* FlareChat: no voice input. Phones dictate into the editor with their own keyboards. */}
+                    {/* OrangeAgent: no voice input. Phones dictate into the editor with their own keyboards. */}
                   </ComposerFooterPrimaryActions>
                 </div>
               </div>

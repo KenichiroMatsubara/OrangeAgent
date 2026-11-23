@@ -1,4 +1,4 @@
-# The image every container FlareChat lends a run's code starts from (ADR 0202):
+# The image every container OrangeAgent lends a run's code starts from (ADR 0202):
 # Python 3 with the libraries that read and write office files, tables, PDFs,
 # and charts, Node.js, and Japanese fonts, so a chart or a PDF made here sets
 # Japanese in a Japanese face. The container is started with no network, so

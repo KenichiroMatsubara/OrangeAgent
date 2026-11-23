@@ -72,7 +72,7 @@ function resolveWeekStartsOn(locale: string | undefined): WeekdayIndex | undefin
 
 export const weekStartsOn = resolveWeekStartsOn(timestampLocale);
 
-// FlareChat: every time is shown in Asia/Tokyo whatever zone the browser is in, as
+// OrangeAgent: every time is shown in Asia/Tokyo whatever zone the browser is in, as
 // apps/web/src/time.ts does. A caller's explicit zone still wins.
 const DISPLAY_TIME_ZONE = "Asia/Tokyo";
 

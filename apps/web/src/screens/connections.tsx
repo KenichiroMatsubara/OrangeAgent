@@ -297,7 +297,7 @@ const MicrosoftSheet = ({ connections, onClose }: { connections: Connections; on
   });
   return <Sheet title="Microsoft" onClose={onClose}>
     <Note>「AI に聞く」で作った Word・Excel・PowerPoint を PDF にするときに使います。つなぐと Microsoft の Office が PDF にするので、Word で開いたときと同じ見た目になります。つながないときは Google ドライブが PDF にします（日本語はきれいに出ますが、レイアウトが少し変わることがあります）。Microsoft がうまくいかなかったときも Google が代わりに作ります。</Note>
-    <Note>FlareChat が触れるのは、OneDrive の中の FlareChat 専用のフォルダだけです。PDF にするあいだだけファイルを置き、すぐ消します。</Note>
+    <Note>OrangeAgent が触れるのは、OneDrive の中の OrangeAgent 専用のフォルダだけです。PDF にするあいだだけファイルを置き、すぐ消します。</Note>
     {operations.error && <Banner tone="danger" icon={<CircleAlert size={18} aria-hidden="true" />}>{operations.error}</Banner>}
     {!configured && <Banner tone="warn" icon={<CircleAlert size={18} aria-hidden="true" />}>この環境には Microsoft のアプリが登録されていないため、つなげません。運営者が Microsoft Entra でアプリを登録し、そのアプリケーション ID とシークレットを Worker に設定すると使えるようになります。それまでは Google ドライブが PDF にします。</Banner>}
     {connected && <Field label="つないでいるアカウント">{(control) => <input {...control} value={email ?? '（メールアドレス不明）'} readOnly />}</Field>}

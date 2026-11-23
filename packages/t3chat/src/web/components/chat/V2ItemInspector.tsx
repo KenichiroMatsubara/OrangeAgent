@@ -403,7 +403,7 @@ export const V2ItemInspector = memo(function V2ItemInspector(props: V2ItemInspec
             args={item.input}
             {...outputState}
             onImageExpand={props.onImageExpand}
-            // FlareChat: a failed or declined call's answer is why, shown as such.
+            // OrangeAgent: a failed or declined call's answer is why, shown as such.
             outputSlot={
               item.status === "failed" || item.status === "cancelled" ? (
                 <ToolFailure output={outputState.output} cancelled={item.status === "cancelled"} />

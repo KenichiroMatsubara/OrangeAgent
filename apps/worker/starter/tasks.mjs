@@ -1,19 +1,19 @@
 /**
- * FlareChat のタスクを、決まった手順で探し・登録し・完了にするプログラム。
+ * OrangeAgent のタスクを、決まった手順で探し・登録し・完了にするプログラム。
  *
- * タスクは Google ToDo のリスト「FlareChat」にあります。Google ToDo には題名・メモ・期限・
+ * タスクは Google ToDo のリスト「OrangeAgent」にあります。Google ToDo には題名・メモ・期限・
  * 完了したかどうかしかないので、担当者・予定・元メール・鍵・備考・取りやめはメモ欄に
  * 1 行ずつ書きます。その書き方と読み方、担当者の照合、同じタスクを二度作らないことは、
  * AI ではなくこのプログラムが受け持ちます。
  *
- * FlareChat のツールを呼ぶものを 1 つ渡して使います。call(name, args) を持つもの
+ * OrangeAgent のツールを呼ぶものを 1 つ渡して使います。call(name, args) を持つもの
  * （code.run に tools: true を渡したときの tools）か、(name, args) を受け取る関数です。
  * 答えはツールの答え（値か JSON の文字列）です。
  *
  *     import { Tasks } from './skills/task-management/scripts/tasks.mjs';
  *     const t = new Tasks(tools);
  *
- * 外と通信できる実行環境では、run.token が答えた url と token で FlareChat の MCP Server を
+ * 外と通信できる実行環境では、run.token が答えた url と token で OrangeAgent の MCP Server を
  * 呼びます。メンバーの CLI からは Operator Token でも同じように使えます:
  *
  *     const t = new Tasks(mcpCall(url, token));
@@ -22,7 +22,7 @@
  */
 
 /** 新しいタスクが入るリスト。ほかのリストは人が自分で書いた ToDo で、頼まれないかぎり変えません。 */
-export const LIST_NAME = 'FlareChat';
+export const LIST_NAME = 'OrangeAgent';
 
 /** メモ欄の行の見出しと、書く順番。「備考」だけは何行でも書けます。 */
 export const FIELDS = ['担当', '予定', '元メール', '鍵', '備考', '完了日', '取りやめ'];
@@ -36,7 +36,7 @@ const DAY_MS = 86_400_000;
 const FIELD_LINE = new RegExp(`^\\s*(${FIELDS.join('|')})\\s*[:：]\\s*(.*?)\\s*$`, 'u');
 const DAY = /^(\d{4})-(\d{2})-(\d{2})$/u;
 
-/** FlareChat のツールが断ったとき。message はツールが述べた理由です。 */
+/** OrangeAgent のツールが断ったとき。message はツールが述べた理由です。 */
 export class ToolError extends Error {
   constructor(message) {
     super(message);
@@ -181,7 +181,7 @@ export const answerOf = (raw) => {
 };
 
 /**
- * FlareChat の MCP Server の tools/call を呼ぶ関数を返します。
+ * OrangeAgent の MCP Server の tools/call を呼ぶ関数を返します。
  *
  * url と token は run.token の答え（または MCP Server の URL と Operator Token）です。
  * トークンは Authorization ヘッダーにだけ載せ、ほかのどこにも書きません。断られたときは ToolError です。
@@ -197,8 +197,8 @@ export const mcpCall = (url, token, { timeoutMs = 300_000 } = {}) => {
       signal: AbortSignal.timeout(timeoutMs),
     });
     const reply = await response.json().catch(() => null);
-    if (!response.ok) throw new ToolError(reply?.error?.message || `FlareChat が ${response.status} で断りました。`);
-    if (reply?.error) throw new ToolError(String(reply.error.message || 'FlareChat が断りました。'));
+    if (!response.ok) throw new ToolError(reply?.error?.message || `OrangeAgent が ${response.status} で断りました。`);
+    if (reply?.error) throw new ToolError(String(reply.error.message || 'OrangeAgent が断りました。'));
     const result = reply?.result ?? {};
     const text = (result.content ?? []).filter((item) => item.type === 'text').map((item) => item.text ?? '').join('');
     if (result.isError) throw new ToolError(text || 'ツールが断りました。');
@@ -224,7 +224,7 @@ const callerOf = (tools) => {
 
 const has = (object, name) => Object.prototype.hasOwnProperty.call(object, name);
 
-/** FlareChat のタスクを読み書きする窓口。1 回の実行で 1 つ作って使い回します。 */
+/** OrangeAgent のタスクを読み書きする窓口。1 回の実行で 1 つ作って使い回します。 */
 export class Tasks {
   #call;
   #contacts = null;
@@ -270,7 +270,7 @@ export class Tasks {
   // ── 探す ──
 
   /**
-   * タスクを探します。何も指定しなければ、リスト「FlareChat」の未完了すべてと、この 60 日に完了・変更されたもの。
+   * タスクを探します。何も指定しなければ、リスト「OrangeAgent」の未完了すべてと、この 60 日に完了・変更されたもの。
    *
    * status: 'open' / 'completed'（終えた仕事）/ 'cancelled'（取りやめ）。
    * assignee: 担当者の名前と一致するもの。'' なら担当者のいないもの。

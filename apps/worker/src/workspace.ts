@@ -173,8 +173,8 @@ export const searchMail = async (input: { google: GoogleProvider; accessToken: s
 };
 
 /**
- * calendar.search: the Google Calendar itself, including events FlareChat did
- * not create. An event FlareChat records carries its Scheduled Event id, the
+ * calendar.search: the Google Calendar itself, including events OrangeAgent did
+ * not create. An event OrangeAgent records carries its Scheduled Event id, the
  * only id the event writes accept.
  */
 export const searchCalendar = async (input: { google: GoogleProvider; database: D1Database; accessToken: string; arguments: Record<string, unknown> }) => {

@@ -791,7 +791,7 @@ export const OrchestrationV2RunOutput = Schema.Struct({
 export type OrchestrationV2RunOutput = typeof OrchestrationV2RunOutput.Type;
 
 /**
- * What a FlareChat answer's model requests consumed: every request summed, the
+ * What a OrangeAgent answer's model requests consumed: every request summed, the
  * first apart, which shows how much of the conversation before the message the
  * provider served again from its prompt cache, and the last apart, which shows
  * how much the conversation now holds. A run written before it was recorded has
@@ -808,9 +808,9 @@ export const OrchestrationV2RunUsage = Schema.Struct({
   contextTokens: NonNegativeInt,
   /** The most the model reads in one request, when its provider says. */
   maxContextTokens: Schema.NullOr(PositiveInt),
-  /** FlareChat: what the answer cost in US dollars, absent when no request's price was known. */
+  /** OrangeAgent: what the answer cost in US dollars, absent when no request's price was known. */
   costUsd: Schema.optional(Schema.Number),
-  /** FlareChat: whether `costUsd` is what the provider billed rather than an estimate from list prices. */
+  /** OrangeAgent: whether `costUsd` is what the provider billed rather than an estimate from list prices. */
   costBilled: Schema.optional(Schema.Boolean),
 });
 export type OrchestrationV2RunUsage = typeof OrchestrationV2RunUsage.Type;
@@ -859,7 +859,7 @@ export const OrchestrationV2Run = Schema.Struct({
    * the turn started, and their updates must not put an unanswered run back.
    */
   output: Schema.optional(OrchestrationV2RunOutput),
-  /** What FlareChat's answer consumed, updated after each of its model requests. */
+  /** What OrangeAgent's answer consumed, updated after each of its model requests. */
   usage: Schema.optional(OrchestrationV2RunUsage),
 });
 export type OrchestrationV2Run = typeof OrchestrationV2Run.Type;

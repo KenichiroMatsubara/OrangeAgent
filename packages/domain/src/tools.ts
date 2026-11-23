@@ -78,13 +78,13 @@ export type ToolWrites = 'planned' | 'performed';
  * Account itself starts may recall and only a run a person is at may add to, the files an Operator Chat
  * conversation wrote, which only such a conversation has, or the web, whose
  * pages the Worker reads for every run the Account starts, or a Run
- * Token, which only a run that thinks in FlareChat — an Operator Chat answer or
+ * Token, which only a run that thinks in OrangeAgent — an Operator Chat answer or
  * an Automation's run — can issue, since only such a run is there to answer
  * the calls made with it, or a browser, which Cloudflare Browser Run lends a
- * run that thinks in FlareChat for as long as it runs, signed in to every site
+ * run that thinks in OrangeAgent for as long as it runs, signed in to every site
  * the Account saved a sign-in for, once the Account turned it on, or an
- * environment of FlareChat's own to run code in, which every run that thinks
- * in FlareChat holds when its Worker binds one (ADR 0203).
+ * environment of OrangeAgent's own to run code in, which every run that thinks
+ * in OrangeAgent holds when its Worker binds one (ADR 0203).
  */
 export type ToolNeed = 'google' | 'skills' | 'memory' | 'generated_files' | 'web' | 'run_token' | 'browser' | 'code';
 
@@ -165,11 +165,11 @@ export const TOOLS: readonly Tool[] = [
   // no record of the Account: the file is kept in the conversation beside those
   // Claude wrote, so only a conversation that holds them hands one.
   read('file.hand', ['generated_files']),
-  // Code FlareChat runs for the model reaches no network and calls none of
+  // Code OrangeAgent runs for the model reaches no network and calls none of
   // its tools: it reads only files the run holds and hands back files, so
   // running it grants no reach a Tool Grant would have to allow (ADR 0202).
   { ...read('code.run', ['code']), ungranted: true },
-  // A subagent reaches only what the run that starts it reaches, and plans every write, so it grants no reach; only a run that thinks in FlareChat starts one.
+  // A subagent reaches only what the run that starts it reaches, and plans every write, so it grants no reach; only a run that thinks in OrangeAgent starts one.
   { ...read('agent.run', ['run_token']), ungranted: true },
   // A Task is kept in Google Tasks and reaches nobody: telling its assignee is a send of its own.
   write('tasks.create', false, { performedNeeds: 'google' }),
@@ -199,7 +199,7 @@ export const TOOLS: readonly Tool[] = [
   write('skill.save_file', false, { needs: ['generated_files'] }),
   write('skill.delete_file', false, { needs: ['skills'] }),
   // Filing the Drive reaches nobody: nothing is shared, and nothing is deleted,
-  // since putting a file away moves it into FlareChat's own trash folder.
+  // since putting a file away moves it into OrangeAgent's own trash folder.
   write('drive.create_folder', false, { performedNeeds: 'google' }),
   write('drive.move', false, { performedNeeds: 'google' }),
   write('drive.rename', false, { performedNeeds: 'google' }),
@@ -249,7 +249,7 @@ const grantable = (run: Omit<ToolRun, 'grant'>): Tool[] => selectTools(run).filt
 /**
  * What Operator Chat is: a run that performs each write and holds the
  * Automation Inbox's Google grant, the Skills, the Memory, the files its
- * conversation wrote, and the web, and, thinking in FlareChat, a Run Token to
+ * conversation wrote, and the web, and, thinking in OrangeAgent, a Run Token to
  * issue and a browser to operate, whatever its model.
  */
 export const OPERATOR_CHAT_RUN: Omit<ToolRun, 'grant'> = { executionMode: 'unattended', writes: 'performed', holds: ['google', 'skills', 'memory', 'generated_files', 'web', 'run_token', 'browser'] };
@@ -257,7 +257,7 @@ export const OPERATOR_CHAT_RUN: Omit<ToolRun, 'grant'> = { executionMode: 'unatt
 /**
  * What an Automation's run is: it holds the Automation Inbox's Google grant,
  * the Account's Skills, its Memory, which it may only recall, the web, and,
- * thinking in FlareChat, a Run Token to issue and a browser to operate, and
+ * thinking in OrangeAgent, a Run Token to issue and a browser to operate, and
  * plans every write. Its Trigger Time hands it nothing, so it finds its work
  * through its tools, as its Skills tell it to.
  */
@@ -280,7 +280,7 @@ export const ACCESS_TOKEN_RUN: Omit<ToolRun, 'grant'> = { executionMode: 'unatte
  * without the files Claude writes there or the web, since the CLI's own agent
  * writes its files and searches the web where it runs, and without a Run
  * Token or a browser, since the CLI thinks where it runs and is no run of
- * FlareChat's to answer one or to keep a browser open for. It holds the
+ * OrangeAgent's to answer one or to keep a browser open for. It holds the
  * Account's whole set, so it has no grant.
  */
 export const OPERATOR_TOKEN_RUN: Omit<ToolRun, 'grant'> = { ...OPERATOR_CHAT_RUN, holds: OPERATOR_CHAT_RUN.holds.filter((need) => need !== 'run_token' && need !== 'browser' && need !== 'generated_files' && need !== 'web') };

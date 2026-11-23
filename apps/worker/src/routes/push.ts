@@ -60,7 +60,7 @@ pushRoutes.get('/organizations/:accountId/push', accountRoute(async ({ env }): P
 
 /** Notifies this member on the browser that subscribed, from now on; a browser that subscribed again replaces what it had handed over. */
 pushRoutes.post('/organizations/:accountId/push/devices', accountRoute<Partial<PushDevice>>(async (request): Promise<PushDeviceState> => {
-  if (!vapidOf(request.env)) throw invalid('この FlareChat には通知の鍵（VAPID）が設定されていないため、通知を送れません。');
+  if (!vapidOf(request.env)) throw invalid('この OrangeAgent には通知の鍵（VAPID）が設定されていないため、通知を送れません。');
   const { keys, label } = request.body;
   const endpoint = endpointOf(request.env, request.body.endpoint);
   if (!keys || !decodes(keys.p256dh, 65, 4) || !decodes(keys.auth, 16)) throw invalid('この端末の通知の鍵を読み取れませんでした。');

@@ -133,7 +133,7 @@ export const chatGeneratedFileType = (filename: string): string => {
  * The kinds of file the browser is shown rather than handed for download: the
  * images and PDFs it renders without running anything in them. Every other
  * file, such as an HTML page or an SVG image, which could run script on
- * FlareChat's origin, is downloaded.
+ * OrangeAgent's origin, is downloaded.
  */
 const SHOWN_TYPES: readonly string[] = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'application/pdf'];
 

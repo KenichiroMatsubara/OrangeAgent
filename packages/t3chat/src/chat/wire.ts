@@ -56,7 +56,7 @@ export const foldEvent = (
 export const utc = (milliseconds: number): DateTime.Utc => DateTime.makeUnsafe(milliseconds);
 export const utcMillis = (time: DateTime.Utc): number => DateTime.toEpochMillis(time);
 
-/** The identifiers t3code's records are typed by, each made from FlareChat's own. */
+/** The identifiers t3code's records are typed by, each made from OrangeAgent's own. */
 export const ids = {
   attachment: (id: string) => ChatAttachmentId.make(id),
   event: (id: string) => EventId.make(id),

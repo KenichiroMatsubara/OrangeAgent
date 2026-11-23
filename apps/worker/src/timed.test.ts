@@ -168,15 +168,15 @@ describe('a Trigger Time', () => {
     fixture.account.execute("UPDATE automations SET next_run_at = ? WHERE id = 'timed'", AT.toISOString());
     await runDueAutomations(fixture.environment, AT, providers);
 
-    const own = providers.google.tasks.lists.find((list) => list.title === 'FlareChat');
+    const own = providers.google.tasks.lists.find((list) => list.title === 'OrangeAgent');
     expect(providers.google.tasks.held.map(({ listId, title, notes, due }) => ({ listId, title, notes, due })))
       .toEqual([{ listId: own?.id, title: '会費を払う', notes: '口座へ振り込む', due: '2026-08-31T00:00:00.000Z' }]);
     expect(providers.ai.requests.at(-1)?.messages.at(-1)?.content).toContain('suppressed');
-    // FlareChat keeps no copy of a Task.
+    // OrangeAgent keeps no copy of a Task.
     expect(fixture.account.rows('SELECT id FROM tasks')).toEqual([]);
   });
 
-  it('copies the Tasks the Account kept in FlareChat into Google Tasks once its grant reaches them, with no Automation due, and leaves them until then', async () => {
+  it('copies the Tasks the Account kept in OrangeAgent into Google Tasks once its grant reaches them, with no Automation due, and leaves them until then', async () => {
     fixture = await createAutomationTestApp({ ai: true });
     fixture.account.execute(
       `INSERT INTO tasks (id, organization_id, source_message_subject, title, deadline, assignee_name, description, created_at, updated_at)

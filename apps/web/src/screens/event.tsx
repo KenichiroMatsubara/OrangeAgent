@@ -31,7 +31,7 @@ const ORDER: Readonly<Record<RegistrationView['status'], number>> = { unanswered
 /**
  * One Scheduled Event, read and not written: each registration, the
  * guests others registered, and the mail it came from. Changing the event
- * itself is done in Calendar, which FlareChat treats as a Manual Override.
+ * itself is done in Calendar, which OrangeAgent treats as a Manual Override.
  */
 const EventScreen = () => {
   const { event } = useLoaderData<EventData>();
@@ -52,7 +52,7 @@ const EventScreen = () => {
         { label: '外部から', value: guestsAttending },
       ]} />
     </Card>
-    <Note>{event.responseDeadline ? `回答期限は${dateLabel(event.responseDeadline)}です。` : '回答期限はありません。'}日時や場所を直すときは Google カレンダーで直します。FlareChat はカレンダーでの修正を上書きしません。</Note>
+    <Note>{event.responseDeadline ? `回答期限は${dateLabel(event.responseDeadline)}です。` : '回答期限はありません。'}日時や場所を直すときは Google カレンダーで直します。OrangeAgent はカレンダーでの修正を上書きしません。</Note>
     <Section title="出欠">
       {registrations.length === 0
         ? <Empty title="出欠を取っていない予定です" />

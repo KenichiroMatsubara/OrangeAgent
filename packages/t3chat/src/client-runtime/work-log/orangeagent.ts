@@ -1,17 +1,17 @@
 /**
- * FlareChat: how a row names a call of FlareChat's own browser and code tools,
+ * OrangeAgent: how a row names a call of OrangeAgent's own browser and code tools,
  * as t3code names its preview browser — by what it is doing now, done, failed,
  * declined, or stopped — with the browser's or the code's icon. `code.run`
  * names where the code ran: a Dynamic Worker or a Cloudflare Container.
  */
 
 /** A row's status, as `resolveWorkEntryToolPresentation` hands it on. */
-export type FlareChatToolStatus = "inProgress" | "completed" | "failed" | "declined" | "stopped";
+export type OrangeAgentToolStatus = "inProgress" | "completed" | "failed" | "declined" | "stopped";
 
 /** Where a call ran code. */
 export type CodePlace = "Dynamic Worker" | "Cloudflare Container" | "Anthropic のサンドボックス";
 
-export interface FlareChatToolPresentation {
+export interface OrangeAgentToolPresentation {
   readonly displayName: string;
   readonly icon: "browser" | "code";
   readonly action: "browser" | "code";
@@ -122,7 +122,7 @@ function codeFailed(output: unknown): boolean {
   return typeof exitCode === "number" && exitCode !== 0;
 }
 
-function statusOf(status: string | undefined, output: unknown): FlareChatToolStatus {
+function statusOf(status: string | undefined, output: unknown): OrangeAgentToolStatus {
   if (status === "stopped" && output === DECLINED) return "declined";
   if (
     status === "completed" ||
@@ -135,7 +135,7 @@ function statusOf(status: string | undefined, output: unknown): FlareChatToolSta
   return "inProgress";
 }
 
-function sentence(phrase: Phrase, status: FlareChatToolStatus): string {
+function sentence(phrase: Phrase, status: OrangeAgentToolStatus): string {
   switch (status) {
     case "inProgress":
       return phrase.running;
@@ -157,13 +157,13 @@ export function toolCodePlace(name: string | undefined, input: unknown, output: 
   return null;
 }
 
-/** How a row shows a call of FlareChat's browser or code tools; null for every other tool. */
-export function flareChatToolPresentation(
+/** How a row shows a call of OrangeAgent's browser or code tools; null for every other tool. */
+export function orangeAgentToolPresentation(
   name: string | undefined,
   status: string | undefined,
   input: unknown,
   output: unknown,
-): FlareChatToolPresentation | null {
+): OrangeAgentToolPresentation | null {
   if (name === undefined) return null;
   const browser = BROWSER[name];
   if (browser) {

@@ -49,7 +49,7 @@ describe('Contact screen', () => {
     const sheet = await screen.findByRole('dialog', { name: 'テスト送信' });
     await user.click(within(sheet).getByRole('button', { name: '送信する' }));
 
-    await waitFor(() => expect(api.sendChannelTest).toHaveBeenCalledWith(ACCOUNT_ID, { contactId: 'contact-1', channel: 'line', texts: ['FlareChat からのテスト送信です。'] }));
+    await waitFor(() => expect(api.sendChannelTest).toHaveBeenCalledWith(ACCOUNT_ID, { contactId: 'contact-1', channel: 'line', texts: ['OrangeAgent からのテスト送信です。'] }));
     expect(await within(sheet).findByText(/LINE が受け付けました/u)).toBeTruthy();
   });
 

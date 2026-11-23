@@ -7,7 +7,7 @@ describe('the run\'s code in a Dynamic Worker', () => {
     const code = "import { Tasks } from './skills/task-management/scripts/tasks.mjs';\nconst t = new Tasks(tools);\nconsole.log(await t.search());";
     const wrapped = bodied(code);
     expect(wrapped.split('\n')).toEqual([
-      "import { Tasks } from './skills/task-management/scripts/tasks.mjs'; export async function __flarechatRun() {",
+      "import { Tasks } from './skills/task-management/scripts/tasks.mjs'; export async function __orangeagentRun() {",
       ' '.repeat(67),
       'const t = new Tasks(tools);',
       'console.log(await t.search());',

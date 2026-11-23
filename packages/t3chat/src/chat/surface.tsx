@@ -2,7 +2,7 @@
  * Operator Chat on t3code's timeline and composer. ChatSurface connects one conversation to its
  * transport, reads it back through t3code's own selectors, and routes what a person does (send,
  * stop, answer an approval, edit an earlier message, continue from an answer) to the transport
- * instead of t3code's Effect RPC commands. Beside t3code's controls it offers FlareChat's own:
+ * instead of t3code's Effect RPC commands. Beside t3code's controls it offers OrangeAgent's own:
  * the model a message is answered by, how hard it thinks, attaching a Drive file, and saving a
  * file to Drive.
  */
@@ -62,12 +62,12 @@ import type { ChatCapabilities, ChatDecision, ChatMode, ChatQueueChange, ChatSur
 import { FileContext, type FileCommands } from './files.tsx';
 import { offerSuggestion } from './suggestion.ts';
 import { chatModeOf, runtimeModeOf } from './modes.ts';
-import { FLARECHAT_SETTINGS, flarechatProvider } from './provider.ts';
+import { ORANGEAGENT_SETTINGS, orangeagentProvider } from './provider.ts';
 import { QueueContext, type QueueCommands } from './queue.ts';
 import { connectThread } from './stream.ts';
 
-/** Every conversation is FlareChat's own; t3code's environment is a single local one. */
-const ENVIRONMENT_ID = EnvironmentId.make('flarechat');
+/** Every conversation is OrangeAgent's own; t3code's environment is a single local one. */
+const ENVIRONMENT_ID = EnvironmentId.make('orangeagent');
 /** An answer being written or waiting for approval; a queued message is not being answered yet. */
 const ACTIVE_RUN = new Set(['preparing', 'starting', 'running', 'waiting']);
 /** What the composer shows of the files of a queued message being rewritten: none, as only its words change. */
@@ -80,7 +80,7 @@ const NO_CAPABILITIES: ChatCapabilities = { models: [], efforts: {}, drivePicker
 const NO_EFFORTS: ReadonlyArray<ModelEffort> = [];
 
 /**
- * The model a message is answered by, chosen beside the approval mode: FlareChat's control. It
+ * The model a message is answered by, chosen beside the approval mode: OrangeAgent's control. It
  * names the model that will answer in words (Opus 5.5) and opens a menu of every model the AI
  * Connection names, the default first, with a way to the screen that adds more.
  */
@@ -143,7 +143,7 @@ function ModelChoice({ models, model, onChange, onManage }: {
 }
 
 /**
- * How hard the model thinks, chosen beside the model: FlareChat's control. It shows the level as
+ * How hard the model thinks, chosen beside the model: OrangeAgent's control. It shows the level as
  * rising bars and in words, and opens a menu of the levels the model takes, the lightest first,
  * the one it thinks at when none is named marked 既定 where that is known. Shown only for a model
  * that takes two or more; until one is chosen for a model whose default is not known, it reads 既定.
@@ -545,7 +545,7 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
   }), [transport, capabilities.drivePicker]);
   const runtimeMode = projection?.thread.runtimeMode ?? 'approval-required';
   // Until the server says which modes it offers, the composer offers only the one the conversation is in.
-  const providers = useMemo(() => [flarechatProvider(offered === null ? [runtimeMode] : offered.map(runtimeModeOf))], [offered, runtimeMode]);
+  const providers = useMemo(() => [orangeagentProvider(offered === null ? [runtimeMode] : offered.map(runtimeModeOf))], [offered, runtimeMode]);
 
   const respond = async (requestId: RuntimeRequestId, decision: ProviderApprovalDecision, feedback?: string): Promise<void> => {
     setResponding((ids) => [...ids, requestId]);
@@ -784,7 +784,7 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
                     composerDraftTarget={threadRef}
                     environmentId={ENVIRONMENT_ID}
                     canOperateThread
-                    // FlareChat keeps no upload service: pictures and files are sent with their message.
+                    // OrangeAgent keeps no upload service: pictures and files are sent with their message.
                     attachmentUploadsCapabilityKnown={false}
                     supportsAttachmentUploads={false}
                     supportsQuestionAttachments={false}
@@ -829,7 +829,7 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
                     compactThreadUnavailable
                     compactDisabled
                     resolvedTheme="light"
-                    settings={FLARECHAT_SETTINGS}
+                    settings={ORANGEAGENT_SETTINGS}
                     keybindings={DEFAULT_RESOLVED_KEYBINDINGS}
                     getShortcutContext={shortcutContext}
                     terminalOpen={false}
@@ -929,7 +929,7 @@ function RoutedConversation(): ReactElement | null {
  */
 export default function ChatSurface(props: ChatSurfaceProps): ReactElement {
   startI18nOnce();
-  // t3code's components read router state; the chat keeps its own in memory, apart from FlareChat's.
+  // t3code's components read router state; the chat keeps its own in memory, apart from OrangeAgent's.
   const [router] = useState(() => createRouter({
     routeTree: createRootRoute({ component: RoutedConversation }),
     history: createMemoryHistory({ initialEntries: ['/'] }),

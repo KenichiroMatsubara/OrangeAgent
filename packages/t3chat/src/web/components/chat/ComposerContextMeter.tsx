@@ -52,7 +52,7 @@ const preventPointerFocus: PointerEventHandler<HTMLElement> = (event) => {
 };
 
 /**
- * FlareChat: how much of the model's context the conversation holds, from the latest answer that
+ * OrangeAgent: how much of the model's context the conversation holds, from the latest answer that
  * recorded it: a ring and its percent when the model's window is known, otherwise the token count.
  * Beside it, what the whole chat has cost, where any answer's price is known. Hovering or tapping
  * it tells how much of that answer's input came from the prompt cache, and whether the chat's cost

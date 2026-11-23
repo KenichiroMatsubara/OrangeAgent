@@ -22,17 +22,17 @@ describe('a waiting call in words', () => {
     })).toBe('予定名：総会\n日時：2026年12月5日(土) 14:00〜16:00\n場所：公民館\n参加者：メールアドレスのある連絡先の全員、a@example.com（招待メールは送りません）');
   });
 
-  it('shows a change as before and after, from the event FlareChat recorded', () => {
+  it('shows a change as before and after, from the event OrangeAgent recorded', () => {
     expect(callPreview('update_scheduled_event', { eventId: 'event-1', startsAt: '2026-11-27T15:00:00+09:00', endsAt: '2026-11-27T15:30:00+09:00' }, WEEKLY))
       .toBe('予定名：週次定例\n日時：2026年11月28日(土) 10:00〜10:30 → 2026年11月27日(金) 15:00〜15:30\n場所：第2会議室');
     expect(callPreview('update_scheduled_event', { eventId: 'event-1', title: '定例会', location: 'オンライン', description: '新しい案内' }, WEEKLY))
       .toBe('予定名：週次定例 → 定例会\n日時：2026年11月28日(土) 10:00〜10:30\n場所：第2会議室 → オンライン\n案内文：書き換えます');
-    // Moving the start alone keeps the end FlareChat recorded.
+    // Moving the start alone keeps the end OrangeAgent recorded.
     expect(callPreview('update_scheduled_event', { eventId: 'event-1', startsAt: '2026-11-28T09:30:00+09:00' }, WEEKLY))
       .toContain('日時：2026年11月28日(土) 10:00〜10:30 → 2026年11月28日(土) 09:30〜10:30');
   });
 
-  it('shows only what changes when the event is not one FlareChat recorded', () => {
+  it('shows only what changes when the event is not one OrangeAgent recorded', () => {
     expect(callPreview('update_scheduled_event', { eventId: 'event-9', startsAt: '2026-11-27T15:00:00+09:00' }, null))
       .toBe('予定：event-9（変更前は分かりません）\n新しい開始：2026年11月27日(金) 15:00');
   });

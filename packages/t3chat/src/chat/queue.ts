@@ -1,5 +1,5 @@
 /**
- * How the copied QueuedRunsControl reaches FlareChat (FlareChat's own file). t3code's control sends
+ * How the copied QueuedRunsControl reaches OrangeAgent (OrangeAgent's own file). t3code's control sends
  * its queue commands over Effect RPC and reads a queued picture through its asset service; here it
  * reads both from this context, which ChatSurface fills from its transport.
  */

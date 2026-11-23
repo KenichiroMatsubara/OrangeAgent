@@ -101,7 +101,7 @@ const DESCRIBED_CHARACTERS = 8_000;
 
 /**
  * How a waiting call is shown: what its tool does, then what it will do in
- * words when FlareChat can say it for its tool (the mail it sends, the event
+ * words when OrangeAgent can say it for its tool (the mail it sends, the event
  * it changes), and otherwise each argument on a line of its own.
  */
 export const describeCall = (input: { label: string; arguments: unknown; preview: string | null }): string => {
@@ -116,7 +116,7 @@ export const describeCall = (input: { label: string; arguments: unknown; preview
 };
 
 /**
- * What a call will do, for a tool FlareChat can show it for, such as the
+ * What a call will do, for a tool OrangeAgent can show it for, such as the
  * mail it sends or the change to an event; null shows only its arguments.
  */
 export type Preview = (name: string, arguments_: Readonly<Record<string, unknown>>) => Promise<string | null>;
@@ -125,7 +125,7 @@ export const NO_PREVIEW: Preview = async () => null;
 
 /**
  * The previews of Operator Chat's mail and calendar writes (domain
- * `callPreview`): a change or cancellation names an event, read as FlareChat
+ * `callPreview`): a change or cancellation names an event, read as OrangeAgent
  * recorded it so the change shows before and after. An event that cannot be
  * read shows only what changes.
  */

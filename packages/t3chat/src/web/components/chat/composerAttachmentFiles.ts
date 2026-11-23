@@ -214,7 +214,7 @@ export function fileAttachmentCapabilityBlockReason(
   if (input.files.length === 0) {
     return null;
   }
-  // FlareChat: no upload service to wait for; files travel with the message they are sent with.
+  // OrangeAgent: no upload service to wait for; files travel with the message they are sent with.
   if (!input.attachmentUploadsCapabilityKnown) {
     return null;
   }

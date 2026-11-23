@@ -51,13 +51,13 @@ export interface AutomationStatus {
   lastError: string | null;
   /** Set while the grant keeps failing to refresh; the Worker keeps retrying until it clears. */
   failingSince: string | null;
-  /** Whether the grant lets FlareChat save Gmail drafts; one given before drafts existed does not until the Inbox is reconnected. */
+  /** Whether the grant lets OrangeAgent save Gmail drafts; one given before drafts existed does not until the Inbox is reconnected. */
   draftsGranted: boolean;
-  /** Whether the grant lets FlareChat reach the whole Drive; one given before it did does not until the Inbox is reconnected. */
+  /** Whether the grant lets OrangeAgent reach the whole Drive; one given before it did does not until the Inbox is reconnected. */
   driveGranted: boolean;
-  /** Whether the grant lets FlareChat read Meet transcripts and transcribe meetings; one given before it did does not until the Inbox is reconnected. */
+  /** Whether the grant lets OrangeAgent read Meet transcripts and transcribe meetings; one given before it did does not until the Inbox is reconnected. */
   meetGranted: boolean;
-  /** Whether the grant lets FlareChat keep the Account's Tasks in Google Tasks; one given before it did does not until the Inbox is reconnected. */
+  /** Whether the grant lets OrangeAgent keep the Account's Tasks in Google Tasks; one given before it did does not until the Inbox is reconnected. */
   tasksGranted: boolean;
 }
 
@@ -797,7 +797,7 @@ export interface ChatDrivePicker {
   accessToken: string;
 }
 
-/** Saving a file of a conversation to Drive: in the folder chosen with Google Picker, or, without one, in FlareChat's AI に聞く folder. */
+/** Saving a file of a conversation to Drive: in the folder chosen with Google Picker, or, without one, in OrangeAgent's AI に聞く folder. */
 export interface ChatDriveSave {
   folderId?: string;
 }
@@ -850,7 +850,7 @@ export interface PushDeviceState {
 export interface ChatGeneratedFile {
   id: string;
   filename: string;
-  /** Read from its extension; a file of a kind FlareChat does not name is `application/octet-stream`. */
+  /** Read from its extension; a file of a kind OrangeAgent does not name is `application/octet-stream`. */
   mediaType: string;
   size: number;
   drive: { url: string } | null;
