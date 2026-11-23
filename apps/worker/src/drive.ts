@@ -24,6 +24,8 @@ const SHORTCUT = 'application/vnd.google-apps.shortcut';
 
 /** The folder at the top of My Drive that OrangeAgent puts files away in instead of deleting them. */
 export const DRIVE_TRASH_FOLDER_NAME = 'OrangeAgent のゴミ箱';
+/** The name the trash folder had while the product was called FlareChat. */
+const FORMER_DRIVE_TRASH_FOLDER_NAME = 'FlareChat のゴミ箱';
 
 /** The most of one Drive file a run is handed, the most a mail carries. */
 export const MAX_DRIVE_FILE_BYTES = 25 * 1024 * 1024;
@@ -267,13 +269,18 @@ export const writableFolder = async (session: DriveSession, folderId: string, fo
 
 /**
  * OrangeAgent's trash folder, made at the top of My Drive the first time a file
- * is put away and recorded, and made again if it has since been removed.
+ * is put away and recorded, and made again if it has since been removed. One
+ * still named FlareChat のゴミ箱, from before the rename, is renamed and kept.
  */
 const trashFolder = async (session: DriveSession, database: D1Database, at: Date): Promise<string> => {
   const recorded = session.reach.trashId;
   if (recorded) {
     const folder = await session.google.drive.readFile(session.accessToken, recorded).catch(() => null);
-    if (folder && !folder.trashed) return recorded;
+    if (folder && !folder.trashed) {
+      if (folder.name !== FORMER_DRIVE_TRASH_FOLDER_NAME) return recorded;
+      await session.google.drive.updateFile(session.accessToken, recorded, { name: DRIVE_TRASH_FOLDER_NAME }).catch(() => undefined);
+      return recorded;
+    }
   }
   const id = await session.google.drive.ensureFolderPath(session.accessToken, [DRIVE_TRASH_FOLDER_NAME]);
   await saveDriveTrashFolderId(accountDatabase(database), id, at.toISOString());
@@ -316,7 +323,7 @@ export const performDriveWrite = async (
     const trashId = await trashFolder(session, session.database, session.at);
     if (parents.includes(trashId)) return refused(`${call.fileName} is already in ${DRIVE_TRASH_FOLDER_NAME}.`);
     const moved = await drive.updateFile(token, call.fileId!, {
-      addParents: [trashId], removeParents: parents, appProperties: { flarechatPutAwayFrom: parents.join(',') },
+      addParents: [trashId], removeParents: parents, appProperties: { orangeagentPutAwayFrom: parents.join(',') },
     });
     return {
       putAway: true, deleted: false, file: driveSummary(moved), from: parents, trashFolder: { id: trashId, name: DRIVE_TRASH_FOLDER_NAME },

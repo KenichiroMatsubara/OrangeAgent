@@ -141,7 +141,7 @@ Account が「ブラウザ」画面でオンにすると、チャットと定期
 
 - **JavaScript**：Dynamic Worker で実行します。`apps/worker/src/lent.ts` にあるライブラリ（exceljs、docx、pptxgenjs、pdf-lib、fflate、@xmldom/xmldom）を npm の名前で読み込めます。足りないライブラリは `lent.ts` に足し、`npm run lent` で束ねます。
 - **Python とシェル**：Sandbox SDK のコンテナで実行します。
-- 実行するコードは `tools: true` で Run のツールを呼べます。Dynamic Worker からは `tools.call(name, arguments)`、コンテナからは `flarechat.internal` 経由です。呼び出しは Run 自身の呼び出しとして扱います。チャットならその場で行い、定期実行なら計画します。
+- 実行するコードは `tools: true` で Run のツールを呼べます。Dynamic Worker からは `tools.call(name, arguments)`、コンテナからは `orangeagent.internal` 経由です（環境変数 `ORANGEAGENT_MCP_URL` と `ORANGEAGENT_RUN_TOKEN`）。呼び出しは Run 自身の呼び出しとして扱います。チャットならその場で行い、定期実行なら計画します。
 - **Run Token**：エージェントが別の場所で動かすプログラムに渡す鍵です。Run と同じツールを呼べ、それ以上のことはできません。Google の認証情報は Worker の外に出しません。
 
 ## サブエージェント
@@ -172,7 +172,7 @@ Account が「ブラウザ」画面でオンにすると、チャットと定期
 ### Drive
 
 - 読めるのは25 MB までのファイルです。Google ドキュメントは Word、スプレッドシートは Excel、スライドは PDF として渡します。
-- Drive のファイルは削除しません。捨てるときは、マイドライブの先頭の「OrangeAgent のゴミ箱」フォルダに移します。このフォルダは ID で覚えているので、改名前に作られた「FlareChat のゴミ箱」も、名前はそのままで使い続けます。
+- Drive のファイルは削除しません。捨てるときは、マイドライブの先頭の「OrangeAgent のゴミ箱」フォルダに移します。このフォルダは ID で覚えています。改名前に作られた「FlareChat のゴミ箱」が残っていれば、次にファイルを移すときに名前を「OrangeAgent のゴミ箱」に変えて、そのまま使います。
 - 「設定」画面で Drive Folders を決めると、エージェントが触れる範囲をそのフォルダの下に限れます。
 - メールの添付をどのフォルダに置くかはエージェントが選びます。決めたい場合は Skill に書きます。
 
@@ -221,7 +221,15 @@ OrangeAgent は MCP サーバーとして呼べます。
 
 このアプリは FlareChat という名前でした。本番の URL は `orangeagent.<subdomain>.workers.dev` に変わり、旧 URL の `flarechat.<subdomain>.workers.dev` には転送用の Worker（`redirect/`）を置いています。ブラウザで開いたページは新しい URL に転送し、webhook や MCP などの呼び出しはそのまま新しい Worker に渡します。旧 URL でホーム画面に追加したアプリは Service Worker がページを答えるため転送が届きません。そこで旧 URL の `/sw.js` は、自分を外して開いている画面を新しい URL の同じページへ移す Service Worker を返します。
 
-次の名前は、本番のデータや外の仕組みに残っているので、旧名のままにしています：D1（`flarechat-control-apac`、`flarechat-organization-*`）、R2（`flarechat-recovery-receipts`）、Vectorize（`flarechat-memory`）、Workflow（`flarechat-transcriber`）、Drive のファイルに付ける `flarechatPutAwayFrom`、コンテナに渡す `flarechat.internal`・`FLARECHAT_MCP_URL`・`FLARECHAT_RUN_TOKEN`、会話のイベントに書く provider の ID（`flarechat`）。
+次の名前は、本番のデータや外の仕組みに残っているので、旧名のままにしています。
+
+- Cloudflare のリソース：D1（`flarechat-control-apac`、`flarechat-organization-*`）、R2（`flarechat-recovery-receipts`）、Vectorize（`flarechat-memory`）、Workflow（`flarechat-transcriber`）。D1 は改名できず、移すには全 Account のデータを新しい D1 に移すことになります。Vectorize は全記憶の埋め込みを作り直すことになります。名前はダッシュボードと設定ファイルにしか見えないので、移しません。プロビジョニングは `flarechat-organization-` で始まる名前で Account の D1 を探します。
+- Durable Object の namespace（`flarechat_ChatThreads` など）：Cloudflare が作ったときの Worker 名で付けた表示名で、変えられません。動作には関わりません。
+- 会話のイベントに書く provider の ID（`flarechat`）：各 Account の D1 に保存済みで、画面には出ません。
+- コンテナの古い名前：コンテナは `orangeagent.internal` と `ORANGEAGENT_MCP_URL`・`ORANGEAGENT_RUN_TOKEN` で MCP Server に届きます。改名前に書かれた Skill のために、`flarechat.internal` と `FLARECHAT_MCP_URL`・`FLARECHAT_RUN_TOKEN` も同じ値で受け付けます。
+- Drive のファイル：改名前に捨てたファイルには `flarechatPutAwayFrom`、いまは `orangeagentPutAwayFrom` を付けます。どちらも記録のためで、読むところはありません。
+- Google の OAuth 同意画面のアプリ名（「FlareChat」）：変えて保存するには、アプリのホームページとプライバシーポリシーの URL が要ります。OrangeAgent にはまだそのページがないので、旧名のままです。Google Cloud のプロジェクト表示名と Microsoft Entra のアプリ登録名は「OrangeAgent」に変えました。Google Cloud のプロジェクト ID（`flarechat-…`）は変えられません。
+- Google Cloud と Microsoft Entra の旧リダイレクト URI（`flarechat.<subdomain>.workers.dev/...`）：転送用の Worker をやめるときに一緒に消します。
 
 ## アカウントとデータ
 

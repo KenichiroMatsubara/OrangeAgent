@@ -305,7 +305,7 @@ describe('one way to reach the Drive', () => {
     const putAway = await handlers['drive.trash']?.({ fileId: 'doc-1', fileName: '11月例会 次第' });
 
     expect(putAway).toMatchObject({ putAway: true, deleted: false, from: ['folder-1'], trashFolder: { id: 'folder:OrangeAgent のゴミ箱', name: 'OrangeAgent のゴミ箱' } });
-    expect(google.drive.held.find((file) => file.id === 'doc-1')).toMatchObject({ parents: ['folder:OrangeAgent のゴミ箱'], appProperties: { flarechatPutAwayFrom: 'folder-1' } });
+    expect(google.drive.held.find((file) => file.id === 'doc-1')).toMatchObject({ parents: ['folder:OrangeAgent のゴミ箱'], appProperties: { orangeagentPutAwayFrom: 'folder-1' } });
     expect(database.rows<{ value: string }>("SELECT value FROM settings WHERE key = 'drive_trash_folder'")).toEqual([{ value: 'folder:OrangeAgent のゴミ箱' }]);
     // The trash folder lies outside the Account's folders, yet a run bounded to them still finds what it put away there.
     await expect(handlers['drive.search']?.({ folderId: 'folder:OrangeAgent のゴミ箱' })).resolves.toMatchObject({ files: [{ id: 'doc-1' }] });
@@ -316,6 +316,22 @@ describe('one way to reach the Drive', () => {
     await expect(handlers['drive.move']?.({ fileId: 'doc-1', fileName: '11月例会 次第', folderId: 'folder-1', folderName: '2026-27 例会' }))
       .resolves.toMatchObject({ moved: true, file: { parents: ['folder-1'] } });
     expect(google.drive.held.map((file) => file.id)).toContain('doc-1');
+  });
+
+  it('renames the trash folder still called FlareChat のゴミ箱 and keeps putting files in it, rather than making another', async () => {
+    database = createMigratedTestD1('organization');
+    const { google, handlers } = drive(database, ['https://www.googleapis.com/auth/drive']);
+    google.drive.held.push({ id: 'trash-1', name: 'FlareChat のゴミ箱', mimeType: 'application/vnd.google-apps.folder' });
+    database.execute(
+      "INSERT INTO settings (key, value, updated_at) VALUES ('drive_folders', ?, '2026-10-01T00:00:00.000Z'), ('drive_trash_folder', 'trash-1', '2026-10-01T00:00:00.000Z')",
+      JSON.stringify([{ id: 'folder-1', name: '2026-27 例会', url: 'https://drive.example/folder-1' }]),
+    );
+
+    await expect(handlers['drive.trash']?.({ fileId: 'doc-1', fileName: '11月例会 次第' }))
+      .resolves.toMatchObject({ putAway: true, trashFolder: { id: 'trash-1', name: 'OrangeAgent のゴミ箱' } });
+    expect(google.drive.held.find((file) => file.id === 'trash-1')).toMatchObject({ name: 'OrangeAgent のゴミ箱' });
+    expect(google.drive.held.find((file) => file.id === 'doc-1')).toMatchObject({ parents: ['trash-1'] });
+    expect(google.drive.held.filter((file) => file.name === 'OrangeAgent のゴミ箱')).toHaveLength(1);
   });
 });
 
