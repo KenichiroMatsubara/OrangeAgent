@@ -210,6 +210,16 @@ Automation Inbox が開いた会議と参加した会議の、文字起こしを
 
 「文字起こし」画面に録音を上げると、文字にします。対応するのは MP3、M4A・MP4、WAV、WebM、Ogg、FLAC、AAC で、32 MB までです。OpenRouter で、話者を分けて文字にします（話者1、話者2…）。「議事録にする」で議事録も作れます。ツールは使わず、Run も残しません。
 
+## 外部の MCP サーバー
+
+「接続」画面の「外部ツール（MCP）」で、Account が HTTP か SSE の MCP サーバーをつなぎます。認証は次のどれかです。
+
+- **トークン**：サーバーが発行した固定のトークンを入れます。
+- **サインイン（OAuth）**：トークンを空けて追加し、一覧の「サインイン」からサインインします。OrangeAgent は、サーバーが示す認可サーバー（RFC 9728）に自分をクライアントとして登録し（RFC 7591）、PKCE でサインインします。
+- **自分の OAuth クライアントでサインイン**：クライアントの自動登録に対応していない認可サーバーでは、Account がその認可サーバーで作ったクライアントの ID、シークレット、スコープを入れて追加します。入れずにサインインすると、クライアントを作るように伝えて止まります。スコープを空けると、サーバーが示すスコープをすべて求めます。
+
+Google の Workspace MCP サーバー（Gmail、Drive、Calendar など。`https://gmailmcp.googleapis.com/mcp/v1` など）は、3つ目の方法でつなぎます。Google Cloud で種類「ウェブ アプリケーション」の OAuth クライアントを作り、承認済みのリダイレクト URI に `<APP_URL>/oauth/mcp/callback` を登録します。Google には、更新トークンをもらうために `access_type=offline` と `prompt=consent` を付けてサインインします。こうしてつないだ Google のツールは外部の MCP サーバーのツールとして扱い、Automation Inbox の Google のツールとは別のものです。両方を同時に使えます。
+
 ## 外部からの呼び出し（MCP）
 
 OrangeAgent は MCP サーバーとして呼べます。

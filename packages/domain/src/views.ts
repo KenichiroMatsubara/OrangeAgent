@@ -502,6 +502,8 @@ export interface McpServer {
   url: string;
   revision: string | null;
   authentication: McpAuthentication;
+  /** Whether it is signed in to with an OAuth client the Account registered itself. */
+  ownOAuthClient: boolean;
   /** Why signing in to it last failed, or why its grant stopped working; null while nothing needs doing. */
   signInError: string | null;
   updatedAt: string;
@@ -545,10 +547,23 @@ export interface BrowserSignIn {
   expiresAt: string;
 }
 
+/**
+ * An OAuth client the Account registered itself with a server's authorization
+ * server, for one that registers no client on request (Google's Workspace MCP
+ * servers). Without it, OrangeAgent registers itself when signing in.
+ */
+export interface McpOAuthClient {
+  clientId: string;
+  clientSecret: string | null;
+  /** The scopes to ask for, space-separated; null asks for what the server names. */
+  scope: string | null;
+}
+
 export interface McpServerInput {
   name: string;
   url: string;
   token: string | null;
+  oauthClient?: McpOAuthClient | null;
 }
 
 export interface McpServerTool {

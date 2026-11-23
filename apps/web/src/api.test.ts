@@ -154,7 +154,7 @@ const target: ChannelTestTarget = { id: 'contact-1', name: '山田 太郎', emai
 const channelDelivery: ChannelTestDelivery = {
   delivered: true, channel: 'line', contactId: 'contact-1', destination: 'Uabc1', messages: 2, requests: 1, externalId: null, sentAt: AT,
 };
-const server: McpServer = { id: 'server-1', name: 'line', url: 'https://mcp.example/line', revision: null, authentication: 'token', signInError: null, updatedAt: AT };
+const server: McpServer = { id: 'server-1', name: 'line', url: 'https://mcp.example/line', revision: null, authentication: 'token', ownOAuthClient: false, signInError: null, updatedAt: AT };
 const serverTool: McpServerTool = { name: 'push', description: 'Sends a message', inputSchema: { type: 'object' } };
 const chatThread: ChatThread = { id: 'thread-1', title: '', createdAt: AT, updatedAt: AT };
 const transcriptSummary: TranscriptSummary = {

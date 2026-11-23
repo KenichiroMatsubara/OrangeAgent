@@ -14,6 +14,7 @@ import {
   unsupportedChatAttachmentText,
   type ChatAttachmentType,
   type ChatGeneratedFile,
+  type McpOAuthClient,
 } from '@mail/domain';
 
 import { invalid } from './refusal';
@@ -25,6 +26,7 @@ import { mcpAccessToken } from './mcp-oauth';
 import type { McpServerSource, TurnFile } from './turns';
 
 const mcpTokenContext = (accountId: string, serverId: string): string => `mcp-server-token:${accountId}:${serverId}`;
+const mcpClientContext = (accountId: string, serverId: string): string => `mcp-server-oauth-client:${accountId}:${serverId}`;
 
 /** An accepted attachment before it is stored: what it is, and its bytes. */
 export interface ChatUpload extends TurnFile {
@@ -151,11 +153,15 @@ export const saveChatServer = async (input: {
   name: string;
   url: string;
   token: string | null;
+  oauthClient: McpOAuthClient | null;
   revision: '2026-07-28' | '2025-06-18' | null;
   timestamp: string;
 }): Promise<void> => {
   const envelope = input.token
     ? JSON.stringify(await encrypt(input.token, input.accountKey, mcpTokenContext(input.accountId, input.id)))
+    : null;
+  const clientEnvelope = input.oauthClient
+    ? JSON.stringify(await encrypt(JSON.stringify(input.oauthClient), input.accountKey, mcpClientContext(input.accountId, input.id)))
     : null;
   await drizzleAccountDatabase(input.database).insert(mcpServers).values({
     id: input.id,
@@ -163,13 +169,25 @@ export const saveChatServer = async (input: {
     name: input.name,
     url: input.url,
     tokenEnvelope: envelope,
+    oauthClientEnvelope: clientEnvelope,
     revision: input.revision,
     createdAt: input.timestamp,
     updatedAt: input.timestamp,
   }).onConflictDoUpdate({
     target: mcpServers.id,
-    set: { name: input.name, url: input.url, tokenEnvelope: envelope, revision: input.revision, updatedAt: input.timestamp },
+    set: { name: input.name, url: input.url, tokenEnvelope: envelope, oauthClientEnvelope: clientEnvelope, revision: input.revision, updatedAt: input.timestamp },
   }).run();
+};
+
+/** The OAuth client the Account registered itself for one of its MCP Servers, or null when OrangeAgent registers one when signing in. */
+export const openChatServerClient = async (input: {
+  accountKey: CryptoKey;
+  accountId: string;
+  serverId: string;
+  envelope: string | null;
+}): Promise<McpOAuthClient | null> => {
+  if (!input.envelope) return null;
+  return JSON.parse(await decrypt(JSON.parse(input.envelope), input.accountKey, mcpClientContext(input.accountId, input.serverId))) as McpOAuthClient;
 };
 
 export const deleteChatServer = async (input: { database: D1Database; id: string }): Promise<void> => {

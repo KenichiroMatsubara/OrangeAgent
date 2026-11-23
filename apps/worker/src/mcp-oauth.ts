@@ -6,7 +6,9 @@
  * (RFC 9728), whose metadata names its endpoints (RFC 8414, or OpenID
  * discovery), OrangeAgent registers itself there (RFC 7591), and the person is
  * sent to sign in with PKCE S256, the token naming the server as its
- * resource (RFC 8707).
+ * resource (RFC 8707). An authorization server that registers no client on
+ * request, as Google's for its Workspace MCP servers, is signed in to with the
+ * client the Account registered there itself and the scopes it chose.
  *
  * The OAuth state carries the Account, the person who asked, the server, the
  * PKCE verifier, and the client it registered, sealed under the deployment's
@@ -17,6 +19,7 @@
  */
 
 import { and, eq } from 'drizzle-orm';
+import type { McpOAuthClient } from '@mail/domain';
 
 import { decrypt, encrypt, masterKey, type CipherEnvelope } from './cryptography';
 import { decodeText, encodeText, fromBase64Url, toBase64Url } from './encoding';
@@ -33,6 +36,9 @@ const STATE_WINDOW_MS = 10 * 60 * 1_000;
 const RENEWAL_MARGIN_MS = 2 * 60 * 1_000;
 
 const STATE_CONTEXT = 'mcp-oauth-state';
+
+/** Google hands out a refresh token only when asked for offline access, and again only on a fresh consent. */
+const GOOGLE_ISSUER = 'https://accounts.google.com';
 const grantContext = (accountId: string, serverId: string): string => `mcp-server-oauth:${accountId}:${serverId}`;
 
 type ClientAuthentication = 'none' | 'client_secret_post' | 'client_secret_basic';
@@ -186,7 +192,7 @@ const discoverAuthorizationServer = async (fetch: McpFetch, issuer: URL): Promis
 /** Registers OrangeAgent as a client of the authorization server (RFC 7591), a public one unless the server hands it a secret. */
 const registerClient = async (fetch: McpFetch, input: { env: Bindings; server: AuthorizationServer; resource: string; scope: string | null }): Promise<McpClient> => {
   if (!input.server.registrationEndpoint) {
-    throw new McpSignInUnavailable('この MCP Server はクライアントの自動登録に対応していないため、サインインできません。トークンを発行できるサーバーなら、トークンで登録してください。');
+    throw new McpSignInUnavailable('この MCP Server はクライアントの自動登録に対応していません。認可サーバーで OAuth クライアントを作り、外部ツールを削除して、そのクライアント ID とシークレットを入れて追加し直してください。トークンを発行できるサーバーなら、トークンでも登録できます。');
   }
   const response = await fetch(input.server.registrationEndpoint, {
     method: 'POST',
@@ -211,6 +217,18 @@ const registerClient = async (fetch: McpFetch, input: { env: Bindings; server: A
   return { issuer: input.server.issuer, tokenEndpoint: input.server.tokenEndpoint, clientId: body.client_id, clientSecret: secret, authentication, resource: input.resource };
 };
 
+/** The client the Account registered itself, as the token endpoint is to be told of it. */
+const registeredClient = (server: AuthorizationServer, resource: string, registered: McpOAuthClient): McpClient => ({
+  issuer: server.issuer,
+  tokenEndpoint: server.tokenEndpoint,
+  clientId: registered.clientId,
+  clientSecret: registered.clientSecret,
+  authentication: registered.clientSecret ? 'client_secret_post' : 'none',
+  resource,
+});
+
+const isGoogle = (issuer: string): boolean => issuer.replace(/\/$/u, '') === GOOGLE_ISSUER;
+
 /** The URL that starts signing this Account in to one of its MCP Servers, for the person asking. */
 export const beginMcpSignIn = async (input: {
   env: Bindings;
@@ -219,12 +237,17 @@ export const beginMcpSignIn = async (input: {
   identityId: string;
   serverId: string;
   url: string;
+  /** The client the Account registered itself; null registers OrangeAgent with the authorization server. */
+  registered: McpOAuthClient | null;
 }): Promise<string> => {
   const target = httpsUrl(input.url);
   if (!target) throw new McpSignInUnavailable('MCP Server の URL は https で始まる必要があります。');
   const discovered = await discoverResource(input.fetch, target);
   const server = await discoverAuthorizationServer(input.fetch, discovered.issuer);
-  const client = await registerClient(input.fetch, { env: input.env, server, resource: discovered.resource, scope: discovered.scope });
+  const scope = input.registered?.scope ?? discovered.scope;
+  const client = input.registered
+    ? registeredClient(server, discovered.resource, input.registered)
+    : await registerClient(input.fetch, { env: input.env, server, resource: discovered.resource, scope });
   const pkce = await createPkce();
   const state: McpOAuthState = {
     ...client,
@@ -243,7 +266,11 @@ export const beginMcpSignIn = async (input: {
   url.searchParams.set('code_challenge', pkce.challenge);
   url.searchParams.set('code_challenge_method', 'S256');
   url.searchParams.set('resource', client.resource);
-  if (discovered.scope) url.searchParams.set('scope', discovered.scope);
+  if (scope) url.searchParams.set('scope', scope);
+  if (isGoogle(server.issuer)) {
+    url.searchParams.set('access_type', 'offline');
+    url.searchParams.set('prompt', 'consent');
+  }
   return url.toString();
 };
 

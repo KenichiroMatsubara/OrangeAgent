@@ -19,7 +19,7 @@ describe('Connections screen', () => {
     vi.mocked(api.accessTokens).mockResolvedValue([]);
     vi.mocked(api.operatorTokens).mockResolvedValue([]);
     vi.mocked(api.mcpEndpoint).mockResolvedValue({ url: 'https://orangeagent.example/api/public/organizations/org-1/mcp' });
-    vi.mocked(api.mcpServers).mockResolvedValue([{ id: 'server-1', name: 'notion', url: 'https://example.com/mcp', revision: null, authentication: 'token', signInError: null, updatedAt: '2026-08-18T09:00:00.000Z' }]);
+    vi.mocked(api.mcpServers).mockResolvedValue([{ id: 'server-1', name: 'notion', url: 'https://example.com/mcp', revision: null, authentication: 'token', ownOAuthClient: false, signInError: null, updatedAt: '2026-08-18T09:00:00.000Z' }]);
   });
 
   it('holds what the whole Account shares: its services, its outside tools, and the keys it lent', async () => {
@@ -210,8 +210,8 @@ describe('Connections screen', () => {
 
   it('signs in to an outside tool by OAuth, and says which one must be signed in to again and what waits on it', async () => {
     vi.mocked(api.mcpServers).mockResolvedValue([
-      { id: 'server-1', name: 'notion', url: 'https://example.com/mcp', revision: null, authentication: 'token', signInError: null, updatedAt: '2026-08-18T09:00:00.000Z' },
-      { id: 'server-2', name: 'linear', url: 'https://mcp.linear.example/mcp', revision: null, authentication: 'oauth', signInError: 'サインインが切れました。もう一度サインインしてください。', updatedAt: '2026-08-18T09:00:00.000Z' },
+      { id: 'server-1', name: 'notion', url: 'https://example.com/mcp', revision: null, authentication: 'token', ownOAuthClient: false, signInError: null, updatedAt: '2026-08-18T09:00:00.000Z' },
+      { id: 'server-2', name: 'linear', url: 'https://mcp.linear.example/mcp', revision: null, authentication: 'oauth', ownOAuthClient: false, signInError: 'サインインが切れました。もう一度サインインしてください。', updatedAt: '2026-08-18T09:00:00.000Z' },
     ]);
     const user = userEvent.setup();
     const assign = vi.fn();
@@ -229,6 +229,32 @@ describe('Connections screen', () => {
     await waitFor(() => expect(assign).toHaveBeenCalledWith('https://auth.linear.example/authorize?state=s'));
     expect(api.authorizeMcpServer).toHaveBeenCalledWith(ACCOUNT_ID, 'server-2');
     vi.unstubAllGlobals();
+  });
+
+  it('adds an outside tool signed in to with an OAuth client of the Account\'s own, such as Google\'s Gmail MCP Server', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.saveMcpServer).mockResolvedValue({ id: 'server-3' });
+    renderScreen('connections', connections);
+
+    await user.click(await screen.findByRole('button', { name: '外部ツールを追加' }));
+    const sheet = await screen.findByRole('dialog', { name: '外部ツール（MCP）を追加' });
+    await user.type(within(sheet).getByLabelText('名前'), 'gmail');
+    await user.type(within(sheet).getByLabelText('URL'), 'https://gmailmcp.googleapis.com/mcp/v1');
+    await user.click(within(sheet).getByText('自分の OAuth クライアントでサインインする（任意）'));
+    expect(within(sheet).getByText(`${window.location.origin}/oauth/mcp/callback`)).toBeTruthy();
+    await user.type(within(sheet).getByLabelText('クライアント ID'), 'client-1.apps.googleusercontent.com');
+    await user.type(within(sheet).getByLabelText('クライアント シークレット'), 'secret-1');
+    await user.type(within(sheet).getByLabelText('スコープ'), 'https://www.googleapis.com/auth/gmail.readonly');
+    // The tool is signed in to by the client, so no static token can go with it.
+    expect((within(sheet).getByLabelText('トークン（任意）') as HTMLInputElement).disabled).toBe(true);
+    await user.click(within(sheet).getByRole('button', { name: '追加する' }));
+
+    await waitFor(() => expect(api.saveMcpServer).toHaveBeenCalledWith(ACCOUNT_ID, expect.any(String), {
+      name: 'gmail',
+      url: 'https://gmailmcp.googleapis.com/mcp/v1',
+      token: null,
+      oauthClient: { clientId: 'client-1.apps.googleusercontent.com', clientSecret: 'secret-1', scope: 'https://www.googleapis.com/auth/gmail.readonly' },
+    }));
   });
 
   it('says a Microsoft account cannot be connected until the deployment registers the app, and shows the one connected', async () => {

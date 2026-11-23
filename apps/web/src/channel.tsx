@@ -8,6 +8,7 @@ import { mcpAuthentication, word } from './labels';
 import { errorText } from './parts';
 import { momentLabel } from './time';
 import { Button } from './ui/button';
+import { Disclosure } from './ui/disclosure';
 import { Field } from './ui/field';
 import { List, Row } from './ui/list';
 import { Banner, Empty } from './ui/notice';
@@ -79,11 +80,17 @@ export const ChannelTestSheet = ({ accountId, contactId, channels, onClose }: {
   </Sheet>;
 };
 
+/** Where an authorization server sends the person back to after signing in, to be registered with a client the Account makes itself. */
+const mcpRedirectUri = (): string => `${window.location.origin}/oauth/mcp/callback`;
+
 /** Registers one remote MCP Server. Only HTTP or SSE servers can be reached, because Workers have no child processes. */
 const AddMcpServer = ({ accountId, reload, onClose }: { accountId: string; reload: () => Promise<void>; onClose: () => void }) => {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [token, setToken] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [scope, setScope] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const save = async (event: FormEvent): Promise<void> => {
@@ -91,7 +98,8 @@ const AddMcpServer = ({ accountId, reload, onClose }: { accountId: string; reloa
     setError('');
     setBusy(true);
     try {
-      await api.saveMcpServer(accountId, crypto.randomUUID(), { name: name.trim(), url: url.trim(), token: token.trim() || null });
+      const oauthClient = clientId.trim() ? { clientId: clientId.trim(), clientSecret: clientSecret.trim() || null, scope: scope.trim() || null } : null;
+      await api.saveMcpServer(accountId, crypto.randomUUID(), { name: name.trim(), url: url.trim(), token: token.trim() || null, oauthClient });
       await reload();
       onClose();
     } catch (cause) {
@@ -105,7 +113,15 @@ const AddMcpServer = ({ accountId, reload, onClose }: { accountId: string; reloa
     {error && <Banner tone="danger" icon={<CircleAlert size={18} aria-hidden="true" />}>{error}</Banner>}
     <Field label="名前">{(control) => <input {...control} value={name} onChange={(change) => setName(change.target.value)} placeholder="例: notion" required />}</Field>
     <Field label="URL">{(control) => <input {...control} type="url" value={url} onChange={(change) => setUrl(change.target.value)} placeholder="https://example.com/mcp" autoCapitalize="none" spellCheck={false} required />}</Field>
-    <Field label="トークン（任意）">{(control) => <input {...control} type="password" value={token} onChange={(change) => setToken(change.target.value)} autoComplete="off" />}</Field>
+    <Field label="トークン（任意）">{(control) => <input {...control} type="password" value={token} onChange={(change) => setToken(change.target.value)} autoComplete="off" disabled={Boolean(clientId.trim())} />}</Field>
+    <Disclosure title="自分の OAuth クライアントでサインインする（任意）" sub="Google の Gmail・Calendar・Drive などの MCP Server はこちら">
+      <Note>
+        クライアントの自動登録に対応していないサーバーでは、そのサービスの管理画面（Google なら Google Cloud の「Google Auth Platform」→「クライアント」）で、種類「ウェブ アプリケーション」の OAuth クライアントを作ります。承認済みのリダイレクト URI には <code>{mcpRedirectUri()}</code> を登録します。Google では「Use this client for an AI-powered agent」も選びます。入れないと、このサーバーにはサインインできません。
+      </Note>
+      <Field label="クライアント ID">{(control) => <input {...control} value={clientId} onChange={(change) => setClientId(change.target.value)} autoCapitalize="none" spellCheck={false} autoComplete="off" disabled={Boolean(token.trim())} />}</Field>
+      <Field label="クライアント シークレット">{(control) => <input {...control} type="password" value={clientSecret} onChange={(change) => setClientSecret(change.target.value)} autoComplete="off" disabled={!clientId.trim()} />}</Field>
+      <Field label="スコープ" hint="空白で区切ります。空けると、サーバーが示すスコープをすべて求めます。Google では、同意画面の「データアクセス」に足したものだけを書きます。例: https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose">{(control) => <textarea {...control} rows={2} value={scope} onChange={(change) => setScope(change.target.value)} autoCapitalize="none" spellCheck={false} disabled={!clientId.trim()} />}</Field>
+    </Disclosure>
     <Button type="submit" block busy={busy}>{busy ? '保存しています…' : '追加する'}</Button>
   </Sheet>;
 };
@@ -215,7 +231,7 @@ export const McpServers = ({ accountId, servers, reload }: { accountId: string; 
       : <List>{servers.map((server) => <Row
         key={server.id}
         title={server.name}
-        sub={`${server.url} ・ ${server.signInError ? 'サインインが必要です' : word(mcpAuthentication, server.authentication)}`}
+        sub={`${server.url} ・ ${server.signInError ? 'サインインが必要です' : word(mcpAuthentication, server.authentication)}${server.ownOAuthClient ? '（自分の OAuth クライアント）' : ''}`}
         aside={<>
           {server.authentication !== 'token' && <Button variant="quiet" small busy={signing === server.id} aria-label={`${server.name} にサインイン`} onClick={() => void signIn(server.id)}>サインイン</Button>}
           <Button variant="quiet" small onClick={() => setSheet({ kind: 'try', server })}>試す</Button>

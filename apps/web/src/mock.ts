@@ -142,9 +142,10 @@ const warnings: AutomationWarning[] = [{
 const stuckJobs: StuckJob[] = [];
 
 const mcpServers: McpServer[] = [
-  { id: 'mcp-1', name: 'Notion', url: 'https://mcp.notion.example/sse', revision: '3', authentication: 'oauth', signInError: null, updatedAt: '2026-09-30T00:00:00.000Z' },
-  { id: 'mcp-2', name: 'linear', url: 'https://mcp.linear.example/mcp', revision: null, authentication: 'oauth', signInError: 'サインインが切れました。もう一度サインインしてください。', updatedAt: '2026-09-30T00:00:00.000Z' },
-  { id: 'mcp-3', name: 'line', url: 'https://mcp.line.example/mcp', revision: null, authentication: 'token', signInError: null, updatedAt: '2026-09-30T00:00:00.000Z' },
+  { id: 'mcp-1', name: 'Notion', url: 'https://mcp.notion.example/sse', revision: '3', authentication: 'oauth', ownOAuthClient: false, signInError: null, updatedAt: '2026-09-30T00:00:00.000Z' },
+  { id: 'mcp-2', name: 'linear', url: 'https://mcp.linear.example/mcp', revision: null, authentication: 'oauth', ownOAuthClient: false, signInError: 'サインインが切れました。もう一度サインインしてください。', updatedAt: '2026-09-30T00:00:00.000Z' },
+  { id: 'mcp-4', name: 'gmail', url: 'https://gmailmcp.googleapis.com/mcp/v1', revision: null, authentication: 'oauth', ownOAuthClient: true, signInError: null, updatedAt: '2026-11-20T00:00:00.000Z' },
+  { id: 'mcp-3', name: 'line', url: 'https://mcp.line.example/mcp', revision: null, authentication: 'token', ownOAuthClient: false, signInError: null, updatedAt: '2026-09-30T00:00:00.000Z' },
 ];
 
 const browserLogins: BrowserLogin[] = [

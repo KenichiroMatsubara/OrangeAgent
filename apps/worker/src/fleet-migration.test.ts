@@ -125,7 +125,7 @@ describe('Fleet Migration', () => {
     } as unknown as Bindings);
 
     expect(receipt).toMatchObject({
-      targetMigration: '0065_runs_browser_time.sql',
+      targetMigration: '0066_mcp_oauth_client.sql',
       migratedDatabases: 2,
     });
     expect(active.rows<{ display_name: string }>(
@@ -184,7 +184,7 @@ describe('Fleet Migration', () => {
     } as unknown as Bindings);
 
     expect(receipt).toMatchObject({
-      targetMigration: '0065_runs_browser_time.sql',
+      targetMigration: '0066_mcp_oauth_client.sql',
       migratedDatabases: 1,
     });
     expect(applied.has('0004_manual_line_destination_source.sql')).toBe(true);

@@ -1,7 +1,7 @@
 import { asc, eq } from 'drizzle-orm';
-import { RESERVED_TOOL_NAMESPACES, type McpServer, type McpServerTool, type McpServerToolResult } from '@mail/domain';
+import { RESERVED_TOOL_NAMESPACES, type McpOAuthClient, type McpServer, type McpServerInput, type McpServerTool, type McpServerToolResult } from '@mail/domain';
 
-import { deleteChatServer, listChatServers, saveChatServer } from '../chat-store';
+import { deleteChatServer, listChatServers, openChatServerClient, saveChatServer } from '../chat-store';
 import { now } from '../clock';
 import { callMcpTool, listMcpTools } from '../mcp';
 import type { Providers } from '../providers';
@@ -13,6 +13,21 @@ import { accountRoute } from './account';
 
 const MCP_REVISIONS = ['2026-07-28', '2025-06-18'] as const;
 type McpRevision = (typeof MCP_REVISIONS)[number];
+
+/** The OAuth client a person entered, trimmed, or null when they entered none. */
+const oauthClientOf = (value: McpServerInput['oauthClient'], token: string | null): McpOAuthClient | null => {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) throw invalid('OAuth クライアントの指定が不正です。');
+  const clientId = typeof value.clientId === 'string' ? value.clientId.trim() : '';
+  const clientSecret = typeof value.clientSecret === 'string' ? value.clientSecret.trim() : '';
+  const scope = typeof value.scope === 'string' ? value.scope.trim().split(/[\s,]+/u).filter(Boolean).join(' ') : '';
+  if (!clientId) {
+    if (clientSecret || scope) throw invalid('OAuth クライアントのシークレットやスコープを使うときは、クライアント ID も入力してください。');
+    return null;
+  }
+  if (token) throw invalid('トークンと OAuth クライアントは、どちらか一方だけを入力してください。');
+  return { clientId, clientSecret: clientSecret || null, scope: scope || null };
+};
 
 /** The remote MCP Servers an Account registered, and calling one for real. */
 export const serverRoutes = (providers: Providers) => {
@@ -26,6 +41,7 @@ export const serverRoutes = (providers: Providers) => {
       url: row.url,
       revision: row.revision,
       authentication: row.oauthEnvelope ? 'oauth' : row.tokenEnvelope ? 'token' : 'none',
+      ownOAuthClient: row.oauthClientEnvelope !== null,
       signInError: row.oauthError,
       updatedAt: row.updatedAt,
     }));
@@ -34,11 +50,12 @@ export const serverRoutes = (providers: Providers) => {
   /** The URL that starts signing this Account in to one of its MCP Servers by OAuth, for the person asking. */
   routes.post('/organizations/:accountId/mcp-servers/:serverId/authorize', accountRoute(async (request): Promise<{ authorizationUrl: string }> => {
     const serverId = request.params.serverId ?? '';
-    const server = await request.db.select({ url: mcpServers.url }).from(mcpServers).where(eq(mcpServers.id, serverId)).get();
+    const server = await request.db.select({ url: mcpServers.url, client: mcpServers.oauthClientEnvelope }).from(mcpServers).where(eq(mcpServers.id, serverId)).get();
     if (!server) throw notFound('その MCP Server は登録されていません。');
+    const registered = await openChatServerClient({ accountKey: await request.key(), accountId: request.accountId, serverId, envelope: server.client });
     try {
       return { authorizationUrl: await beginMcpSignIn({
-        env: request.env, fetch: providers.fetch, accountId: request.accountId, identityId: request.session.identity_id, serverId, url: server.url,
+        env: request.env, fetch: providers.fetch, accountId: request.accountId, identityId: request.session.identity_id, serverId, url: server.url, registered,
       }) };
     } catch (error) {
       if (error instanceof McpSignInUnavailable) throw conflict(error.message);
@@ -46,7 +63,7 @@ export const serverRoutes = (providers: Providers) => {
     }
   }));
 
-  routes.put('/organizations/:accountId/mcp-servers/:serverId', accountRoute<{ name?: string; url?: string; token?: string | null; revision?: string | null }>(async (request) => {
+  routes.put('/organizations/:accountId/mcp-servers/:serverId', accountRoute<{ name?: string; url?: string; token?: string | null; oauthClient?: McpServerInput['oauthClient']; revision?: string | null }>(async (request) => {
     const name = request.body.name?.trim() ?? '';
     const url = request.body.url?.trim() ?? '';
     if (!/^[a-z0-9_-]+$/u.test(name)) {
@@ -59,6 +76,8 @@ export const serverRoutes = (providers: Providers) => {
     const revision = request.body.revision ?? null;
     if (revision !== null && !MCP_REVISIONS.includes(revision as McpRevision)) throw invalid('MCP のリビジョン指定が不正です。');
     const id = request.params.serverId ?? '';
+    const token = request.body.token?.trim() || null;
+    const oauthClient = oauthClientOf(request.body.oauthClient, token);
     await saveChatServer({
       database: request.database,
       accountKey: await request.key(),
@@ -66,7 +85,8 @@ export const serverRoutes = (providers: Providers) => {
       id,
       name,
       url,
-      token: request.body.token?.trim() || null,
+      token,
+      oauthClient,
       revision: revision as McpRevision | null,
       timestamp: now(),
     });

@@ -589,6 +589,8 @@ export const mcpServers = sqliteTable('mcp_servers', {
   tokenEnvelope: text('token_envelope'),
   oauthEnvelope: text('oauth_envelope'),
   oauthError: text('oauth_error'),
+  /** The OAuth client the Account registered itself, for an authorization server that registers none on request. */
+  oauthClientEnvelope: text('oauth_client_envelope'),
   revision: text('revision', { enum: ['2026-07-28', '2025-06-18'] }),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
