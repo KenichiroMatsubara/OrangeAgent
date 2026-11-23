@@ -1052,24 +1052,6 @@ function failedTimelineRunIds(
   return failed;
 }
 
-/** Usage-limit pauses keep their tool groups; any other failure itemizes the run's work. */
-function itemizedFailedRunIds(
-  entries: ReadonlyArray<TimelineEntry>,
-  failedRunIds: ReadonlySet<RunId>,
-) {
-  const usageLimited = new Set<RunId>();
-  const otherFailures = new Set<RunId>();
-  for (const entry of entries) {
-    const item = timelineEntryFailedItem(entry);
-    if (item?.runId) {
-      (item.failure.class === "usage_limit" ? usageLimited : otherFailures).add(item.runId);
-    }
-  }
-  return new Set(
-    [...failedRunIds].filter((runId) => !usageLimited.has(runId) || otherFailures.has(runId)),
-  );
-}
-
 function deriveTurnFolds(input: {
   timelineEntries: ReadonlyArray<TimelineEntry>;
   terminalAssistantMessageIds: ReadonlySet<string>;
@@ -1663,7 +1645,6 @@ export function deriveMessagesTimelineRows(
   const nextRows: MessagesTimelineRow[] = [];
   const terminalAssistantMessageIds = deriveTerminalAssistantMessageIds(timelineEntries);
   const failedRunIds = failedTimelineRunIds(timelineEntries, input.latestRun ?? null);
-  const itemizedRunIds = itemizedFailedRunIds(timelineEntries, failedRunIds);
   const liveSubagentEntryIds = liveSubagentCardEntryIds(timelineEntries);
   const retainedAssistantReplyIds = retainedAssistantReplyEntryIds(timelineEntries);
   const supersededFoldsByAnchorEntryId = deriveSupersededAttemptFolds(
@@ -2054,7 +2035,6 @@ export function deriveMessagesTimelineRows(
     if (timelineEntry.kind === "work") {
       if (
         isPendingApproval(timelineEntry.entry) ||
-        (timelineEntry.entry.runId != null && itemizedRunIds.has(timelineEntry.entry.runId)) ||
         (timelineEntry.entry.itemType === "error" &&
           timelineEntry.entry.toolLifecycleStatus === "failed") ||
         timelineEntry.entry.tone === "error" ||
