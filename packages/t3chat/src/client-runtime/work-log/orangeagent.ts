@@ -187,6 +187,56 @@ export function orangeAgentToolPresentation(
 }
 
 /**
+ * How each verb a tool's label ends with is said while the call runs, once it
+ * is done, and when it failed, as the browser's phrases say theirs. A label is
+ * written as what the tool does (domain `TOOL_LABELS`, 「メールを検索する」);
+ * a row says what the call is doing or did (「メールを検索しました」).
+ * The longest ending that fits is used, so 「する」 comes last.
+ */
+const VERBS: ReadonlyArray<readonly [ending: string, running: string, done: string, failed: string]> = [
+  ["調べる", "調べています", "調べました", "調べられませんでした"],
+  ["換える", "換えています", "換えました", "換えられませんでした"],
+  ["変える", "変えています", "変えました", "変えられませんでした"],
+  ["入れる", "入れています", "入れました", "入れられませんでした"],
+  ["任せる", "任せています", "任せました", "任せられませんでした"],
+  ["知らせる", "知らせています", "知らせました", "知らせられませんでした"],
+  ["使わせる", "使わせています", "使わせました", "使わせられませんでした"],
+  ["送る", "送っています", "送りました", "送れませんでした"],
+  ["作る", "作っています", "作りました", "作れませんでした"],
+  ["読む", "読んでいます", "読みました", "読めませんでした"],
+  ["探す", "探しています", "探しました", "探せませんでした"],
+  ["移す", "移しています", "移しました", "移せませんでした"],
+  ["渡す", "渡しています", "渡しました", "渡せませんでした"],
+  ["開く", "開いています", "開きました", "開けませんでした"],
+  ["押す", "押しています", "押しました", "押せませんでした"],
+  ["選ぶ", "選んでいます", "選びました", "選べませんでした"],
+  ["する", "しています", "しました", "できませんでした"],
+];
+
+/** A label's phrases, or null when it ends with no verb this table knows, as an MCP Server's tool does. */
+export function labelPhrase(label: string): Phrase | null {
+  const verb = VERBS.find(([ending]) => label.endsWith(ending));
+  if (!verb) return null;
+  const [ending, running, done, failed] = verb;
+  const stem = label.slice(0, label.length - ending.length);
+  return { act: label, running: stem + running, done: stem + done, failed: stem + failed };
+}
+
+/**
+ * What a row says of a call of one of the product's other tools: its label as
+ * what the call is doing, did, or failed to do; null for a tool whose label
+ * ends with no verb.
+ */
+export function orangeAgentToolSentence(
+  label: string | null | undefined,
+  status: string | undefined,
+  output: unknown,
+): string | null {
+  const phrase = label ? labelPhrase(label) : null;
+  return phrase ? sentence(phrase, statusOf(status, output)) : null;
+}
+
+/**
  * The one line a run of consecutive code calls folds into: how many times
  * each place was used, in the order they were first used.
  */

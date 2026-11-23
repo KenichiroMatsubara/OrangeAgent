@@ -637,10 +637,10 @@ describe('what the chat shows', () => {
     const { container } = render(<ChatSurface threadId={THREAD_ID} transport={transportOf(failing)} />);
 
     await waitFor(() => expect(container.querySelector('[data-work-entry-id="tool-1"]') ?? container.querySelector('[data-timeline-row-kind="thinking"]')).not.toBeNull(), { timeout: 10_000 });
-    // The tool's own name is the detail's alone; the row names it in words.
+    // The tool's own name is the detail's alone; the row says in words what the call did.
     expect(document.body.textContent).not.toContain('mail.search');
     const row = await openCall(user, container, 'tool-1');
-    expect(row.textContent).toContain('メールを検索する');
+    expect(row.textContent).toContain('メールを検索できませんでした');
 
     const failure = await screen.findByRole('alert');
     expect(failure.textContent).toBe('エラーGmail の読み取り権限が失効しています（401）。');
@@ -677,7 +677,7 @@ describe('what the chat shows', () => {
     const { container } = render(<ChatSurface threadId={THREAD_ID} transport={transportOf(copied)} />);
 
     const opened = await openCall(user, container, 'tool-1');
-    expect(opened.textContent).toContain('カレンダーの予定を変える');
+    expect(opened.textContent).toContain('カレンダーの予定を変えられませんでした');
     expect((await screen.findByRole('alert')).textContent).toContain('Scheduled Event event-1 is not in this Account.');
   }, 30_000);
 

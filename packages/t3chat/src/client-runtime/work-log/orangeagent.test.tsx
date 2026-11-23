@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { codeGroupLabel, codePlace, orangeAgentToolPresentation } from "./orangeagent.ts";
+import { TOOL_LABELS } from "@mail/domain";
+import {
+  codeGroupLabel,
+  codePlace,
+  labelPhrase,
+  orangeAgentToolPresentation,
+  orangeAgentToolSentence,
+} from "./orangeagent.ts";
 import {
   resolveWorkEntryToolPresentation,
   summarizeToolGroup,
@@ -113,5 +120,28 @@ describe("a row of OrangeAgent's browser and code calls", () => {
       summarizeToolGroup([...twice, call("code.run", { language: "python" }, container)]).summary,
     ).toBe("Dynamic Worker を 2 回、Cloudflare Container を 1 回使用しました");
     expect(codeGroupLabel(["Cloudflare Container"])).toBe("Cloudflare Container を 1 回使用しました");
+  });
+});
+
+describe("the product's other tools", () => {
+  it("says every tool's label as what the call is doing, did, or failed to do", () => {
+    const unsaid = Object.values(TOOL_LABELS).filter((label) => labelPhrase(label) === null);
+    expect(unsaid).toEqual([]);
+  });
+
+  it("conjugates the verb the label ends with, whatever its kind", () => {
+    expect(orangeAgentToolSentence("スキルを書き換える", "completed", "ok")).toBe("スキルを書き換えました");
+    expect(orangeAgentToolSentence("メールを送る", "inProgress", undefined)).toBe("メールを送っています");
+    expect(orangeAgentToolSentence("メールを読む", "failed", "401")).toBe("メールを読めませんでした");
+    expect(orangeAgentToolSentence("メールを検索する", "completed", "[]")).toBe("メールを検索しました");
+    expect(orangeAgentToolSentence("PDF にする", "failed", "x")).toBe("PDF にできませんでした");
+    expect(orangeAgentToolSentence("スキルを開く", "completed", "ok")).toBe("スキルを開きました");
+    expect(orangeAgentToolSentence("メールを送る", "stopped", "拒否したので実行しませんでした。")).toBe(
+      "メールを送る操作は拒否されました",
+    );
+  });
+
+  it("leaves an MCP Server's tool, whose name ends with no verb, as it is named", () => {
+    expect(orangeAgentToolSentence("github の create_issue", "completed", "ok")).toBeNull();
   });
 });
