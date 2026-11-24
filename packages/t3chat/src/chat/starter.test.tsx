@@ -7,7 +7,7 @@ import { scopeThreadRef } from '@t3tools/client-runtime/environment/index.ts';
 import { EnvironmentId, ThreadId } from '@t3tools/contracts';
 
 import ChatStarter from './starter.tsx';
-import type { ChatStarterHandle, ChatStarterSource } from './api.ts';
+import type { ChatStartModes, ChatStarterHandle, ChatStarterSource } from './api.ts';
 import { startI18n, whenLocaleReady } from '~/i18n/runtime';
 import { useComposerDraftStore } from '~/composerDraftStore';
 
@@ -20,8 +20,9 @@ const media = (matches: (query: string) => boolean): void => {
   });
 };
 
-const sourceOf = (started = true): ChatStarterSource & { start: ReturnType<typeof vi.fn> } => ({
+const sourceOf = (started = true, modes: ChatStartModes = { modes: ['read_only', 'ask', 'unrestricted'], mode: 'ask' }): ChatStarterSource & { start: ReturnType<typeof vi.fn> } => ({
   start: vi.fn(async () => started),
+  modes: async () => modes,
   capabilities: async () => ({ models: ['claude-sonnet-5-5', 'claude-opus-5-5'], efforts: {}, drivePicker: false }),
   chosenModel: () => null,
   chooseModel: () => undefined,
@@ -90,6 +91,44 @@ describe('the box a conversation starts from', () => {
     });
 
     await waitFor(() => expect(source.start).toHaveBeenCalledWith('急ぎで', { files: [], model: 'claude-opus-5-5' }));
+  }, 30_000);
+
+  it('shows the mode a new conversation starts in, and starts it in the mode chosen there', async () => {
+    const source = sourceOf(true, { modes: ['read_only', 'ask', 'auto', 'unrestricted'], mode: 'ask' });
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    render(<ChatStarter source={source} busy={false} />);
+
+    const chip = await screen.findByRole('button', { name: '権限: 要承認' }, { timeout: 10_000 });
+    await waitFor(async () => {
+      await user.click(chip);
+      expect(screen.getAllByRole('menuitemradio').length).toBeGreaterThan(1);
+    });
+    expect(screen.getAllByRole('menuitemradio').map((item) => item.getAttribute('aria-label'))).toEqual(['読み取りのみ', '要承認', '自動', '無制限']);
+    await act(async () => {
+      await user.click(screen.getByRole('menuitemradio', { name: '読み取りのみ' }));
+    });
+    await screen.findByRole('button', { name: '権限: 読み取りのみ' });
+    await user.click(screen.getByTestId('composer-editor'));
+    await user.keyboard('見るだけで');
+    await act(async () => {
+      await user.keyboard('{Enter}');
+    });
+
+    await waitFor(() => expect(source.start).toHaveBeenCalledWith('見るだけで', { files: [], mode: 'read_only' }));
+  }, 30_000);
+
+  it('names no mode when the one a new conversation starts in is left as it is', async () => {
+    const source = sourceOf();
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    render(<ChatStarter source={source} busy={false} />);
+    await screen.findByRole('button', { name: '権限: 要承認' }, { timeout: 10_000 });
+    await user.click(screen.getByTestId('composer-editor'));
+    await user.keyboard('そのまま');
+    await act(async () => {
+      await user.keyboard('{Enter}');
+    });
+
+    await waitFor(() => expect(source.start).toHaveBeenCalledWith('そのまま', { files: [] }));
   }, 30_000);
 
   it('keeps what was written when the conversation did not start', async () => {

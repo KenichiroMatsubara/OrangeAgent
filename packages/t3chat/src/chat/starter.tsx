@@ -1,11 +1,12 @@
 /**
  * The box a conversation starts from: a conversation's own composer (composer.tsx), with the same
  * editor, attachments, model choices and Enter key, shown before there is a conversation. What is
- * sent from it starts one; the screen that shows it opens that conversation.
+ * sent from it starts one, in the approval mode chosen in it; the screen that shows it opens that
+ * conversation.
  */
 import { type ModelSelection, ThreadId } from '@t3tools/contracts';
 import { scopeThreadRef } from '@t3tools/client-runtime/environment/index.ts';
-import { type ReactElement, useImperativeHandle, useRef, useState } from 'react';
+import { type ReactElement, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import { ChatComposer, type ChatComposerHandle } from '~/components/chat/ChatComposer';
 import { ComposerSurface } from '~/components/chat/ComposerSurface';
@@ -15,15 +16,14 @@ import { useComposerDraftStore } from '~/composerDraftStore';
 import type { ComposerFileAttachment, ComposerImageAttachment } from '~/composerDraftStore';
 import type { TerminalContextDraft } from '~/lib/terminalContext';
 
-import type { ChatStarterProps } from './api.ts';
+import type { ChatMode, ChatStarterProps, ChatStartModes } from './api.ts';
 import { COMPOSER_FIXED, ENVIRONMENT_ID, noop, NO_MODEL, useModelChoices, writtenText } from './composer.tsx';
 import { ChatFrame } from './frame.tsx';
+import { chatModeOf, runtimeModeOf } from './modes.ts';
 import { orangeagentProvider } from './provider.ts';
 
 /** The draft the box keeps, under an id no conversation has, so what is written stays until it is sent. */
 const START_THREAD_REF = scopeThreadRef(ENVIRONMENT_ID, ThreadId.make('orangeagent-start'));
-/** A new conversation starts in the mode the server chooses (CONTEXT.md), so the box offers none. */
-const PROVIDERS = [orangeagentProvider(['full-access'])];
 
 function Starter({ source, busy, onManageModels, ref }: ChatStarterProps): ReactElement {
   const composerRef = useRef<ChatComposerHandle | null>(null);
@@ -34,6 +34,21 @@ function Starter({ source, busy, onManageModels, ref }: ChatStarterProps): React
   const [multipleModels, setMultipleModels] = useState<ReadonlyArray<ModelSelection> | null>(null);
   const [expanded, setExpanded] = useState<ExpandedImagePreview | null>(null);
   const { choice, extraControls, extraAttachActions } = useModelChoices(source, onManageModels);
+  // The modes offered and the one a new conversation starts in, as the server says; the mode chosen here, once one is.
+  const [offered, setOffered] = useState<ChatStartModes | null>(null);
+  const [picked, setPicked] = useState<ChatMode | null>(null);
+  useEffect(() => {
+    let current = true;
+    // Unread, no mode is offered and the conversation starts in the one the server gives it.
+    source.modes().then((read) => {
+      if (current) setOffered(read);
+    }, () => undefined);
+    return () => {
+      current = false;
+    };
+  }, [source]);
+  const mode = picked ?? offered?.mode ?? null;
+  const providers = useMemo(() => [orangeagentProvider((offered?.modes ?? []).map(runtimeModeOf))], [offered]);
 
   useImperativeHandle(ref, () => ({
     put: (text: string) => {
@@ -52,7 +67,8 @@ function Starter({ source, busy, onManageModels, ref }: ChatStarterProps): React
       ...filesRef.current.flatMap((file) => file.file === null ? [] : [file.file]),
     ];
     if (text === '' && files.length === 0) return;
-    void source.start(text, { files, ...choice }).then((started) => {
+    // Only a mode chosen here is named; one left as it is, the server gives the new conversation itself.
+    void source.start(text, { files, ...choice, ...(picked !== null ? { mode: picked } : {}) }).then((started) => {
       if (!started) return;
       useComposerDraftStore.getState().clearComposerContent(START_THREAD_REF);
       promptRef.current = '';
@@ -82,13 +98,13 @@ function Starter({ source, busy, onManageModels, ref }: ChatStarterProps): React
               activePendingApproval={null}
               pendingApprovals={[]}
               respondingRequestIds={[]}
-              runtimeMode="full-access"
-              providerStatuses={PROVIDERS}
+              runtimeMode={mode === null ? 'full-access' : runtimeModeOf(mode)}
+              providerStatuses={providers}
               activeThreadModelSelection={NO_MODEL}
               activeProjectId={null}
               onComposerOverlayHeightChange={noop}
-              // The mode is not offered here; the strip would show it.
-              permissionsShownInStrip
+              // Until the server says which modes it offers and which a new conversation starts in, none is shown.
+              permissionsShownInStrip={mode === null}
               promptRef={promptRef}
               composerImagesRef={imagesRef}
               composerFilesRef={filesRef}
@@ -99,7 +115,7 @@ function Starter({ source, busy, onManageModels, ref }: ChatStarterProps): React
               rewindingMessage={false}
               onSend={send}
               onInterrupt={noop}
-              handleRuntimeModeChange={noop}
+              handleRuntimeModeChange={(next) => setPicked(chatModeOf(next))}
               focusComposer={() => composerRef.current?.focusAtEnd()}
               onExpandImage={setExpanded}
               extraAttachActions={extraAttachActions}

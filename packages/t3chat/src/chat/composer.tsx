@@ -135,7 +135,8 @@ function ModelChoice({ models, model, onChange, onManage }: {
         }
       >
         <ComposerControlIcon icon={CpuIcon} />
-        <span data-composer-control-label className="max-w-28 truncate sm:max-w-48">{shortModelLabel(model)}</span>
+        {/* On a phone the model shows as its icon, as the approval mode does, and is named in its menu. */}
+        <span data-composer-control-label className="max-w-28 truncate sm:max-w-48 @max-[480px]/composer-surface:hidden">{shortModelLabel(model)}</span>
         <ChevronDownIcon aria-hidden data-composer-control-chevron className="size-3.5 text-muted-foreground" />
       </MenuTrigger>
       <MenuPopup align="start" className="min-w-64" {...floating}>
@@ -201,7 +202,7 @@ function EffortChoice({ efforts, fallback, effort, onChange }: {
         }
       >
         <EffortGlyph count={efforts.length} filled={filled} />
-        <span data-composer-control-label className="max-w-24 truncate">{label}</span>
+        <span data-composer-control-label className="max-w-24 truncate @max-[480px]/composer-surface:hidden">{label}</span>
         <ChevronDownIcon aria-hidden data-composer-control-chevron className="size-3.5 text-muted-foreground" />
       </MenuTrigger>
       <MenuPopup align="start" className="min-w-48" {...floating}>

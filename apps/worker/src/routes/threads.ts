@@ -1,4 +1,4 @@
-import { CHAT_MODE_LABELS, CHAT_THREAD_FORM, isChatApproval, isChatDelivery, isChatMode, isChatShownType, isModelEffort, type ChatCapabilities, type ChatDelivery, type ChatDrivePicker, type ChatDriveSave, type ChatDriveSaved, type ChatThread, type ChatThreadApproval, type ChatThreadDeleted, type ChatThreadDispatch, type ChatThreadFork, type ChatThreadMessage, type ChatThreadMode, type ChatThreadModes, type ChatThreadQueue, type ChatThreadRename, type ChatThreadSuggestion, type ModelEffort, type ModelEfforts } from '@mail/domain';
+import { CHAT_MODE_LABELS, CHAT_THREAD_FORM, isChatApproval, isChatDelivery, isChatMode, isChatShownType, isModelEffort, type ChatCapabilities, type ChatMode, type ChatDelivery, type ChatDrivePicker, type ChatDriveSave, type ChatDriveSaved, type ChatThread, type ChatStartModes, type ChatThreadApproval, type ChatThreadCreate, type ChatThreadDeleted, type ChatThreadDispatch, type ChatThreadFork, type ChatThreadMessage, type ChatThreadMode, type ChatThreadModes, type ChatThreadQueue, type ChatThreadRename, type ChatThreadSuggestion, type ModelEffort, type ModelEfforts } from '@mail/domain';
 
 import { aiConnection, requiredAiConnection, withModel, type AiConnection } from '../ai';
 import { modelEfforts } from '../effort';
@@ -9,10 +9,10 @@ import type { Forked } from '../conversation';
 import { hasAutomationInbox, narrowedInboxAccessToken, openInbox } from '../inbox';
 import type { Providers } from '../providers';
 import { toArrayBuffer } from '../encoding';
-import { decides, offeredModes } from '../modes';
+import { decides, modeIn, offeredModes } from '../modes';
 import { invalid, notFound } from '../refusal';
 import { resource } from '../response';
-import { createThread, deleteThread, dropUploads, forkThread, listThreads, putUploads, readFile, readThread, THREAD_ACCOUNT_HEADER, THREAD_HEADER, THREAD_MEMBER_HEADER, threadObjectName, threadTitle, type ThreadActor } from '../threads';
+import { createThread, deleteThread, dropUploads, forkThread, listThreads, putUploads, readFile, readThread, startingMode, THREAD_ACCOUNT_HEADER, THREAD_HEADER, THREAD_MEMBER_HEADER, threadObjectName, threadTitle, type ThreadActor } from '../threads';
 import type { Bindings } from '../types';
 import { accountRoute, created, type AccountRequest } from './account';
 
@@ -87,12 +87,30 @@ export const threadRoutes = (providers: Providers) => {
 
   routes.get('/organizations/:accountId/chat-threads', accountRoute(async ({ database }): Promise<ChatThread[]> => listThreads(database)));
 
-  routes.post('/organizations/:accountId/chat-threads', accountRoute(async (request) => created(await createThread({
-    database: request.database,
-    accountId: request.accountId,
-    createdBy: actorOf(request),
-    timestamp: now(),
-  }))));
+  /** The mode a box asks a new conversation to start in, refused where it is not offered; left out, the conversation inherits one. */
+  const chosenMode = (env: Bindings, mode: unknown): ChatMode | undefined => {
+    if (mode === undefined) return undefined;
+    if (!isChatMode(mode)) throw invalid('承認のしかたを選んでください。');
+    if (!offeredModes(decides(env)).includes(mode)) throw invalid(`${CHAT_MODE_LABELS[mode]}は選べません。この OrangeAgent には、自動で判定するための OpenRouter の鍵が設定されていません。`);
+    return mode;
+  };
+
+  routes.post('/organizations/:accountId/chat-threads', accountRoute<Partial<ChatThreadCreate>>(async (request) => {
+    const mode = chosenMode(request.env, request.body.mode);
+    return created(await createThread({
+      database: request.database,
+      accountId: request.accountId,
+      createdBy: actorOf(request),
+      timestamp: now(),
+      ...(mode ? { mode } : {}),
+    }));
+  }));
+
+  /** The approval modes the box a conversation starts from offers, and the mode the member's new conversation starts in, as its composer shows it. */
+  routes.get('/organizations/:accountId/chat-modes', accountRoute(async (request): Promise<ChatStartModes> => {
+    const decider = decides(request.env);
+    return { modes: offeredModes(decider), mode: modeIn(await startingMode(request.database, actorOf(request).identityId), decider) };
+  }));
 
   /** A message as a member sends it: its form's fields, each file a part of its own, or, without files, JSON. */
   const sentFields = async (request: AccountRequest<unknown>): Promise<SentFields> => {
@@ -220,10 +238,9 @@ export const threadRoutes = (providers: Providers) => {
   /** Sets the conversation's approval mode, which its next call reads; a mode the composer does not offer is refused. */
   routes.put('/organizations/:accountId/chat-threads/:threadId/mode', accountRoute<Partial<ChatThreadMode>>(async (request): Promise<ChatThreadDispatch> => {
     const { mode } = request.body;
-    if (!isChatMode(mode)) throw invalid('承認のしかたを選んでください。');
-    if (!offeredModes(decides(request.env)).includes(mode)) throw invalid(`${CHAT_MODE_LABELS[mode]}は選べません。この OrangeAgent には、自動で判定するための OpenRouter の鍵が設定されていません。`);
+    const chosen = chosenMode(request.env, mode ?? null);
     const object = await threadObject(request);
-    const answered = await object.fetch('/mode', { method: 'POST', body: JSON.stringify({ mode, by: actorOf(request) }) });
+    const answered = await object.fetch('/mode', { method: 'POST', body: JSON.stringify({ mode: chosen, by: actorOf(request) }) });
     if (!answered.ok) throw invalid(await answered.text());
     return { threadId: request.params.threadId ?? '', accepted: true };
   }));

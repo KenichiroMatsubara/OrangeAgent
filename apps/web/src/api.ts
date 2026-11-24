@@ -37,6 +37,8 @@ import type {
   ChatThreadMessage,
   ChatThreadMode,
   ChatThreadModes,
+  ChatThreadCreate,
+  ChatStartModes,
   ChatThreadSuggestion,
   ChatThreadQueue,
   Connections,
@@ -310,7 +312,10 @@ export const api = {
   callMcpServerTool: (accountId: string, serverId: string, input: { tool: string; arguments: Record<string, unknown> }): Promise<McpServerToolResult> => post(account(accountId, `/mcp-servers/${segment(serverId)}/tests`), input),
   /** The conversations of Operator Chat (ADR 0201), the one changed last first. */
   chatThreads: (accountId: string): Promise<ChatThread[]> => request(account(accountId, '/chat-threads')),
-  createChatThread: (accountId: string): Promise<ChatThread> => post(account(accountId, '/chat-threads')),
+  /** A new conversation, in the approval mode chosen in the box it starts from, or, without one, in the mode the member's new conversations start in. */
+  createChatThread: (accountId: string, input?: ChatThreadCreate): Promise<ChatThread> => post(account(accountId, '/chat-threads'), input),
+  /** The approval modes the box a conversation starts from offers, and the one the member's new conversation starts in. */
+  chatStartModes: (accountId: string): Promise<ChatStartModes> => request(account(accountId, '/chat-modes')),
   /** Sends a message with its files, handed to the answer being written or queued after it as `delivery` says. */
   sendChatThreadMessage: (accountId: string, threadId: string, input: ChatThreadMessage, files: readonly File[] = []): Promise<ChatThreadDispatch> =>
     postForm(account(accountId, `/chat-threads/${segment(threadId)}/messages`), threadMessageForm(input, files)),

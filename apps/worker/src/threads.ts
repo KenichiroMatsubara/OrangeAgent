@@ -93,11 +93,16 @@ export const startingMode = async (database: D1Database, identityId: string | nu
   return latest?.mode ?? DEFAULT_CHAT_MODE;
 };
 
+/**
+ * A new conversation, in the mode its member chose in the box it starts from,
+ * which then names them as having chosen it, or in the mode it inherits.
+ */
 export const createThread = async (input: {
   database: D1Database;
   accountId: string;
   createdBy: ThreadActor;
   timestamp: string;
+  mode?: ChatMode;
 }): Promise<ChatThread> => {
   const row = {
     id: crypto.randomUUID(),
@@ -108,12 +113,14 @@ export const createThread = async (input: {
     createdAt: input.timestamp,
     updatedAt: input.timestamp,
   };
-  const mode = await startingMode(input.database, input.createdBy.identityId);
   const db = accountDatabase(input.database);
-  // The mode is inherited, not chosen, so it names nobody as having chosen it.
+  // An inherited mode is not chosen, so it names nobody as having chosen it.
+  const modeRow = input.mode === undefined
+    ? { threadId: row.id, mode: await startingMode(input.database, input.createdBy.identityId), changedByIdentity: null, changedByName: '', changedAt: input.timestamp }
+    : { threadId: row.id, mode: input.mode, changedByIdentity: input.createdBy.identityId, changedByName: input.createdBy.name, changedAt: input.timestamp };
   await db.batch([
     db.insert(chatThreads).values(row),
-    db.insert(chatThreadModes).values({ threadId: row.id, mode, changedByIdentity: null, changedByName: '', changedAt: input.timestamp }),
+    db.insert(chatThreadModes).values(modeRow),
   ]);
   return viewOf(row);
 };

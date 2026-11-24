@@ -149,7 +149,7 @@ const ChatScreen = () => {
       let started = false;
       await run(pendingKey.chatThreadCreate, async () => {
         const prepared = await prepareFiles(options.files ?? []);
-        const thread = await api.createChatThread(accountId);
+        const thread = await api.createChatThread(accountId, options.mode ? { mode: options.mode } : undefined);
         await api.sendChatThreadMessage(accountId, thread.id, { text, ...(options.model ? { model: options.model } : {}), ...(options.effort ? { effort: options.effort } : {}) }, prepared);
         started = true;
         void navigate(encodeURIComponent(thread.id));

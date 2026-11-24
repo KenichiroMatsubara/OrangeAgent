@@ -152,7 +152,7 @@ export const rememberEffort = (accountId: string, effort: ModelEffort): void => 
 };
 
 /** What a conversation and the box a conversation starts from offer alike: the models a message may be answered by, the one this browser chose, and Drive files to attach. */
-const choicesOf = (accountId: string, surroundings: Surroundings): Omit<ChatStarterSource, 'start'> => ({
+const choicesOf = (accountId: string, surroundings: Surroundings): Omit<ChatStarterSource, 'start' | 'modes'> => ({
   capabilities: () => api.chatCapabilities(accountId),
   chosenModel: () => rememberedModel(accountId),
   chooseModel: (model) => rememberModel(accountId, model),
@@ -169,6 +169,7 @@ const choicesOf = (accountId: string, surroundings: Surroundings): Omit<ChatStar
 /** What the box a conversation starts from reads and remembers for one Account, starting a conversation with `start`. */
 export const createStarterSource = (input: { accountId: string; start: ChatStarterSource['start']; surroundings?: Surroundings }): ChatStarterSource => ({
   ...choicesOf(input.accountId, input.surroundings ?? browser()),
+  modes: () => api.chatStartModes(input.accountId),
   start: input.start,
 });
 

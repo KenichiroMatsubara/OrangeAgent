@@ -82,21 +82,43 @@ export function measureRestingComposerControls(
   const picker = controls.querySelector<HTMLElement>("[data-chat-provider-model-picker]");
   const leadingControl =
     picker ?? controls.querySelector<HTMLElement>('[data-chat-provider-unavailable="true"]');
-  if (!leadingControl) return null;
+  // OrangeAgent: no provider picker. What stays beside the blocks is its own controls (the model
+  // and its effort) and the context meter, so the blocks fold to icons, then into the overflow
+  // menu, by the room those leave.
+  const ownControls = leadingControl
+    ? []
+    : Array.from(
+        controls.querySelectorAll<HTMLElement>(
+          '[data-orangeagent-controls], [data-chat-composer-context-meter="true"]',
+        ),
+      );
+  const ownWidth = ownControls.reduce(
+    (total, control) => {
+      const width = elementOuterWidth(control);
+      return width > 0 ? total + width + gap : total;
+    },
+    0,
+  );
   const separator = controls.querySelector<HTMLElement>("[data-resting-controls-separator]");
   const separatorWidth = separator ? elementOuterWidth(separator) : 0;
   const overflow = controls.querySelector<HTMLElement>("[data-resting-controls-overflow]");
   const separatorAndGapWidth = separatorWidth > 0 ? separatorWidth + gap : 0;
   const blocks = Array.from(controls.querySelectorAll<HTMLElement>("[data-resting-block]"));
   const widths = blocks.map(controlBlockWidths);
+  const leadingNatural = picker
+    ? providerModelPickerNaturalWidth(picker)
+    : leadingControl
+      ? elementOuterWidth(leadingControl)
+      : ownWidth;
+  const leadingMinimum = picker
+    ? providerModelPickerMinimumWidth(picker)
+    : leadingControl
+      ? elementOuterWidth(leadingControl)
+      : ownWidth;
   return {
     gap,
-    naturalFixedWidth:
-      (picker ? providerModelPickerNaturalWidth(picker) : elementOuterWidth(leadingControl)) +
-      separatorAndGapWidth,
-    minimumFixedWidth:
-      (picker ? providerModelPickerMinimumWidth(picker) : elementOuterWidth(leadingControl)) +
-      separatorAndGapWidth,
+    naturalFixedWidth: leadingNatural + separatorAndGapWidth,
+    minimumFixedWidth: leadingMinimum + separatorAndGapWidth,
     blockWidths: widths.map((width) => width.natural),
     iconOnlyBlockWidths: widths.map((width) => width.iconOnly),
     overflowWidth: overflow ? elementOuterWidth(overflow) : 0,

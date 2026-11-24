@@ -28,13 +28,13 @@ const MEMO = new File(['会計'], 'memo.txt', { type: 'text/plain' });
 /**
  * The box a conversation starts from, which is the chat's own composer and is
  * tested with it (packages/t3chat): here it plays only what it asks of the
- * screen, sending with the default model, or with Sonnet thinking hard and a
- * file attached.
+ * screen, sending with the default model, or with Sonnet thinking hard, a
+ * file attached, and the conversation to start read-only.
  */
 const Starter = ({ source, ref }: ChatStarterProps) => {
   const [text, setText] = useState('');
   useImperativeHandle(ref, () => ({ put: setText }), []);
-  const start = (options: { model?: string; effort?: 'high'; files: File[] }): void => {
+  const start = (options: { model?: string; effort?: 'high'; mode?: 'read_only'; files: File[] }): void => {
     void source.start(text, options).then((result) => started.push(result));
   };
   return <>
@@ -43,8 +43,8 @@ const Starter = ({ source, ref }: ChatStarterProps) => {
     <button type="button" onClick={() => {
       source.chooseModel?.('claude-sonnet-5-5');
       source.chooseEffort?.('high');
-      start({ model: 'claude-sonnet-5-5', effort: 'high', files: [MEMO] });
-    }}>Sonnet で深く送る</button>
+      start({ model: 'claude-sonnet-5-5', effort: 'high', mode: 'read_only', files: [MEMO] });
+    }}>Sonnet で深く、読み取りのみで送る</button>
   </>;
 };
 
@@ -104,19 +104,22 @@ describe('AI に聞く screen', () => {
     await user.click(screen.getByRole('button', { name: '送る' }));
 
     await waitFor(() => expect(api.sendChatThreadMessage).toHaveBeenCalledWith(ACCOUNT_ID, 'thread-9', { text: '今日の予定を教えて' }, []));
+    // A mode left as it is goes unnamed: the conversation starts in the one the Worker gives it.
+    expect(api.createChatThread).toHaveBeenCalledWith(ACCOUNT_ID, undefined);
     await waitFor(() => expect(router.state.location.pathname).toBe('/chat/thread-9'));
     expect(started).toEqual([true]);
   });
 
-  it('starts a conversation with the model, the level of effort and the files chosen in the box, and remembers them for the conversation it opens', async () => {
+  it('starts a conversation in the mode, with the model, the level of effort and the files chosen in the box, and remembers them for the conversation it opens', async () => {
     vi.mocked(api.createChatThread).mockResolvedValue({ id: 'thread-9', title: '', createdAt: '2026-11-21T02:00:00.000Z', updatedAt: '2026-11-21T02:00:00.000Z' });
     vi.mocked(api.sendChatThreadMessage).mockResolvedValue({ threadId: 'thread-9', accepted: true });
     const user = userEvent.setup();
     renderScreen('chat', chat, '/chat', ready, Browser);
     await user.type(await screen.findByRole('textbox', { name: 'AI に聞くこと' }), '熱田の招待行事を調べて');
 
-    await user.click(screen.getByRole('button', { name: 'Sonnet で深く送る' }));
+    await user.click(screen.getByRole('button', { name: 'Sonnet で深く、読み取りのみで送る' }));
 
+    await waitFor(() => expect(api.createChatThread).toHaveBeenCalledWith(ACCOUNT_ID, { mode: 'read_only' }));
     await waitFor(() => expect(api.sendChatThreadMessage).toHaveBeenCalledWith(ACCOUNT_ID, 'thread-9', { text: '熱田の招待行事を調べて', model: 'claude-sonnet-5-5', effort: 'high' }, [MEMO]));
     expect(window.localStorage.getItem(`orangeagent:chat-model:${ACCOUNT_ID}`)).toBe('claude-sonnet-5-5');
     expect(window.localStorage.getItem(`orangeagent:chat-effort:${ACCOUNT_ID}`)).toBe('high');

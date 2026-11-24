@@ -464,6 +464,8 @@ const accountReads: ReadonlyArray<readonly [RegExp, (path: string) => unknown]> 
   [/^\/mcp-servers$/u, () => mcpServers],
   [/^\/chat-threads$/u, () => chatThreads],
   // The mocked chat plays its own conversation (thread.tsx), whose transport says what it offers; this is what the Worker would.
+  // A new conversation of the mocked member starts as their latest did: 要承認.
+  [/^\/chat-modes$/u, () => ({ modes: ['read_only', 'ask', 'auto', 'unrestricted'], mode: 'ask' })],
   [/^\/chat-capabilities$/u, () => ({ models: ['standard-model', 'fast-model', 'reasoning-model'], efforts: { 'standard-model': { levels: ['low', 'medium', 'high', 'xhigh', 'max'], default: 'high' }, 'reasoning-model': { levels: ['none', 'low', 'medium', 'high', 'xhigh'], default: null } }, drivePicker: true })],
   // The mock can notify; whether this browser can is the device's, which the mock plays (screens/chat.tsx).
   [/^\/push$/u, () => ({ publicKey: 'BMockPublicKeyOfTheMockedOrangeAgentForItsNotificationsOnly' })],

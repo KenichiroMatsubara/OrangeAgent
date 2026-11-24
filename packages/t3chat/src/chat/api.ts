@@ -133,14 +133,28 @@ export interface ChatSurfaceProps {
   readonly onManageModels?: () => void;
 }
 
-/** What the box a conversation starts from needs: the model choices a conversation's composer offers, and a way to start one. */
+/** What a conversation is started with besides its first message's words. */
+export interface ChatStartOptions extends Omit<ChatSendOptions, 'delivery'> {
+  /** The approval mode chosen in the box; left out, the conversation starts in the mode the server gives a new one. */
+  readonly mode?: ChatMode;
+}
+
+/** The approval modes the box a conversation starts from offers, read-only first, and the one a new conversation starts in. */
+export interface ChatStartModes {
+  readonly modes: ReadonlyArray<ChatMode>;
+  readonly mode: ChatMode;
+}
+
+/** What the box a conversation starts from needs: what a conversation's composer offers, and a way to start one. */
 export type ChatStarterSource = Pick<ChatTransport, 'capabilities' | 'chosenModel' | 'chooseModel' | 'chosenEffort' | 'chooseEffort' | 'pickDriveFiles'> & {
+  /** The approval modes offered and the one a new conversation starts in; until they are read, or where they cannot be, no mode is offered. */
+  readonly modes: () => Promise<ChatStartModes>;
   /**
    * Starts a new conversation with what the person wrote as its first message: true once it has
    * started, when the box empties, and false when it did not, when the box keeps what was written
    * and the screen says why.
    */
-  readonly start: (text: string, options: Omit<ChatSendOptions, 'delivery'>) => Promise<boolean>;
+  readonly start: (text: string, options: ChatStartOptions) => Promise<boolean>;
 };
 
 /** What a screen does to the box a conversation starts from. */
