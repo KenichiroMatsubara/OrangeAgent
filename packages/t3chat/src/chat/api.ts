@@ -10,6 +10,7 @@
  */
 
 import type { ModelEffort, ModelEfforts } from '@mail/domain';
+import type { Ref } from 'react';
 
 /** How a person answers a write that waits for approval. */
 export type ChatDecision = 'accept' | 'acceptForSession' | 'acceptAlways' | 'decline' | 'cancel';
@@ -130,4 +131,29 @@ export interface ChatSurfaceProps {
   readonly onTitle?: (title: string) => void;
   /** Opens the screen where the models a message may be answered by are added and ordered. */
   readonly onManageModels?: () => void;
+}
+
+/** What the box a conversation starts from needs: the model choices a conversation's composer offers, and a way to start one. */
+export type ChatStarterSource = Pick<ChatTransport, 'capabilities' | 'chosenModel' | 'chooseModel' | 'chosenEffort' | 'chooseEffort' | 'pickDriveFiles'> & {
+  /**
+   * Starts a new conversation with what the person wrote as its first message: true once it has
+   * started, when the box empties, and false when it did not, when the box keeps what was written
+   * and the screen says why.
+   */
+  readonly start: (text: string, options: Omit<ChatSendOptions, 'delivery'>) => Promise<boolean>;
+};
+
+/** What a screen does to the box a conversation starts from. */
+export interface ChatStarterHandle {
+  /** Puts `text` in the box in place of what it holds, and focuses it after the words. */
+  readonly put: (text: string) => void;
+}
+
+export interface ChatStarterProps {
+  readonly source: ChatStarterSource;
+  /** While a conversation is being started from the box, its send button waits. */
+  readonly busy: boolean;
+  /** Opens the screen where the models a message may be answered by are added and ordered. */
+  readonly onManageModels?: () => void;
+  readonly ref?: Ref<ChatStarterHandle>;
 }
