@@ -6,15 +6,11 @@
  * the model a message is answered by, how hard it thinks, attaching a Drive file, and saving a
  * file to Drive.
  */
-import './chat.css';
-
 import { scopeThreadRef } from '@t3tools/client-runtime/environment/index.ts';
 import { deriveThreadActivityRun } from '@t3tools/client-runtime/state/threadExecution.ts';
 import { derivePendingThreadRequests } from '@t3tools/client-runtime/state/threadRequests.ts';
-import { replaceComposerContextReferences } from '@t3tools/shared/composerContextReferences.ts';
 import {
   type ChatAttachment,
-  EnvironmentId,
   type MessageId,
   type ModelSelection,
   RunId,
@@ -23,33 +19,19 @@ import {
   type RuntimeRequestId,
   ThreadId,
 } from '@t3tools/contracts';
-import { DEFAULT_RESOLVED_KEYBINDINGS } from '@t3tools/shared/keybindings.ts';
-import { EFFORT_LABELS, modelLabel, shortModelLabel, type ModelEffort } from '@mail/domain';
-import { ArrowLeftIcon, ChevronDownIcon, CpuIcon, HardDriveIcon, PencilIcon, SlidersHorizontalIcon, XIcon } from 'lucide-react';
+import { ArrowLeftIcon, PencilIcon, XIcon } from 'lucide-react';
 import type { LegendListRef } from '@legendapp/list/react';
-import { createMemoryHistory, createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router';
-import { createContext, createRef, type ReactElement, use, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createRef, type ReactElement, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { ChatComposer, type ChatComposerHandle } from '~/components/chat/ChatComposer';
-import { ComposerControl, ComposerControlIcon } from '~/components/chat/ComposerControl';
-import { useComposerMenuProps } from '~/components/chat/composerEventScope';
-import { useComposerMenuState } from '~/components/chat/useComposerMenuState';
-import { Menu, MenuGroup, MenuGroupLabel, MenuItem, MenuPopup, MenuRadioGroup, MenuRadioItem, MenuRadioItemIndicator, MenuSeparator, MenuTrigger } from '~/components/ui/menu';
 import { ComposerSurface } from '~/components/chat/ComposerSurface';
 import { Spinner } from '~/components/ui/spinner';
-import { EffortGlyph } from '~/components/chat/EffortGlyph';
 import { ExpandedImageDialog } from '~/components/chat/ExpandedImageDialog';
 import type { ExpandedImagePreview } from '~/components/chat/ExpandedImagePreview';
 import { QueuedRunsControl, type EditQueuedRunRequest } from '~/components/chat/QueuedRunsControl';
 import { ThreadTimeline } from '~/components/chat/ThreadTimeline';
 import { presentThreadShellFromProjection } from '~/components/ChatView.logic';
 import { useComposerDraftStore } from '~/composerDraftStore';
-import { I18nProvider } from '~/i18n/I18nProvider';
-import { startI18n } from '~/i18n/runtime';
-import type { ShortcutMatchContext } from '~/keybindings';
-import { chatPortalContainer } from '~/components/ui/portalContainer';
-import { AnchoredToastProvider, ToastProvider, toastManager } from '~/components/ui/toast';
-import { AppAtomRegistryProvider } from '~/rpc/atomRegistry';
 import { derivePendingApprovals } from '~/session-logic';
 import { useQuietThreadProjection, useThreadLastVisitedAt, useThreadUpdatedAt } from '~/state/entities';
 import { useMediaQuery } from '~/hooks/useMediaQuery';
@@ -58,171 +40,22 @@ import { observeResize } from '~/lib/observeResize';
 import type { TerminalContextDraft } from '~/lib/terminalContext';
 import type { ChatFileAttachment, ChatMessage } from '~/types';
 
-import type { ChatCapabilities, ChatDecision, ChatMode, ChatQueueChange, ChatSurfaceProps, ChatTransport } from './api.ts';
+import type { ChatDecision, ChatMode, ChatQueueChange, ChatSurfaceProps, ChatTransport } from './api.ts';
+import { COMPOSER_FIXED, ENVIRONMENT_ID, failed, NO_MODEL, noop, useModelChoices, writtenText } from './composer.tsx';
 import { FileContext, type FileCommands } from './files.tsx';
+import { ChatFrame } from './frame.tsx';
 import { offerSuggestion } from './suggestion.ts';
 import { chatModeOf, runtimeModeOf } from './modes.ts';
-import { ORANGEAGENT_SETTINGS, orangeagentProvider } from './provider.ts';
+import { orangeagentProvider } from './provider.ts';
 import { QueueContext, type QueueCommands } from './queue.ts';
 import { connectThread } from './stream.ts';
 
-/** Every conversation is OrangeAgent's own; t3code's environment is a single local one. */
-const ENVIRONMENT_ID = EnvironmentId.make('orangeagent');
 /** An answer being written or waiting for approval; a queued message is not being answered yet. */
 const ACTIVE_RUN = new Set(['preparing', 'starting', 'running', 'waiting']);
 /** What the composer shows of the files of a queued message being rewritten: none, as only its words change. */
 const NO_EDITED_ATTACHMENTS: ReadonlyArray<{ readonly attachment: ChatAttachment; readonly url: string | null }> = [];
-const NO_MODEL: ModelSelection | null = null;
 const NO_ATTACHMENT_URLS: ReadonlyMap<string, string> = new Map();
-const noop = (): void => {};
-/** Until the server says, the chat offers no choice of model and nothing of Drive. */
-const NO_CAPABILITIES: ChatCapabilities = { models: [], efforts: {}, drivePicker: false };
-const NO_EFFORTS: ReadonlyArray<ModelEffort> = [];
 
-/**
- * The model a message is answered by, chosen beside the approval mode: OrangeAgent's control. It
- * names the model that will answer in words (Opus 5.5) and opens a menu of every model the AI
- * Connection names, the default first, with a way to the screen that adds more.
- */
-function ModelChoice({ models, model, onChange, onManage }: {
-  readonly models: ReadonlyArray<string>;
-  readonly model: string;
-  readonly onChange: (model: string) => void;
-  readonly onManage: (() => void) | undefined;
-}): ReactElement {
-  const floating = useComposerMenuProps();
-  const [open, setOpen] = useComposerMenuState();
-  return (
-    <Menu open={open} onOpenChange={setOpen}>
-      <MenuTrigger
-        render={
-          <ComposerControl
-            data-chat-model-choice="true"
-            aria-label={`答えるモデル: ${modelLabel(model)}`}
-            title={`答えるモデル: ${modelLabel(model)}`}
-            className="ps-1.5 pe-1"
-          />
-        }
-      >
-        <ComposerControlIcon icon={CpuIcon} />
-        <span data-composer-control-label className="max-w-28 truncate sm:max-w-48">{shortModelLabel(model)}</span>
-        <ChevronDownIcon aria-hidden data-composer-control-chevron className="size-3.5 text-muted-foreground" />
-      </MenuTrigger>
-      <MenuPopup align="start" className="min-w-64" {...floating}>
-        <MenuGroup>
-          <MenuGroupLabel>答えるモデル</MenuGroupLabel>
-          <MenuRadioGroup value={model} onValueChange={(next: string) => onChange(next)}>
-            {models.map((entry, index) => (
-              <MenuRadioItem key={entry} value={entry} className="min-h-11 sm:min-h-9">
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className="flex size-4 shrink-0 items-center justify-center"><MenuRadioItemIndicator /></span>
-                  <span className="flex min-w-0 flex-col">
-                    <span className="truncate">
-                      {modelLabel(entry)}
-                      {index === 0 ? <span className="ms-1.5 text-muted-foreground text-xs">既定</span> : null}
-                    </span>
-                    {modelLabel(entry) === entry ? null : <span className="truncate text-muted-foreground text-xs">{entry}</span>}
-                  </span>
-                </span>
-              </MenuRadioItem>
-            ))}
-          </MenuRadioGroup>
-        </MenuGroup>
-        {onManage === undefined ? null : (
-          <>
-            <MenuSeparator />
-            <MenuItem className="min-h-11 sm:min-h-9" onClick={onManage}>
-              <SlidersHorizontalIcon />
-              {models.length > 1 ? 'モデルを追加・並べ替え' : 'ほかのモデルを追加'}
-            </MenuItem>
-          </>
-        )}
-      </MenuPopup>
-    </Menu>
-  );
-}
-
-/**
- * How hard the model thinks, chosen beside the model: OrangeAgent's control. It shows the level as
- * rising bars and in words, and opens a menu of the levels the model takes, the lightest first,
- * the one it thinks at when none is named marked 既定 where that is known. Shown only for a model
- * that takes two or more; until one is chosen for a model whose default is not known, it reads 既定.
- */
-function EffortChoice({ efforts, fallback, effort, onChange }: {
-  readonly efforts: ReadonlyArray<ModelEffort>;
-  readonly fallback: ModelEffort | null;
-  readonly effort: ModelEffort | null;
-  readonly onChange: (effort: ModelEffort) => void;
-}): ReactElement {
-  const floating = useComposerMenuProps();
-  const [open, setOpen] = useComposerMenuState();
-  const label = effort === null ? '既定' : EFFORT_LABELS[effort];
-  const filled = effort === null ? 0 : efforts.indexOf(effort) + 1;
-  return (
-    <Menu open={open} onOpenChange={setOpen}>
-      <MenuTrigger
-        render={
-          <ComposerControl
-            data-chat-effort-choice="true"
-            aria-label={`考える深さ: ${label}`}
-            title={`考える深さ: ${label}`}
-            className="ps-1.5 pe-1"
-          />
-        }
-      >
-        <EffortGlyph count={efforts.length} filled={filled} />
-        <span data-composer-control-label className="max-w-24 truncate">{label}</span>
-        <ChevronDownIcon aria-hidden data-composer-control-chevron className="size-3.5 text-muted-foreground" />
-      </MenuTrigger>
-      <MenuPopup align="start" className="min-w-48" {...floating}>
-        <MenuGroup>
-          <MenuGroupLabel>考える深さ</MenuGroupLabel>
-          <MenuRadioGroup value={effort ?? ''} onValueChange={(next: ModelEffort) => onChange(next)}>
-            {efforts.map((entry, index) => (
-              <MenuRadioItem key={entry} value={entry} className="min-h-11 sm:min-h-9">
-                <span className="flex min-w-0 items-center gap-2">
-                  <span className="flex size-4 shrink-0 items-center justify-center"><MenuRadioItemIndicator /></span>
-                  <EffortGlyph count={efforts.length} filled={index + 1} />
-                  <span className="truncate">
-                    {EFFORT_LABELS[entry]}
-                    {entry === fallback ? <span className="ms-1.5 text-muted-foreground text-xs">既定</span> : null}
-                  </span>
-                </span>
-              </MenuRadioItem>
-            ))}
-          </MenuRadioGroup>
-        </MenuGroup>
-      </MenuPopup>
-    </Menu>
-  );
-}
-
-/** Attaches files the person picks in Drive, as if chosen from their computer: beside the clip, only where Google Picker is configured. */
-function DriveAttachButton({ pick, attach }: {
-  readonly pick: () => Promise<ReadonlyArray<File>>;
-  readonly attach: (files: File[]) => Promise<boolean>;
-}): ReactElement {
-  const [busy, setBusy] = useState(false);
-  return (
-    <button
-      type="button"
-      aria-label="Drive から添付"
-      title="Drive から添付"
-      disabled={busy}
-      onPointerDown={(event) => event.preventDefault()}
-      onClick={() => {
-        setBusy(true);
-        pick().then(
-          (files) => (files.length ? attach([...files]) : false),
-          (error: unknown) => failed('Drive のファイルを添付できませんでした', error),
-        ).finally(() => setBusy(false));
-      }}
-      className="inline-flex size-8 items-center justify-center rounded-md text-foreground/80 hover:bg-accent hover:text-foreground disabled:opacity-60 sm:size-7"
-    >
-      <HardDriveIcon aria-hidden className={busy ? 'size-4 animate-pulse' : 'size-4'} />
-    </button>
-  );
-}
 
 /** Opens a person's or an answer's file where the transport serves it: a PDF in the browser, anything else saved, as the server says. */
 const openFile = (url: string | undefined, file: ChatFileAttachment, download: boolean): void => {
@@ -237,31 +70,7 @@ const openFile = (url: string | undefined, file: ChatFileAttachment, download: b
   link.click();
 };
 
-let i18nStarted = false;
-const startI18nOnce = (): void => {
-  if (i18nStarted) return;
-  i18nStarted = true;
-  startI18n();
-};
-
-const shortcutContext = (): ShortcutMatchContext => ({
-  terminalFocus: false,
-  terminalOpen: false,
-  previewFocus: false,
-  previewOpen: false,
-  isWeb: true,
-  isDesktop: false,
-});
-
 const decisionOf = (decision: ProviderApprovalDecision): ChatDecision => decision;
-
-/** What a person wrote, with each picture or file named in it by its name; the files travel beside it. */
-const writtenText = (prompt: string): string => replaceComposerContextReferences(prompt, (reference) => reference.label).trim();
-
-/** Says what the transport refused, in its own words; what happened otherwise arrives as the conversation's events. */
-const failed = (title: string, error: unknown): void => {
-  toastManager.add({ type: 'error', title, description: error instanceof Error ? error.message : String(error) });
-};
 
 /** What a subagent's card says of it, in the panel that opens it. */
 const SUBAGENT_STATUS: Readonly<Record<string, string>> = {
@@ -428,9 +237,7 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
   // The modes the server offers, which it alone knows: 自動 only where it can ask a judge.
   const [offered, setOffered] = useState<ReadonlyArray<ChatMode> | null>(null);
   // The models a message may be answered by, and whether Drive is reachable through Google Picker.
-  const [capabilities, setCapabilities] = useState<ChatCapabilities>(NO_CAPABILITIES);
-  const [picked, setPicked] = useState<string | null>(() => transport.chosenModel?.() ?? null);
-  const [pickedEffort, setPickedEffort] = useState<ModelEffort | null>(() => transport.chosenEffort?.() ?? null);
+  const { choice, drivePicker, extraControls, extraAttachActions } = useModelChoices(transport, onManageModels);
   // An earlier message being rewritten in the composer.
   const [rewinding, setRewinding] = useState<Rewinding | null>(null);
   // A message sent while nothing runs, shown at once until the answer it starts appears.
@@ -469,15 +276,6 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
       current = false;
     };
   }, [transport]);
-  useEffect(() => {
-    let current = true;
-    transport.capabilities?.().then((read) => {
-      if (current) setCapabilities(read);
-    }, () => undefined);
-    return () => {
-      current = false;
-    };
-  }, [transport]);
 
   const structure = useQuietThreadProjection(threadRef);
   const updatedAt = useThreadUpdatedAt(threadRef);
@@ -509,18 +307,6 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
     ? undefined
     : presentThreadShellFromProjection(ENVIRONMENT_ID, threadId, projection, { updatedAt, lastVisitedAt });
   const attachmentUrls = transport.attachmentUrls ?? NO_ATTACHMENT_URLS;
-  const models = capabilities.models;
-  // A model this browser chose that the server no longer offers falls back to the default.
-  const model = picked !== null && models.includes(picked) ? picked : models[0] ?? '';
-  // The default goes unnamed, so the server answers with whatever its default is when the message arrives.
-  const chosenModel = model && model !== models[0] ? model : undefined;
-  // A level the model does not take falls back to the one it thinks at when none is named, or to none named.
-  const efforts = capabilities.efforts[model]?.levels ?? NO_EFFORTS;
-  const fallbackEffort = capabilities.efforts[model]?.default ?? null;
-  const effort = pickedEffort !== null && efforts.includes(pickedEffort) ? pickedEffort : fallbackEffort;
-  // The default goes unnamed, as the model does, so the server sends the model none.
-  const chosenEffort = effort !== null && effort !== fallbackEffort ? effort : undefined;
-  const choice = { ...(chosenModel ? { model: chosenModel } : {}), ...(chosenEffort ? { effort: chosenEffort } : {}) };
   const title = projection?.thread.title;
   useEffect(() => {
     if (title !== undefined) onTitle?.(title);
@@ -541,8 +327,8 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
   }, [completedRunId, threadId, transport]);
   const fileCommands = useMemo<FileCommands>(() => ({
     saveToDrive: transport.saveToDrive ? (fileId, choose) => transport.saveToDrive?.(fileId, choose) ?? Promise.resolve(null) : null,
-    chooseFolder: capabilities.drivePicker,
-  }), [transport, capabilities.drivePicker]);
+    chooseFolder: drivePicker,
+  }), [transport, drivePicker]);
   const runtimeMode = projection?.thread.runtimeMode ?? 'approval-required';
   // Until the server says which modes it offers, the composer offers only the one the conversation is in.
   const providers = useMemo(() => [orangeagentProvider(offered === null ? [runtimeMode] : offered.map(runtimeModeOf))], [offered, runtimeMode]);
@@ -606,15 +392,6 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
     } catch (error) {
       failed('新しい会話にできませんでした', error);
     }
-  };
-
-  const chooseModel = (next: string): void => {
-    setPicked(next);
-    transport.chooseModel?.(next);
-  };
-  const chooseEffort = (next: ModelEffort): void => {
-    setPickedEffort(next);
-    transport.chooseEffort?.(next);
   };
 
   /**
@@ -781,62 +558,26 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
               <ComposerSurface.Host>
                 <div className="relative z-10">
                   <ChatComposer
+                    {...COMPOSER_FIXED}
                     composerDraftTarget={threadRef}
-                    environmentId={ENVIRONMENT_ID}
-                    canOperateThread
-                    // OrangeAgent keeps no upload service: pictures and files are sent with their message.
-                    attachmentUploadsCapabilityKnown={false}
-                    supportsAttachmentUploads={false}
-                    supportsQuestionAttachments={false}
-                    maxFileAttachmentBytes={null}
-                    routeKind="server"
                     routeThreadRef={threadRef}
-                    draftId={null}
                     multipleModelSelections={multipleModels}
-                    supportsMultipleModels={false}
                     onMultipleModelSelectionsChange={setMultipleModels}
                     activeThreadId={threadId}
                     activeThread={thread}
                     activeThreadRuns={projection?.runs ?? []}
-                    promptHistoryEntries={[]}
                     forceExpandedOnMobile={false}
-                    projectSelectionRequired={false}
                     phase={isWorking ? 'running' : 'ready'}
                     canInterrupt={isWorking}
                     isSendBusy={awaiting}
-                    canResume={false}
-                    sendDisabledReason={null}
-                    isPreparingWorktree={false}
                     canSteer={canSteer}
-                    bannerItems={[]}
-                    resumeCompactionTokens={null}
-                    keepFullHistory={false}
-                    onToggleKeepFullHistory={noop}
-                    environmentUnavailable={null}
                     activePendingApproval={approvals[0] ?? null}
                     pendingApprovals={approvals}
-                    onHeldRequestIdsChange={noop}
-                    pendingUserInputs={[]}
-                    activePendingIsResponding={false}
                     respondingRequestIds={respondingIds}
                     runtimeMode={runtimeMode}
-                    lockedProvider={null}
                     providerStatuses={providers}
-                    providerCatalogKnown
-                    activeProjectDefaultModelSelection={NO_MODEL}
                     activeThreadModelSelection={projection?.thread.modelSelection ?? NO_MODEL}
                     activeProjectId={projection?.thread.projectId ?? null}
-                    compactThreadUnavailable
-                    compactDisabled
-                    resolvedTheme="light"
-                    settings={ORANGEAGENT_SETTINGS}
-                    keybindings={DEFAULT_RESOLVED_KEYBINDINGS}
-                    getShortcutContext={shortcutContext}
-                    terminalOpen={false}
-                    gitCwd={null}
-                    pullRequestProjectId={null}
-                    pullRequestRepository={null}
-                    threadPullRequests={undefined}
                     onComposerOverlayHeightChange={(height) => setInset(Math.ceil(height))}
                     permissionsShownInStrip={false}
                     promptRef={promptRef}
@@ -844,42 +585,19 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
                     composerFilesRef={filesRef}
                     composerTerminalContextsRef={terminalContextsRef}
                     composerRef={composerRef}
-                    onPageScrollKeyDown={noop}
-                    onPageScrollKeyUp={noop}
-                    onPageScrollRelease={noop}
                     // The files of the message being rewritten show in the composer, each removable, as a queued message's would.
                     editingQueuedAttachments={rewinding !== null
                       ? rewinding.kept.map((attachment) => ({ attachment, url: attachmentUrls.get(attachment.id) ?? null }))
                       : editing === null ? null : NO_EDITED_ATTACHMENTS}
                     onRemoveEditingQueuedAttachment={rewinding !== null ? dropRewoundFile : noop}
                     rewindingMessage={rewinding !== null}
-                    onCompactContext={noop}
                     onSend={send}
-                    onResume={noop}
                     onInterrupt={() => void transport.interrupt().catch((error: unknown) => failed('止められませんでした', error))}
-                    onSelectActivePendingUserInputOption={noop}
-                    onAdvanceActivePendingUserInput={noop}
-                    onDismissActivePendingUserInput={noop}
-                    onPreviousActivePendingUserInputQuestion={noop}
-                    onChangeActivePendingUserInputCustomAnswer={noop}
-                    onProviderModelSelect={noop}
-                    onOpenProviderSetup={noop}
-                    getModelDisabledReason={() => null}
                     handleRuntimeModeChange={changeMode}
                     focusComposer={() => composerRef.current?.focusAtEnd()}
-                    scheduleComposerFocus={noop}
-                    setThreadError={noop}
                     onExpandImage={setExpanded}
-                    onFileOpen={noop}
-                    extraAttachActions={capabilities.drivePicker && transport.pickDriveFiles
-                      ? (attach) => <DriveAttachButton pick={() => transport.pickDriveFiles?.() ?? Promise.resolve([])} attach={attach} />
-                      : undefined}
-                    extraControls={models.length > 0 ? (
-                      <>
-                        <ModelChoice models={models} model={model} onChange={chooseModel} onManage={onManageModels} />
-                        {efforts.length > 1 ? <EffortChoice efforts={efforts} fallback={fallbackEffort} effort={effort} onChange={chooseEffort} /> : null}
-                      </>
-                    ) : undefined}
+                    extraAttachActions={extraAttachActions}
+                    extraControls={extraControls}
                   />
                 </div>
               </ComposerSurface.Host>
@@ -904,46 +622,14 @@ function Conversation({ threadId, transport, onOpenThread, onTitle, onManageMode
   );
 }
 
-const keepPortalContainer = (element: HTMLDivElement | null): void => {
-  chatPortalContainer.current = element;
-};
-
-const SurfaceContext = createContext<ChatSurfaceProps | null>(null);
-
-function RoutedConversation(): ReactElement | null {
-  const props = use(SurfaceContext);
-  if (props === null) return null;
-  // Inside the router, as in t3code's root route: toasts read router state too.
-  return (
-    <ToastProvider>
-      <AnchoredToastProvider>
-        <Conversation threadId={ThreadId.make(props.threadId)} transport={props.transport} onOpenThread={props.onOpenThread} onTitle={props.onTitle} onManageModels={props.onManageModels} />
-      </AnchoredToastProvider>
-    </ToastProvider>
-  );
-}
-
 /**
  * The chat for one conversation. It fills its parent, which gives it a height; everything it
  * draws is inside `.t3chat`, where the copied styles are scoped (chat.css).
  */
-export default function ChatSurface(props: ChatSurfaceProps): ReactElement {
-  startI18nOnce();
-  // t3code's components read router state; the chat keeps its own in memory, apart from OrangeAgent's.
-  const [router] = useState(() => createRouter({
-    routeTree: createRootRoute({ component: RoutedConversation }),
-    history: createMemoryHistory({ initialEntries: ['/'] }),
-  }));
+export default function ChatSurface({ threadId, transport, onOpenThread, onTitle, onManageModels }: ChatSurfaceProps): ReactElement {
   return (
-    <div className="t3chat flex h-full min-h-0 w-full flex-col" lang="ja">
-      <AppAtomRegistryProvider>
-        <I18nProvider>
-          <SurfaceContext value={props}>
-            <RouterProvider router={router} />
-          </SurfaceContext>
-        </I18nProvider>
-      </AppAtomRegistryProvider>
-      <div ref={keepPortalContainer} />
-    </div>
+    <ChatFrame className="flex h-full min-h-0 w-full flex-col">
+      <Conversation threadId={ThreadId.make(threadId)} transport={transport} onOpenThread={onOpenThread} onTitle={onTitle} onManageModels={onManageModels} />
+    </ChatFrame>
   );
 }

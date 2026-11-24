@@ -722,6 +722,17 @@ export interface ChatThreadModes {
   modes: ChatMode[];
 }
 
+/** A new conversation as the box it starts from creates it: in the approval mode chosen there, or, left out, in the mode its member's conversations start in. */
+export interface ChatThreadCreate {
+  mode?: ChatMode;
+}
+
+/** What the box a conversation starts from offers of approval modes, read-only first, and the mode the member's new conversation starts in. */
+export interface ChatStartModes {
+  modes: ChatMode[];
+  mode: ChatMode;
+}
+
 /**
  * What the member is likely to write next, greyed in the empty composer until they type: predicted
  * for the conversation's latest answer `runId` once it completed, or null with no answer to follow.

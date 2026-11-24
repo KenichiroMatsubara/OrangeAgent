@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { ChatCapabilities, ChatDrivePicker, ChatDriveSaved, ChatThread, ChatThreadDeleted, ChatThreadDispatch, ChatThreadModes } from '@mail/domain';
+import type { ChatCapabilities, ChatDrivePicker, ChatDriveSaved, ChatThread, ChatThreadDeleted, ChatStartModes, ChatThreadDispatch, ChatThreadModes } from '@mail/domain';
 
 import { app, createApp } from './app';
 import type { TestApp } from '../test/app';
@@ -227,6 +227,29 @@ describe('the Operator Chat routes', () => {
     expect((await withKey.json() as { data: ChatThreadModes }).data).toEqual({ modes: ['read_only', 'ask', 'auto', 'unrestricted'] });
     expect(set.status).toBe(200);
     expect(reached.map((entry) => entry.body)).toEqual([{ mode: 'auto', by: { identityId: 'identity-1', name: 'Owner' } }]);
+  });
+
+  it('says which modes a new conversation may start in and the one it starts in, and starts it in the mode chosen there, as its member\'s choice', async () => {
+    fixture = await createAutomationTestApp();
+    const modes = '/api/organizations/organization-1/chat-modes';
+    const first = await app.fetch(fixture.request(modes), fixture.environment);
+    expect((await first.json() as { data: ChatStartModes }).data).toEqual({ modes: ['read_only', 'ask', 'unrestricted'], mode: 'unrestricted' });
+
+    const chosen = await app.fetch(fixture.jsonRequest(base, { mode: 'ask' }), fixture.environment);
+    const thread = (await chosen.json() as { data: ChatThread }).data;
+    expect(chosen.status).toBe(201);
+    expect(fixture.account.rows('SELECT mode, changed_by_identity FROM chat_thread_modes WHERE thread_id = ?', thread.id)).toEqual([{ mode: 'ask', changed_by_identity: 'identity-1' }]);
+    // The next conversation starts in it too, and the box says so.
+    const next = await app.fetch(fixture.request(modes), fixture.environment);
+    expect((await next.json() as { data: ChatStartModes }).data.mode).toBe('ask');
+    const inherited = await create(fixture);
+    expect(fixture.account.rows('SELECT mode, changed_by_identity FROM chat_thread_modes WHERE thread_id = ?', inherited.id)).toEqual([{ mode: 'ask', changed_by_identity: null }]);
+
+    // 自動 is refused where no Decider can be asked, as is a mode it does not know; nothing is created.
+    const auto = await app.fetch(fixture.jsonRequest(base, { mode: 'auto' }), fixture.environment);
+    const unknown = await app.fetch(fixture.jsonRequest(base, { mode: 'sometimes' }), fixture.environment);
+    expect([auto.status, unknown.status]).toEqual([400, 400]);
+    expect(fixture.account.rows('SELECT COUNT(*) AS count FROM chat_threads')).toEqual([{ count: 2 }]);
   });
 
   it('refuses an empty message, a model the Connection does not name, and a conversation of no one', async () => {

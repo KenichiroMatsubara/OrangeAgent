@@ -18,7 +18,7 @@
  */
 
 import { CHAT_THREAD_GONE, isModelEffort, type ChatApproval, type ChatDrivePicker, type ModelEffort } from '@mail/domain';
-import type { ChatDecision, ChatTransport } from '@mail/t3chat';
+import type { ChatDecision, ChatStarterSource, ChatTransport } from '@mail/t3chat';
 
 import { api } from './api';
 import { chooseDriveFiles, chooseDriveFolder, type PickedDocument } from './picker';
@@ -151,6 +151,28 @@ export const rememberEffort = (accountId: string, effort: ModelEffort): void => 
   }
 };
 
+/** What a conversation and the box a conversation starts from offer alike: the models a message may be answered by, the one this browser chose, and Drive files to attach. */
+const choicesOf = (accountId: string, surroundings: Surroundings): Omit<ChatStarterSource, 'start' | 'modes'> => ({
+  capabilities: () => api.chatCapabilities(accountId),
+  chosenModel: () => rememberedModel(accountId),
+  chooseModel: (model) => rememberModel(accountId, model),
+  chosenEffort: () => rememberedEffort(accountId),
+  chooseEffort: (effort) => rememberEffort(accountId, effort),
+  pickDriveFiles: async () => {
+    const picker = await api.chatDrivePicker(accountId);
+    if (!picker) throw new Error('Drive からの添付は設定されていません。');
+    const picked = await surroundings.chooseDriveFiles(picker);
+    return Promise.all(picked.map((document) => api.chatDriveFile(accountId, document.id)));
+  },
+});
+
+/** What the box a conversation starts from reads and remembers for one Account, starting a conversation with `start`. */
+export const createStarterSource = (input: { accountId: string; start: ChatStarterSource['start']; surroundings?: Surroundings }): ChatStarterSource => ({
+  ...choicesOf(input.accountId, input.surroundings ?? browser()),
+  modes: () => api.chatStartModes(input.accountId),
+  start: input.start,
+});
+
 /** The transport of one conversation of one Account. */
 export const createThreadTransport = (input: { accountId: string; threadId: string; surroundings?: Surroundings }): ChatTransport => {
   const { accountId, threadId } = input;
@@ -239,11 +261,7 @@ export const createThreadTransport = (input: { accountId: string; threadId: stri
     },
     fork: async (runId) => (await api.forkChatThread(accountId, threadId, runId)).id,
     suggestion: () => api.chatThreadSuggestion(accountId, threadId),
-    capabilities: () => api.chatCapabilities(accountId),
-    chosenModel: () => rememberedModel(accountId),
-    chooseModel: (model) => rememberModel(accountId, model),
-    chosenEffort: () => rememberedEffort(accountId),
-    chooseEffort: (effort) => rememberEffort(accountId, effort),
+    ...choicesOf(accountId, surroundings),
     saveToDrive: async (fileId, choose) => {
       let folderId: string | undefined;
       if (choose) {
@@ -255,12 +273,6 @@ export const createThreadTransport = (input: { accountId: string; threadId: stri
       }
       const saved = await api.saveChatFileToDrive(accountId, threadId, fileId, folderId ? { folderId } : {});
       return { url: saved.url };
-    },
-    pickDriveFiles: async () => {
-      const picker = await api.chatDrivePicker(accountId);
-      if (!picker) throw new Error('Drive からの添付は設定されていません。');
-      const picked = await surroundings.chooseDriveFiles(picker);
-      return Promise.all(picked.map((document) => api.chatDriveFile(accountId, document.id)));
     },
     changeQueue: async (change) => {
       const changed = await api.changeChatThreadQueue(accountId, threadId, change);

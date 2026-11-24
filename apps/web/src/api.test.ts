@@ -681,10 +681,14 @@ const table: { [K in Method]: Row<K> } = {
     kind: 'json', route: 'GET /api/organizations/:accountId/chat-threads', call: (c) => c.chatThreads(A),
     sends: { method: 'GET', path: '/api/organizations/org-1/chat-threads' }, data: [chatThread],
   },
-  // Reads nothing; answers 201.
+  // Reads `mode`, the approval mode chosen in the box a conversation starts from; answers 201.
   createChatThread: {
-    kind: 'json', route: 'POST /api/organizations/:accountId/chat-threads', call: (c) => c.createChatThread(A),
-    sends: { method: 'POST', path: '/api/organizations/org-1/chat-threads' }, status: 201, data: chatThread,
+    kind: 'json', route: 'POST /api/organizations/:accountId/chat-threads', call: (c) => c.createChatThread(A, { mode: 'ask' }),
+    sends: { method: 'POST', path: '/api/organizations/org-1/chat-threads', body: { json: { mode: 'ask' } } }, status: 201, data: chatThread,
+  },
+  chatStartModes: {
+    kind: 'json', route: 'GET /api/organizations/:accountId/chat-modes', call: (c) => c.chatStartModes(A),
+    sends: { method: 'GET', path: '/api/organizations/org-1/chat-modes' }, data: { modes: ['read_only', 'ask', 'unrestricted'], mode: 'ask' },
   },
   // Reads `text`, `delivery`, `model`, and each `attachment` part.
   sendChatThreadMessage: {
