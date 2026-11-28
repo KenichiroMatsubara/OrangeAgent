@@ -227,6 +227,7 @@ OrangeAgent は MCP サーバーとして呼べます。
 
 - Cloudflare のリソース：D1（`flarechat-control-apac`、`flarechat-organization-*`）、R2（`flarechat-recovery-receipts`）、Vectorize（`flarechat-memory`）、Workflow（`flarechat-transcriber`）。D1 は改名できず、移すには全 Account のデータを新しい D1 に移すことになります。Vectorize は全記憶の埋め込みを作り直すことになります。名前はダッシュボードと設定ファイルにしか見えないので、移しません。プロビジョニングは `flarechat-organization-` で始まる名前で Account の D1 を探します。
 - Durable Object の namespace（`flarechat_ChatThreads` など）：Cloudflare が作ったときの Worker 名で付けた表示名で、変えられません。動作には関わりません。
+- コンテナのアプリ（`flarechat-workbenchlite` など）：Durable Object の namespace には1つのアプリしかつながらず、別の名前のアプリを作ると `wrangler deploy` が `DURABLE_OBJECT_ALREADY_HAS_APPLICATION` で失敗します。そのため `wrangler.jsonc` で旧名を明示しています。
 - 会話のイベントに書く provider の ID（`flarechat`）：各 Account の D1 に保存済みで、画面には出ません。
 - コンテナの古い名前：コンテナは `orangeagent.internal` と `ORANGEAGENT_MCP_URL`・`ORANGEAGENT_RUN_TOKEN` で MCP Server に届きます。改名前に書かれた Skill のために、`flarechat.internal` と `FLARECHAT_MCP_URL`・`FLARECHAT_RUN_TOKEN` も同じ値で受け付けます。
 - Drive のファイル：改名前に捨てたファイルには `flarechatPutAwayFrom`、いまは `orangeagentPutAwayFrom` を付けます。どちらも記録のためで、読むところはありません。
@@ -257,6 +258,7 @@ OrangeAgent は MCP サーバーとして呼べます。
 - マイグレーションは本番データとの約束です（ADR 0174）。過去の形のまま残っている行でも失敗しないように書きます。
 - pull request ごとに、本番の全 D1 を書き出してマイグレーションを試します（`npm run db:rehearse:remote`）。失敗したらマージできません。
 - 本番へのデプロイは `npm run deploy:cloudflare` だけで行います。順序は、試行、Control のマイグレーション、全 Account の D1 のマイグレーション、`wrangler deploy`、確認です。どこかで失敗したら止まり、それまでの Worker が動き続けます。
+- 全 Account の D1 を移す間は、リリースの目印（Control の `schema_releases`）を `migrating` にして新しい Account の作成を待たせ、確認が済んだら `ready` に戻します。リリースが途中で落ちて目印が `migrating` のまま残っても、次のリリースは、残った目標が自分の持つマイグレーションの中にあれば目印を引き継ぎ、最後まで進めて `ready` に戻します。自分の知らない目標（もっと新しいリリースのもの）の目印なら、触らずに止まります。
 - 本番の `d1_migrations` に名前が載ったマイグレーションは変えません。
 
 ## 画面の決まり
