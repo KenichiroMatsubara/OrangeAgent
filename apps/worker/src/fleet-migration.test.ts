@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import accountInitialMigration from '../migrations/organization/0000_initial.sql';
 import { createMigratedTestD1, createTestD1Database, type TestD1Database } from '../test/d1';
 import { seedAccountRoute } from '../test/seed';
-import { fleetMigration, validateFleetRows } from './fleet-migration';
+import { fleetMigration, releaseMayAcquire, validateFleetRows } from './fleet-migration';
 import type { Bindings } from './types';
 
 const openDatabases: TestD1Database[] = [];
@@ -100,6 +100,42 @@ describe('Fleet Migration', () => {
     await expect(fleetMigration.prepareRelease({
       CONTROL_DB: control.binding,
     } as unknown as Bindings)).rejects.toThrow(/another schema release/iu);
+  });
+
+  it('takes over the barrier an earlier release left migrating when it failed, and finishes it', async () => {
+    const control = createMigratedTestD1('control');
+    openDatabases.push(control);
+    control.execute(
+      `UPDATE schema_releases
+       SET state = 'migrating', target_migration = ?
+       WHERE id = 'organization'`,
+      '0065_runs_browser_time.sql',
+    );
+    const environment = { CONTROL_DB: control.binding } as unknown as Bindings;
+
+    await fleetMigration.prepareRelease(environment);
+    await expect(fleetMigration.provisioningAllowed(environment)).resolves.toBe(false);
+    await fleetMigration.completeRelease(environment);
+
+    await expect(fleetMigration.provisioningAllowed(environment)).resolves.toBe(true);
+  });
+
+  it('leaves a barrier toward a target it does not ship as it was', async () => {
+    const control = createMigratedTestD1('control');
+    openDatabases.push(control);
+    control.execute(
+      `UPDATE schema_releases
+       SET state = 'migrating', target_migration = ?
+       WHERE id = 'organization'`,
+      '9999_later.sql',
+    );
+
+    await expect(fleetMigration.prepareRelease({
+      CONTROL_DB: control.binding,
+    } as unknown as Bindings)).rejects.toThrow('Another schema release is already in progress (toward 9999_later.sql).');
+    expect(releaseMayAcquire({ state: 'migrating', targetMigration: '9999_later.sql' })).toBe(false);
+    expect(releaseMayAcquire({ state: 'migrating', targetMigration: '0000_initial.sql' })).toBe(true);
+    expect(releaseMayAcquire({ state: 'ready', targetMigration: '9999_later.sql' })).toBe(true);
   });
 
   it('makes every recorded Account database current before release', async () => {

@@ -1,5 +1,7 @@
 # Gate Worker releases on D1 fleet migrations
 
+> Superseded in part: a release takes over a barrier left `migrating` toward a target it ships itself, because applying its own target applies that one too. A barrier toward a target the release does not ship still blocks it. `CONTEXT.md` states how the barrier behaves now.
+
 Mail Automation treats database schema readiness as a prerequisite for a Worker release rather than as a user-login side effect.
 
 The supported production release command:

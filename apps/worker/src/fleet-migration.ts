@@ -1,8 +1,8 @@
-import { and, eq, isNotNull, or } from 'drizzle-orm';
+import { and, eq, isNotNull } from 'drizzle-orm';
 
 import { cloudflareControlPlane } from './cloudflare';
 import { createDatabaseAccess } from './database-access';
-import { ORGANIZATION_SCHEMA_TARGET, schemaLifecycle } from './schema-lifecycle';
+import { ORGANIZATION_MIGRATION_NAMES, ORGANIZATION_SCHEMA_TARGET, schemaLifecycle } from './schema-lifecycle';
 import { controlDatabase } from './storage/database';
 import { accountProvisionings, accounts, schemaReleases } from './storage/control-schema';
 import type { Bindings } from './types';
@@ -68,6 +68,20 @@ const readFleet = async (env: Bindings): Promise<FleetDatabase[]> => {
   ]);
 };
 
+/**
+ * Whether a release may take the barrier as it stands. It is free when ready.
+ * When migrating, it was left by a release that acquired it and then failed,
+ * or is held by one still running; this release may take it over when the
+ * target it was migrating toward is one this release ships, because applying
+ * this release's target applies that one too. A target this release does not
+ * ship (a later release, or one from another branch) still blocks it.
+ */
+export const releaseMayAcquire = (held: { state: string; targetMigration: string }): boolean => {
+  if (held.state === 'ready') return true;
+  if (held.state !== 'migrating') return false;
+  return ORGANIZATION_MIGRATION_NAMES.includes(held.targetMigration);
+};
+
 const migrateFleet = async (
   env: Bindings,
   fleet?: FleetDatabase[],
@@ -102,19 +116,23 @@ export const fleetMigration = {
     // inventory failure.
     const fleet = await readFleet(env);
     const control = controlDatabase(env.CONTROL_DB);
+    const held = await control.select({
+      state: schemaReleases.state,
+      targetMigration: schemaReleases.targetMigration,
+    }).from(schemaReleases).where(eq(schemaReleases.id, 'organization')).get();
+    if (!held) throw new Error('The Account schema release row is missing.');
+    if (!releaseMayAcquire(held)) {
+      throw new Error(`Another schema release is already in progress (toward ${held.targetMigration}).`);
+    }
+    // Take the barrier only as it was just read, so two releases cannot both take it.
     const acquired = await control.update(schemaReleases).set({
       state: 'migrating',
       targetMigration: ORGANIZATION_SCHEMA_TARGET,
       updatedAt: new Date().toISOString(),
     }).where(and(
       eq(schemaReleases.id, 'organization'),
-      or(
-        eq(schemaReleases.state, 'ready'),
-        and(
-          eq(schemaReleases.state, 'migrating'),
-          eq(schemaReleases.targetMigration, ORGANIZATION_SCHEMA_TARGET),
-        ),
-      ),
+      eq(schemaReleases.state, held.state),
+      eq(schemaReleases.targetMigration, held.targetMigration),
     )).run();
     if (acquired.meta.changes === 0) {
       throw new Error('Another schema release is already in progress.');

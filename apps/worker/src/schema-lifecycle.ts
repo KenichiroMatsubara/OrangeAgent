@@ -227,6 +227,8 @@ const LEGACY_MIGRATION_CHECKSUMS = new Map<string, ReadonlySet<string>>([
 ]);
 export const ORGANIZATION_SCHEMA_TARGET =
   ORGANIZATION_MIGRATIONS.at(-1)?.name ?? '';
+/** Every Account migration this release ships, oldest first. */
+export const ORGANIZATION_MIGRATION_NAMES: readonly string[] = ORGANIZATION_MIGRATIONS.map((migration) => migration.name);
 export const CONTROL_SCHEMA_TARGET = CONTROL_MIGRATIONS.at(-1)?.name ?? '';
 
 const migrations = (kind: SchemaKind): readonly SchemaMigration[] => {

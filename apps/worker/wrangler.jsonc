@@ -113,24 +113,28 @@
   ],
   "containers": [
     {
+      "name": "flarechat-workbenchlite",
       "class_name": "WorkbenchLite",
       "image": "./workbench/Dockerfile",
       "instance_type": "lite",
       "max_instances": 10
     },
     {
+      "name": "flarechat-workbenchbasic",
       "class_name": "WorkbenchBasic",
       "image": "./workbench/Dockerfile",
       "instance_type": "basic",
       "max_instances": 10
     },
     {
+      "name": "flarechat-workbenchstandard1",
       "class_name": "WorkbenchStandard1",
       "image": "./workbench/Dockerfile",
       "instance_type": "standard-1",
       "max_instances": 5
     },
     {
+      "name": "flarechat-workbenchstandard4",
       "class_name": "WorkbenchStandard4",
       "image": "./workbench/Dockerfile",
       "instance_type": "standard-4",
