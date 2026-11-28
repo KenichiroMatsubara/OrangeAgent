@@ -111,8 +111,6 @@
       "binding": "LOADER"
     }
   ],
-  // Container applications keep the names Cloudflare gave them under the old Worker name:
-  // a Durable Object namespace has one application, and a new name cannot take it over.
   "containers": [
     {
       "name": "flarechat-workbenchlite",
